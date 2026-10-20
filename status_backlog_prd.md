@@ -85,7 +85,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 | 404 | Cron pengingat email H-1 (+ H-2 jam) | ✅ email asli terkirim via Gmail 20 Okt [catatan](#pbi-404-cron-pengingat-email) |
 | 405 | Approval bengkel oleh admin | ✅ |
 | 406 | Laporan transaksi | ✅ |
-| 407 | E2E Playwright/Cypress + deploy Vercel | ⚠️ E2E ✅, deploy belum [lihat catatan](#pbi-407-e2e-testing--deploy-vercel) |
+| 407 | E2E Playwright/Cypress + deploy Vercel | ⚠️ E2E ✅, deploy ✅ live 20 Okt (sisa: Gmail API, ping, uji produksi) [lihat catatan](#pbi-407-e2e-testing--deploy-vercel) |
 
 ---
 
@@ -217,6 +217,10 @@ Pengujian ini menemukan 2 bug di frontend, dan keduanya sudah diperbaiki.
 3. **Pengaturan frontend di Vercel:**
    - Environment variable `VITE_API_URL` = URL API publik (misalnya `https://api.bengkelapp.com/api/v1`).
    - ✅ **File `vercel.json` dengan aturan rewrite SPA** sudah dibuat (19 Okt 2026) di `frontend/vercel.json`: semua URL non-aset diarahkan ke `index.html`, aset `/assets/*` di-cache 1 tahun. Saat import proyek di Vercel, set *Root Directory* = `frontend`.
+
+**✅ LIVE 20 Okt 2026:** web https://bengkelgo-eight.vercel.app, API https://bengkelgo-api.onrender.com (Render Free, Singapore; kartu debit virtual Jago hanya untuk verifikasi Render), database & Storage Supabase (Singapore). Migrasi 001–005 jalan otomatis, admin dibuat dengan `npm run seed`. `TRUST_PROXY=4` (diukur: Vercel → Cloudflare → Render internal → lokal); halaman admin Kesehatan sistem menampilkan rantai header proxy untuk mengecek ulang.
+- **Belum:** ping cron-job.org (langkah 7), Gmail API (langkah 3; sampai diisi, email hanya tercatat di log Render), uji alur lengkap di produksi (langkah 8).
+- **Risiko kecil yang dicatat:** request yang langsung ke alamat Render (tanpa Vercel) bisa memalsukan `X-Forwarded-For` dan mengakali pembatas login. Perbaikan nanti: Vercel mengirim header rahasia dan API menolak request tanpa header itu, atau pembatas login juga per email.
 
 **✅ Disiapkan 20 Okt: jalur deploy gratis tanpa kartu kredit** (keputusan: tidak ada kartu untuk Oracle Cloud). Susunan: Vercel (frontend) → proxy `/api/*` → Render Free (API Docker, `render.yaml`) → Supabase (database + Storage) + Gmail API; cron-job.org mem-ping `/health` tiap 10 menit. Panduan lengkap langkah demi langkah: **[docs/deploy-gratis.md](docs/deploy-gratis.md)**. Perubahan kode (tanpa perubahan database):
 - `STORAGE_DRIVER=supabase`: upload ke bucket private Supabase Storage (`common/utils/storage.ts`), file tetap disajikan lewat API dengan cek akses yang sama.
