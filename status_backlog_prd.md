@@ -60,6 +60,15 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 - **Riwayat dibatalkan di halaman Semua Pesanan (owner)** dipindah dari bawah daftar ke atas, tepat di bawah filter, dengan tombol "Kembali ke semua pesanan". Di halaman pesanan pelanggan, "Riwayat dibatalkan" sudah berupa filter di atas.
 - Diuji: Vitest 40/40, E2E journeys + fitur backlog + a11y (desktop & HP) lolos, visual regression 12/12 (baseline SOS-HP dan daftar bengkel diperbarui karena memang berubah), dicek manual di browser.
 
+## Izin lokasi GPS (20 Okt 2026)
+
+Keluhan penguji: "lokasi ditolak". Website **tidak bisa** memunculkan lagi pop-up izin resmi browser setelah pengguna menekan Tolak/Blokir, dan tidak bisa menyalakan lokasi HP. Perbaikan di `hooks/useGeolocation.tsx` (SOS, detail bengkel, cari bengkel):
+- **Pop-up penjelasan sebelum pop-up resmi** (sekali per browser, hanya bila izin belum pernah diputuskan): menjelaskan kegunaan lokasi dan meminta memilih "Izinkan", lalu tombol "Lanjut" memicu pop-up resmi. Tujuannya mengurangi penolakan tidak sengaja.
+- **Bila izin sudah diblokir**: dialog langkah membuka izin sesuai perangkat (iPhone Safari, Android Chrome, desktop) + tombol "Coba lagi"; status izin dicek dulu (Permissions API) sehingga panduan langsung muncul tanpa percobaan yang pasti gagal.
+- **Browser dalam aplikasi** (WhatsApp, Instagram, Facebook, LINE, TikTok, WebView Android): saran membuka di Chrome/Safari + tombol salin link.
+- **GPS lemah di dalam ruangan**: bila akurasi tinggi gagal 10 detik, otomatis mencoba lagi dengan akurasi biasa / lokasi terakhir (maks. 5 menit).
+- Pilih titik di peta tetap jadi cadangan. Diuji: Vitest (deteksi perangkat/browser), E2E baru `e2e/geolocation.spec.ts`, journeys, a11y, visual; dicek di browser emulasi HP.
+
 ## Pengamanan penyalahgunaan booking (dicatat 20 Okt 2026)
 
 **Kondisi sekarang:** satu akun pelanggan bisa membuat banyak booking (mis. 20 dalam 5 menit) selama slotnya berbeda. Pengaman yang sudah ada hanya: wajib login sebagai CUSTOMER, tidak boleh 2 booking di slot yang sama (`DUPLICATE_BOOKING`), maksimal 30 hari ke depan sesuai jam buka/libur, dan pembatas request umum 300/menit per IP (tidak menahan 20 booking).

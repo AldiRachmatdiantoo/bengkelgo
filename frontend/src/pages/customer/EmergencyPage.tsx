@@ -340,6 +340,7 @@ export default function EmergencyPage() {
       </form>
 
       <SafetyBanner />
+      {geo.dialog}
     </div>
   );
 }

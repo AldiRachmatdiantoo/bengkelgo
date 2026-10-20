@@ -132,6 +132,7 @@ export default function WorkshopDetailPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {geo.dialog}
       {/* Step bar + quota notice (Stitch layout) */}
       <div className="rounded-xl border border-line bg-card px-4 py-4 shadow-sm sm:px-6">
         <Stepper steps={STEPS} current={step} />

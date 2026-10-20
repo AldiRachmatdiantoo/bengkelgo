@@ -78,6 +78,7 @@ export default function WorkshopSearchPage() {
 
   return (
     <div className="flex flex-col gap-12">
+      {geo.dialog}
       <section className="relative -mx-5 -mt-8 overflow-hidden px-5 pt-8 pb-2 sm:-mx-8 sm:-mt-12 sm:px-8 sm:pt-10 lg:-mx-20 lg:px-20">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_0%,#f0f3ff_0%,rgba(248,250,251,0)_70%)]" />
         <div className="relative">
