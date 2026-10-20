@@ -15,6 +15,7 @@ const WorkshopDetailPage = lazy(() => import('@/pages/public/WorkshopDetailPage'
 const EmergencyPage = lazy(() => import('@/pages/customer/EmergencyPage'));
 const VehiclesPage = lazy(() => import('@/pages/customer/VehiclesPage'));
 const NotFoundPage = lazy(() => import('@/pages/public/NotFoundPage'));
+const PrivacyPage = lazy(() => import('@/pages/public/PrivacyPage'));
 const auth = () => import('@/pages/auth/AuthPages');
 const LoginPage = named(auth, 'LoginPage');
 const RegisterPage = named(auth, 'RegisterPage');
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
       { path: '/login', element: page(<LoginPage />) },
       { path: '/register', element: page(<RegisterPage />) },
       { path: '/register/workshop', element: page(<RegisterWorkshopPage />) },
+      { path: '/privasi', element: page(<PrivacyPage />) },
       { path: '/auth/google/callback', element: page(<GoogleCallbackPage />) },
 
       // Customer & guest

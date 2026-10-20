@@ -401,7 +401,12 @@ function PublicShell() {
                 <Icon name="verified_user" className="text-primary" /> Bengkel diverifikasi admin
               </span>
             </span>
-            <span>© {new Date().getFullYear()} BengkelGo.</span>
+            <span className="flex items-center gap-4">
+              <Link to="/privasi" className="font-semibold text-ink-2 hover:text-primary hover:underline">
+                Kebijakan Privasi
+              </Link>
+              <span>© {new Date().getFullYear()} BengkelGo.</span>
+            </span>
           </div>
         </div>
       </footer>
