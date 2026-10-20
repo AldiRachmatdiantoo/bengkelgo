@@ -1,5 +1,6 @@
 import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import RouteErrorPage from '@/pages/public/RouteErrorPage';
 import { AppLayout, RequireRole } from '@/components/layout/AppLayout';
 import HomePage from '@/pages/public/HomePage';
 import { Loading } from '@/components/ui';
@@ -49,6 +50,7 @@ const page = (node: ReactNode) => <Suspense fallback={<Loading />}>{node}</Suspe
 const router = createBrowserRouter([
   {
     element: <AppLayout />,
+    errorElement: <RouteErrorPage />,
     children: [
       // Public
       { path: '/', element: <HomePage /> },

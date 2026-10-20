@@ -6,6 +6,23 @@ import { AuthProvider } from '@/services/auth/AuthProvider';
 import App from './App';
 import './theme/index.css';
 
+// After a new deploy, a tab still running the previous build asks for chunk files that no longer exist.
+// Vite reports that as `vite:preloadError`; reload once to pick up the new build instead of showing an error.
+// The timestamp guard stops a reload loop if the files are genuinely unreachable (e.g. offline).
+window.addEventListener('vite:preloadError', (event) => {
+  const KEY = 'bengkelgo:chunk-reload-at';
+  let last = 0;
+  try {
+    last = Number(sessionStorage.getItem(KEY) ?? 0);
+    sessionStorage.setItem(KEY, String(Date.now()));
+  } catch {
+    // storage blocked: still reload once
+  }
+  if (Date.now() - last < 10_000) return;
+  event.preventDefault();
+  window.location.reload();
+});
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 15_000 },
