@@ -49,15 +49,9 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
 
-      # Email through the Gmail API (Render Free blocks SMTP ports)
-      - key: GMAIL_CLIENT_ID
-        sync: false
-      - key: GMAIL_CLIENT_SECRET
-        sync: false
-      - key: GMAIL_REFRESH_TOKEN
-        sync: false
-      - key: MAIL_FROM
-        sync: false # BengkelGo <yourname@gmail.com> (same account as the refresh token)
+      # Email: Render Free blocks SMTP ports, so email goes through the Gmail API. Until GMAIL_CLIENT_ID,
+      # GMAIL_CLIENT_SECRET, GMAIL_REFRESH_TOKEN and MAIL_FROM are added in the dashboard (docs/deploy-gratis.md
+      # step 3), emails are only logged.
       - key: APP_URL
         sync: false # https://<project>.vercel.app
 

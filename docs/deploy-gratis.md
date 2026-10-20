@@ -45,7 +45,10 @@ Yang perlu disiapkan: akun **GitHub**, **Supabase**, **Render**, **Vercel**, **G
 3. **Project Settings → API Keys**: salin **Project URL** (`SUPABASE_URL`) dan kunci **service_role / secret** (`SUPABASE_SERVICE_ROLE_KEY`). Kunci ini memberi akses penuh: hanya untuk server.
 4. Tidak perlu membuat tabel, mengaktifkan PostGIS, atau membuat bucket: API melakukannya otomatis saat pertama jalan (migrasi 001–005 dan bucket private `uploads`).
 
-## Langkah 3. Gmail API (email)
+## Langkah 3. Gmail API (email), boleh dikerjakan setelah langkah 8
+
+Tanpa langkah ini API tetap jalan; email hanya dicatat di log Render, tidak terkirim. Google hanya mengizinkan **Publish app** setelah halaman Branding lengkap, dan kalau Google meminta home page/kebijakan privasi, itu butuh URL Vercel yang sudah online. Jadi urutan yang praktis: langkah 4–8 dulu, lalu kembali ke sini. Setelah mendapat nilainya, tambahkan `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, dan `MAIL_FROM` di Render → service → **Environment** → **Save**.
+
 
 Sekali saja, ±15 menit, di [console.cloud.google.com](https://console.cloud.google.com) dengan akun Gmail pengirim:
 
@@ -72,7 +75,6 @@ Mencabut akses kapan saja: [myaccount.google.com/permissions](https://myaccount.
    |---|---|
    | `DATABASE_URL` | Session pooler URI dari langkah 2 |
    | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | dari langkah 2 |
-   | `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `MAIL_FROM` | dari langkah 3 |
    | `CORS_ORIGINS`, `APP_URL` | sementara `https://bengkelgo.vercel.app`; diganti di langkah 6 |
 
    `JWT_ACCESS_SECRET` dibuat otomatis oleh Render.
