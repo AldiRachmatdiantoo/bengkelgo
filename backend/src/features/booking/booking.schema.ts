@@ -27,3 +27,4 @@ export const slotCapacitySchema = z.object({
 
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export type RescheduleInput = z.infer<typeof rescheduleSchema>;
+export type SlotCapacityInput = z.infer<typeof slotCapacitySchema>;

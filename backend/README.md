@@ -27,7 +27,11 @@ src/
   common/        db transaction manager, middlewares (auth/RBAC, validate, rate limiter, upload, errors), utils
   db/            SQL migrations + runner, admin seed
   features/      auth · emergency · booking · workshop · order · payment · review · admin
-                 (each: *.schema.ts → *.routes.ts → *.service.ts → *.repository.ts)
+                 · notification · vehicle · stats
+                 (each: *.schema.ts → *.routes.ts → *.controller.ts → *.service.ts → *.repository.ts)
+                 routes: URL + middleware (auth, validation, upload) only; controller: reads the
+                 validated input and shapes the HTTP response; service: business rules; repository: SQL.
+                 Not yet split: admin, notification, payment, review, stats, vehicle keep SQL in the service.
   jobs/          node-cron scheduler: booking reminders, emergency re-routing
   routes/        central router
 ```

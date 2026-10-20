@@ -1,19 +1,11 @@
-import { Router, type Request, type Response } from 'express';
-import { z } from 'zod';
-import { authenticate, authorize, currentUser } from '../../common/middlewares/auth';
-import { input, safeText, validate } from '../../common/middlewares/validate';
-import { created } from '../../common/utils/http';
-import { reviewService } from './review.service';
+import { Router } from 'express';
+import { authenticate, authorize } from '../../common/middlewares/auth';
+import { validate } from '../../common/middlewares/validate';
+import { reviewController as c } from './review.controller';
+import { reviewSchema } from './review.schema';
 
 const r = Router();
-const reviewSchema = z.object({
-  order_id: z.uuid(),
-  rating: z.coerce.number().int().min(1).max(5),
-  comment: safeText(1000).optional(),
-});
 
-r.post('/', authenticate, authorize('CUSTOMER', 'GUEST'), validate({ body: reviewSchema }), async (req: Request, res: Response) => {
-  created(res, await reviewService.create(currentUser(req).id, input<z.infer<typeof reviewSchema>>(req).body));
-});
+r.post('/', authenticate, authorize('CUSTOMER', 'GUEST'), validate({ body: reviewSchema }), c.create);
 
 export default r;

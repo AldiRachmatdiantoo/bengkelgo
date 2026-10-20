@@ -1,12 +1,8 @@
-import { Router, type Request, type Response } from 'express';
-import { ok } from '../../common/utils/http';
-import { statsService } from './stats.service';
+import { Router } from 'express';
+import { statsController as c } from './stats.controller';
 
 const r = Router();
 
-/** Public platform numbers for the landing page (cached ~5 minutes per instance). */
-r.get('/public', async (_req: Request, res: Response) => {
-  ok(res, await statsService.publicStats());
-});
+r.get('/public', c.publicStats);
 
 export default r;

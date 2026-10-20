@@ -98,6 +98,9 @@ export const holidayQuery = z.object({ from: isoDate.optional(), to: isoDate.opt
 export const nextSlotQuery = z.object({ from: isoDate.optional() });
 
 export const replySchema = z.object({ reply: safeText(1000).pipe(z.string().min(2)) });
+export const ownerStatsQuery = z.object({ date: isoDate.optional() });
+export const photoParams = z.object({ id: z.uuid(), photoId: z.uuid() });
+export const mechanicPhotoParams = z.object({ id: z.uuid(), mechanicId: z.uuid() });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ServiceInput = z.infer<typeof serviceSchema>;
@@ -105,3 +108,5 @@ export type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
 export type MechanicInput = z.infer<typeof mechanicSchema>;
 export type UpdateMechanicInput = z.infer<typeof updateMechanicSchema>;
 export type ListWorkshopsQuery = z.infer<typeof listWorkshopsQuery>;
+export type HolidayInput = z.infer<typeof holidaySchema>;
+export type ReplyInput = z.infer<typeof replySchema>;
