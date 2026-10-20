@@ -226,6 +226,8 @@ export interface SystemHealth {
   scheduler: { enabled: boolean; reminder_cron: string; timezone: string; next_reminder_run: string | null };
   /** The caller's IP as the API sees it (rate limits use it); behind proxies it must match the admin's real IP. */
   client_ip?: string;
+  /** Raw proxy headers seen by the API (diagnostic for TRUST_PROXY). */
+  proxy_headers?: Record<string, string | null>;
 }
 
 export interface SlotAvailability {

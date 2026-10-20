@@ -58,7 +58,17 @@ r.get('/audit-logs', validate({ query: auditQuery }), async (req: Request, res: 
 
 r.get('/health', async (req: Request, res: Response) => {
   // client_ip: the address rate limits are keyed on; it must be the admin's own IP, not a proxy's (TRUST_PROXY).
-  ok(res, { ...(await statsService.health()), client_ip: req.ip });
+  // Proxy headers as received, so the admin can tell which hop holds their real IP when setting TRUST_PROXY.
+  const h = (name: string) => (req.headers[name] as string | undefined) ?? null;
+  const proxy_headers = {
+    'x-forwarded-for': h('x-forwarded-for'),
+    'x-real-ip': h('x-real-ip'),
+    'cf-connecting-ip': h('cf-connecting-ip'),
+    'true-client-ip': h('true-client-ip'),
+    'x-vercel-forwarded-for': h('x-vercel-forwarded-for'),
+    remote_address: req.socket.remoteAddress ?? null,
+  };
+  ok(res, { ...(await statsService.health()), client_ip: req.ip, proxy_headers });
 });
 
 // ---------- BE-15: access management ----------

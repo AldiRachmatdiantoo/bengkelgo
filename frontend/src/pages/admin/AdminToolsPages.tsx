@@ -1,5 +1,5 @@
 // Admin tools on top of the backlog-B endpoints: live numbers, global search, audit trail, system health.
-import { useState, type ReactNode } from 'react';
+import { Fragment, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/services/api/endpoints';
@@ -277,6 +277,15 @@ export function AdminHealthPage() {
                       <dd className="font-mono text-navy" data-testid="health-client-ip">{h.client_ip}</dd>
                     </>
                   )}
+                  {h.proxy_headers &&
+                    Object.entries(h.proxy_headers)
+                      .filter(([, v]) => v)
+                      .map(([k, v]) => (
+                        <Fragment key={k}>
+                          <dt className="text-ink-3 font-mono text-xs">{k}</dt>
+                          <dd className="font-mono text-xs text-navy break-all">{v}</dd>
+                        </Fragment>
+                      ))}
                 </dl>
               </Card>
             </div>
