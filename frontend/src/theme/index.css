@@ -1,0 +1,163 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/*
+ * Brand palette: primary #4361EE (hsl 229 84% 60%), with tints/shades and navy text derived from the same hue.
+ * SOS accent: #F05A28 (hover #EA580C), white bold text on top.
+ * Layout tokens follow the Stitch "Azure Fleet & Roadside System" (radius, shadows, type scale).
+ * White text on primary = 5.0:1 (WCAG AA). Usage: bg-primary, text-navy, bg-sky, bg-canvas, bg-surface-low, text-emergency, border-line, text-ink-2 …
+ */
+@theme {
+  --color-primary: #4361ee;
+  --color-primary-dark: #2b4ad4;
+  --color-primary-container: #3b5bdb;
+  --color-primary-bright: #728af3;
+  --color-primary-fixed: #d3dbfd;
+  --color-secondary: #4154aa;
+  --color-navy: #192557;
+  --color-sky: #f0f3ff;
+  --color-canvas: #f8f9fc;
+  /* Page = soft canvas; cards = bright white. */
+  --color-card: #ffffff;
+  --color-surface-low: #f3f3f7;
+  --color-surface: #eaebf0;
+  --color-surface-high: #e2e3e9;
+  /* SOS / emergency: Warm Safety Orange (no red). -ink is the readable text shade on white & soft fills. */
+  --color-emergency: #f05a28;
+  --color-emergency-dark: #ea580c;
+  --color-emergency-soft: #fff1eb;
+  --color-emergency-ink: #c2410c;
+  /* PRD #00A651 only reaches 3.2:1; this darker green keeps text and white-on-green at 5.4:1 (WCAG AA). */
+  --color-success: #077a3a;
+  --color-success-soft: #e6f6ee;
+  --color-warning: #f59e0b;
+  --color-warning-soft: #fef3c7;
+  --color-warning-ink: #b45309;
+  --color-line: #e4e7f1;
+  --color-line-strong: #c6cadc;
+  --color-ink-2: #4c5676;
+  --color-ink-3: #5f6784; /* muted text; ≥4.5:1 on white, canvas, sky and surface-low (WCAG AA) */
+
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-label: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Type scale (extra compact): Tailwind base sizes + Stitch roles, ~15-30% smaller than the Stitch defaults */
+  --text-xs: 0.6875rem;
+  --text-xs--line-height: 1rem;
+  /* Body text = the landing's small labels ("Bengkel diverifikasi admin"): 11px. Titles/subtitles keep their own roles. */
+  --text-sm: 0.6875rem;
+  --text-sm--line-height: 1.0625rem;
+  --text-base: 0.6875rem;
+  --text-base--line-height: 1.0625rem;
+  --text-subtitle: 0.8125rem;
+  --text-subtitle--line-height: 1.25rem;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.125rem;
+  --text-xl--line-height: 1.625rem;
+  --text-2xl: 1.25rem;
+  --text-2xl--line-height: 1.75rem;
+  --text-3xl: 1.5rem;
+  --text-3xl--line-height: 2rem;
+  --text-display: 2.125rem;
+  --text-display--line-height: 2.625rem;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+  --text-display-mobile: 1.5rem;
+  --text-display-mobile--line-height: 2rem;
+  --text-display-mobile--letter-spacing: -0.02em;
+  --text-display-mobile--font-weight: 800;
+  --text-headline-lg: 1.5rem;
+  --text-headline-lg--line-height: 2rem;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg--font-weight: 700;
+  --text-headline-md: 1.125rem;
+  --text-headline-md--line-height: 1.5rem;
+  --text-headline-md--letter-spacing: -0.01em;
+  --text-headline-md--font-weight: 700;
+  --text-headline-sm: 0.9375rem;
+  --text-headline-sm--line-height: 1.375rem;
+  --text-headline-sm--font-weight: 600;
+  --text-label-sm: 0.65625rem;
+  --text-label-sm--line-height: 0.875rem;
+  --text-label-sm--letter-spacing: 0.04em;
+  --text-label-sm--font-weight: 700;
+
+  /* Ambient shadows with a cool navy cast */
+  --shadow-soft: 0 4px 14px -2px rgb(25 37 87 / 0.06), 0 2px 6px -1px rgb(25 37 87 / 0.04);
+  --shadow-lift: 0 12px 28px -4px rgb(25 37 87 / 0.09), 0 4px 12px -2px rgb(25 37 87 / 0.04);
+  --shadow-float: 0 24px 48px -8px rgb(25 37 87 / 0.14), 0 8px 16px -4px rgb(25 37 87 / 0.06);
+  --shadow-header: 0 1px 8px rgb(25 37 87 / 0.06);
+
+  --animate-beacon: beacon 1.8s ease-out infinite;
+  @keyframes beacon {
+    0% { box-shadow: 0 0 0 0 rgb(240 90 40 / 0.45); }
+    100% { box-shadow: 0 0 0 14px rgb(240 90 40 / 0); }
+  }
+  --animate-toast: toast-in 0.25s ease-out;
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-canvas font-sans text-base text-navy antialiased;
+  }
+  ::selection {
+    @apply bg-primary-fixed text-navy;
+  }
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+}
+.material-symbols-outlined.filled {
+  font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
+}
+
+/* Leaflet sits below the sticky header */
+.leaflet-container {
+  font-family: var(--font-sans);
+  z-index: 0;
+}
+
+/* Horizontal carousels: hide the scrollbar, keep scrolling */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* "Cetak / simpan PDF" on the e-receipt: print only the receipt area */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  [data-print-area],
+  [data-print-area] * {
+    visibility: visible;
+  }
+  [data-print-area] {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    box-shadow: none !important;
+  }
+  [data-print-hide] {
+    display: none !important;
+  }
+}

@@ -1,0 +1,188 @@
+import { notificationService } from '../notification/notification.service';
+import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
+import { env } from '../../config/env';
+import { db, withTransaction, type Queryable } from '../../common/db/transaction';
+import { AppError } from '../../common/errors/AppError';
+import { DUMMY_PASSWORD_HASH, generateOpaqueToken, hashPassword, sha256, verifyPassword } from '../../common/utils/crypto';
+import { signAccessToken } from '../../common/utils/jwt';
+import { workshopRepository } from '../workshop/workshop.repository';
+import { authRepository, type UserRow } from './auth.repository';
+import type { GoogleInput, GuestInput, LoginInput, RegisterCustomerInput, RegisterWorkshopInput } from './auth.schema';
+
+export interface AuthResult {
+  user: PublicUser;
+  accessToken: string;
+  refreshToken: string;
+  refreshExpiresAt: Date;
+}
+
+export type PublicUser = Pick<UserRow, 'id' | 'name' | 'email' | 'phone' | 'role'>;
+
+const toPublic = (u: UserRow): PublicUser => ({ id: u.id, name: u.name, email: u.email, phone: u.phone, role: u.role });
+
+async function issueTokens(q: Queryable, user: UserRow, userAgent?: string, familyId: string = crypto.randomUUID()) {
+  const refreshToken = generateOpaqueToken();
+  const refreshExpiresAt = new Date(Date.now() + env.REFRESH_TOKEN_TTL_DAYS * 86_400_000);
+  const id = await authRepository.insertRefreshToken(q, {
+    userId: user.id,
+    tokenHash: sha256(refreshToken),
+    familyId,
+    expiresAt: refreshExpiresAt,
+    userAgent,
+  });
+  return { id, accessToken: signAccessToken({ sub: user.id, role: user.role }), refreshToken, refreshExpiresAt };
+}
+
+async function result(q: Queryable, user: UserRow, userAgent?: string): Promise<AuthResult> {
+  const t = await issueTokens(q, user, userAgent);
+  return { user: toPublic(user), accessToken: t.accessToken, refreshToken: t.refreshToken, refreshExpiresAt: t.refreshExpiresAt };
+}
+
+let googleClient: OAuth2Client | null = null;
+function google() {
+  if (!env.googleEnabled) throw new AppError(503, 'GOOGLE_DISABLED', 'Google sign-in is not configured');
+  googleClient ??= new OAuth2Client(env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET, env.GOOGLE_REDIRECT_URI);
+  return googleClient;
+}
+
+/** Test seam: lets tests replace the Google verification step. */
+export const googleVerifier = {
+  async exchange(code: string, codeVerifier: string): Promise<{ sub: string; email: string; name: string; emailVerified: boolean }> {
+    const client = google();
+    const { tokens } = await client
+      .getToken({ code, codeVerifier, redirect_uri: env.GOOGLE_REDIRECT_URI })
+      .catch(() => {
+        throw AppError.unauthorized('Google authorization code is invalid or expired', 'GOOGLE_AUTH_FAILED');
+      });
+    if (!tokens.id_token) throw AppError.unauthorized('Google did not return an ID token', 'GOOGLE_AUTH_FAILED');
+    const ticket = await client.verifyIdToken({ idToken: tokens.id_token, audience: env.GOOGLE_CLIENT_ID }).catch(() => {
+      throw AppError.unauthorized('Google ID token verification failed', 'GOOGLE_AUTH_FAILED');
+    });
+    const p = ticket.getPayload();
+    if (!p?.sub || !p.email) throw AppError.unauthorized('Google profile is incomplete', 'GOOGLE_AUTH_FAILED');
+    return { sub: p.sub, email: p.email.toLowerCase(), name: p.name ?? p.email.split('@')[0], emailVerified: Boolean(p.email_verified) };
+  },
+};
+
+export const authService = {
+  async registerCustomer(input: RegisterCustomerInput, userAgent?: string): Promise<AuthResult> {
+    const passwordHash = await hashPassword(input.password);
+    return withTransaction(async (tx) => {
+      if (await authRepository.findUserByEmail(tx, input.email)) throw AppError.conflict('Email is already registered', 'EMAIL_TAKEN');
+      const user = await authRepository.createUser(tx, { name: input.name, email: input.email, phone: input.phone, passwordHash, role: 'CUSTOMER' });
+      return result(tx, user, userAgent);
+    });
+  },
+
+  /** Creates owner account + PENDING workshop atomically; admin approval required before it is visible. */
+  async registerWorkshop(input: RegisterWorkshopInput, userAgent?: string) {
+    const passwordHash = await hashPassword(input.owner.password);
+    return withTransaction(async (tx) => {
+      if (await authRepository.findUserByEmail(tx, input.owner.email)) throw AppError.conflict('Email is already registered', 'EMAIL_TAKEN');
+      const user = await authRepository.createUser(tx, {
+        name: input.owner.name,
+        email: input.owner.email,
+        phone: input.owner.phone,
+        passwordHash,
+        role: 'WORKSHOP_OWNER',
+      });
+      const workshop = await workshopRepository.create(tx, { ownerId: user.id, ...input.workshop });
+      await notificationService.notifyAdmins(tx, { type: 'WORKSHOP_REGISTERED', title: 'Pendaftaran mitra baru', body: workshop.name, link: '/admin/workshops' });
+      return { ...(await result(tx, user, userAgent)), workshop };
+    });
+  },
+
+  async login(input: LoginInput, userAgent?: string): Promise<AuthResult> {
+    const user = await authRepository.findUserByEmail(db, input.email);
+    // Always run bcrypt so response time doesn't reveal whether the email exists.
+    const valid = await verifyPassword(input.password, user?.password_hash ?? DUMMY_PASSWORD_HASH);
+    if (!user || !user.password_hash || !valid) throw AppError.unauthorized('Invalid email or password', 'INVALID_CREDENTIALS');
+    if (!user.is_active) throw AppError.forbidden('Account is disabled', 'ACCOUNT_DISABLED');
+    return result(db, user, userAgent);
+  },
+
+  /** Google Authorization Code + PKCE. Unknown emails are auto-registered as CUSTOMER. */
+  async google(input: GoogleInput, userAgent?: string): Promise<AuthResult & { isNewUser: boolean }> {
+    const profile = await googleVerifier.exchange(input.code, input.code_verifier);
+    if (!profile.emailVerified) throw AppError.unauthorized('Google email is not verified', 'GOOGLE_EMAIL_UNVERIFIED');
+
+    return withTransaction(async (tx) => {
+      let isNewUser = false;
+      let user = await authRepository.findUserByGoogleSub(tx, profile.sub);
+      if (!user) {
+        user = await authRepository.findUserByEmail(tx, profile.email);
+        if (user) await authRepository.linkGoogle(tx, user.id, profile.sub);
+        else {
+          user = await authRepository.createUser(tx, { name: profile.name.slice(0, 100), email: profile.email, role: 'CUSTOMER', googleSub: profile.sub });
+          isNewUser = true;
+        }
+      }
+      if (!user.is_active) throw AppError.forbidden('Account is disabled', 'ACCOUNT_DISABLED');
+      return { ...(await result(tx, user, userAgent)), isNewUser };
+    });
+  },
+
+  /** Quick guest session for emergencies: name + WhatsApp + GPS, no password. */
+  async guest(input: GuestInput, userAgent?: string): Promise<AuthResult> {
+    return withTransaction(async (tx) => {
+      const user = await authRepository.createUser(tx, {
+        name: input.name,
+        phone: input.whatsapp,
+        role: 'GUEST',
+        lat: input.latitude,
+        lng: input.longitude,
+      });
+      return result(tx, user, userAgent);
+    });
+  },
+
+  /**
+   * Refresh Token Rotation with reuse detection: each refresh token is single-use.
+   * Presenting an already-rotated token revokes the entire token family (likely theft).
+   */
+  async refresh(rawToken: string, userAgent?: string): Promise<AuthResult> {
+    const outcome = await withTransaction(async (tx) => {
+      const stored = await authRepository.findRefreshTokenForUpdate(tx, sha256(rawToken));
+      if (!stored) return { error: 'INVALID' as const };
+      if (stored.revoked_at) {
+        await authRepository.revokeFamily(tx, stored.family_id);
+        return { error: 'REUSED' as const };
+      }
+      if (stored.expires_at.getTime() <= Date.now()) {
+        await authRepository.revokeToken(tx, stored.id, null);
+        return { error: 'EXPIRED' as const };
+      }
+      const user = await authRepository.findUserById(tx, stored.user_id);
+      if (!user || !user.is_active) {
+        await authRepository.revokeFamily(tx, stored.family_id);
+        return { error: 'INVALID' as const };
+      }
+      const next = await issueTokens(tx, user, userAgent, stored.family_id);
+      await authRepository.revokeToken(tx, stored.id, next.id);
+      return {
+        value: { user: toPublic(user), accessToken: next.accessToken, refreshToken: next.refreshToken, refreshExpiresAt: next.refreshExpiresAt },
+      };
+    });
+    if ('error' in outcome) {
+      if (outcome.error === 'REUSED') throw AppError.unauthorized('Refresh token reuse detected; all sessions revoked', 'TOKEN_REUSED');
+      if (outcome.error === 'EXPIRED') throw AppError.unauthorized('Refresh token expired', 'TOKEN_EXPIRED');
+      throw AppError.unauthorized('Invalid refresh token', 'TOKEN_INVALID');
+    }
+    return outcome.value;
+  },
+
+  async logout(rawToken: string | undefined): Promise<void> {
+    if (!rawToken) return;
+    await withTransaction(async (tx) => {
+      const stored = await authRepository.findRefreshTokenForUpdate(tx, sha256(rawToken));
+      if (stored) await authRepository.revokeFamily(tx, stored.family_id);
+    });
+  },
+
+  async me(userId: string) {
+    const user = await authRepository.findUserById(db, userId);
+    if (!user) throw AppError.notFound('User not found');
+    return toPublic(user);
+  },
+};

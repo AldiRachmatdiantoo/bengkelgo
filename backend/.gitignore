@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+uploads/*
+!uploads/.gitkeep
+coverage/
+docs/postman/.newman-report.json
+tests/load/.generated/

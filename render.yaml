@@ -1,0 +1,71 @@
+# Render Blueprint for the BengkelGo API (free plan). Render → New → Blueprint → pick this repo.
+# Values marked `sync: false` are asked for in the Render dashboard on first deploy; never commit them.
+# Step-by-step guide: docs/deploy-gratis.md
+services:
+  - type: web
+    name: bengkelgo-api # public URL becomes https://bengkelgo-api.onrender.com (if the name is free)
+    runtime: docker
+    plan: free
+    region: singapore
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "4000"
+      - key: RUN_MIGRATIONS_ON_BOOT
+        value: "true"
+
+      # Database: Supabase "Session pooler" connection string (IPv4), not the direct db.<ref>.supabase.co one
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
+      - key: DATABASE_POOL_MAX
+        value: "5"
+
+      # Auth. The browser reaches the API through the Vercel proxy (same site), so SameSite=lax works.
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: COOKIE_SAMESITE
+        value: lax
+      - key: CORS_ORIGINS
+        sync: false # https://<project>.vercel.app
+      # Hops in front of the app: Vercel proxy + Render load balancer. Check docs/deploy-gratis.md step 7.
+      - key: TRUST_PROXY
+        value: "2"
+
+      # Uploaded images in a private Supabase Storage bucket (Render Free has no persistent disk)
+      - key: STORAGE_DRIVER
+        value: supabase
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+      # Email through the Gmail API (Render Free blocks SMTP ports)
+      - key: GMAIL_CLIENT_ID
+        sync: false
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false
+      - key: MAIL_FROM
+        sync: false # BengkelGo <yourname@gmail.com> (same account as the refresh token)
+      - key: APP_URL
+        sync: false # https://<project>.vercel.app
+
+      # Reminders run inside the API; an external uptime ping keeps the free instance awake
+      - key: ENABLE_CRON
+        value: "true"
+      - key: REMINDER_CRON
+        value: "0 8-20 * * *"
+      - key: CRON_TIMEZONE
+        value: Asia/Jakarta
+      # REDIS_URL left unset: one instance, the login rate limiter keeps its counters in memory

@@ -1,0 +1,17 @@
+# Secrets: never commit (App Password, JWT secret, Supabase/Gmail keys, test passwords)
+.env
+.env.*
+!.env.example
+!.env.production.example
+backend/docs/postman/Bengkel-API.local.postman_environment.json
+
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+
+# Local uploads and test artefacts (backend/.gitignore and frontend/.gitignore add more)
+backend/uploads/*
+!backend/uploads/.gitkeep
+frontend/e2e-report/
+frontend/test-results/

@@ -1,0 +1,59 @@
+# Local / self-hosted stack: PostGIS + Redis + 2 API replicas behind NGINX (least_conn).
+# In production the database can be Supabase instead: point DATABASE_URL at it and drop the `db` service.
+name: bengkel
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bengkel
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bengkel}
+      POSTGRES_DB: bengkel
+    ports: ["5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bengkel -d bengkel"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    ports: ["6380:6379"]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: .
+    init: true   # PID 1 signal handling (graceful shutdown)
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://bengkel:${POSTGRES_PASSWORD:-bengkel}@db:5432/bengkel
+      REDIS_URL: redis://redis:6379
+      RUN_MIGRATIONS_ON_BOOT: "true"
+      UPLOAD_DIR: /app/uploads
+    volumes: [uploads:/app/uploads]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    deploy:
+      replicas: 2
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes: ["./nginx/nginx.conf:/etc/nginx/nginx.conf:ro"]
+    ports: ["8080:80"]
+    depends_on: [api]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  uploads:
