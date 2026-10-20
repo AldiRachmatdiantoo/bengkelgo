@@ -9,7 +9,7 @@ import { usePreparedImage } from '@/hooks/usePreparedImage';
 import { ACCEPT_IMAGES, fileSize } from '@/utils/imageUpload';
 import { PointsMap, directionsUrl } from '@/components/map/Maps';
 import { DateStrip, SlotPicker, addMinutes, slotRange, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, Badge, Button, Card, CopyButton, Icon, Input, Loading, Modal, QrCode, Select, TextArea, cx, toast } from '@/components/ui';
+import { Alert, Badge, Button, Card, CopyButton, Icon, Input, Loading, MissingFields, Modal, QrCode, Select, TextArea, cx, toast } from '@/components/ui';
 import { ORDER_STATUS, PAYMENT_STATUS, PROBLEM_CATEGORY, dateTime, distance, longDate, rupiah, vehicleName } from '@/utils/format';
 import { NEGOTIABLE, customerRange, emergencyPrice, splitPriceRange } from '@/utils/priceRange';
 
@@ -974,6 +974,7 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
           }}
           onDragLeave={() => setDrag(false)}
           onDrop={onDrop}
+          id="proof-drop"
           className={cx('flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition', drag ? 'border-primary bg-sky' : 'border-line-strong bg-surface-low hover:border-primary hover:bg-sky')}
         >
           {photo.preview ? (
@@ -1020,6 +1021,7 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
         )}
         <div className="grid gap-3 sm:grid-cols-2">
           <Input
+            id="proof-ref"
             label="No. referensi transfer (opsional)"
             hint="Ada di struk QRIS / riwayat transaksi, mis. RRN"
             maxLength={64}
@@ -1028,6 +1030,7 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
             data-testid="payer-reference"
           />
           <Input
+            id="proof-name"
             label="Nama pengirim (opsional)"
             hint="Nama di aplikasi bank / e-wallet"
             maxLength={100}
@@ -1042,8 +1045,22 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
             <b className="text-navy">Diverifikasi langsung:</b> bengkel mencocokkan bukti dengan mutasi QRIS mereka. Status pembayaran di aplikasi berubah otomatis setelah diverifikasi.
           </p>
         </div>
+        <MissingFields
+          items={[
+            !file && !photo.busy && { label: 'Foto bukti pembayaran', target: 'proof-drop' },
+            !!payer.payer_reference.trim() && payer.payer_reference.trim().length < 3 && { label: 'No. referensi min. 3 karakter', target: 'proof-ref' },
+            !!payer.payer_name.trim() && payer.payer_name.trim().length < 2 && { label: 'Nama pengirim min. 2 huruf', target: 'proof-name' },
+          ]}
+        />
         {upload.error && <Alert tone="danger">{errorMessage(upload.error)}</Alert>}
-        <Button type="submit" size="lg" icon="task_alt" disabled={!file || photo.busy} loading={upload.isPending} data-testid="proof-submit">
+        <Button
+          type="submit"
+          size="lg"
+          icon="task_alt"
+          disabled={!file || photo.busy || (!!payer.payer_reference.trim() && payer.payer_reference.trim().length < 3) || (!!payer.payer_name.trim() && payer.payer_name.trim().length < 2)}
+          loading={upload.isPending}
+          data-testid="proof-submit"
+        >
           Saya Sudah Membayar &amp; Kirim Bukti
         </Button>
       </form>

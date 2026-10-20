@@ -8,7 +8,8 @@ import { useAuth } from '@/services/auth/AuthProvider';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { MapPicker, PointsMap, type LatLng } from '@/components/map/Maps';
 import { SafetyBanner } from '@/components/orders/OrderComponents';
-import { Alert, Badge, Button, Card, EmptyState, Icon, Input, Segmented, Select, Stars, TextArea, cx } from '@/components/ui';
+import { Alert, Badge, Button, Card, EmptyState, Icon, Input, MissingFields, Segmented, Select, Stars, TextArea, cx } from '@/components/ui';
+import { isIdPhone } from '@/utils/formChecks';
 import { distance, vehicleName } from '@/utils/format';
 import { PRICE_PRESETS, rangeLabel, type PriceRange } from '@/utils/priceRange';
 
@@ -75,11 +76,17 @@ export default function EmergencyPage() {
   // Routing skips workshops without a free mechanic, so the "priority" pick is the first one that has one.
   const priorityId = workshops.find((w) => w.available_mechanics > 0)?.id;
   const badRange = !!range.min && !!range.max && range.min > range.max;
-  const canSend = !!geo.position && problem.trim().length >= 5 && !badRange && (user || (guest.name.trim().length >= 2 && guest.whatsapp.trim()));
-  const missing = !geo.position ? 'Tentukan lokasi Anda dulu' : problem.trim().length < 5 ? 'Ceritakan kendala (min. 5 karakter)' : badRange ? 'Perbaiki kisaran biaya' : !canSend ? 'Isi nama & nomor WhatsApp' : null;
+  const canSend = !!geo.position && problem.trim().length >= 5 && !badRange && (user || (guest.name.trim().length >= 2 && isIdPhone(guest.whatsapp)));
+  const missing = [
+    !geo.position && { label: 'Lokasi Anda (GPS atau titik di peta)', target: 'sos-location' },
+    problem.trim().length < 5 && { label: 'Apa yang terjadi (min. 5 karakter)', target: 'sos-problem' },
+    badRange && { label: 'Kisaran biaya: minimum melebihi maksimum', target: 'sos-price' },
+    !user && guest.name.trim().length < 2 && { label: 'Nama Anda', target: 'sos-guest-name' },
+    !user && !isIdPhone(guest.whatsapp) && { label: guest.whatsapp.trim() ? 'Nomor WhatsApp belum benar (mis. 0812…)' : 'Nomor WhatsApp', target: 'sos-guest-wa' },
+  ];
 
   return (
-    <div className="flex flex-col gap-6 pb-24 lg:pb-0">
+    <div className="flex flex-col gap-6 pb-32 lg:pb-0">
       {/* Hero */}
       {/* Deep SOS orange (#C2410C) behind long white text: 5.2:1 contrast (WCAG AA). */}
       <section className="relative overflow-hidden rounded-xl bg-emergency-ink p-6 text-white shadow-lift sm:p-8">
@@ -107,7 +114,7 @@ export default function EmergencyPage() {
       >
         <div className="flex min-w-0 flex-col gap-6">
           {/* 1. Location */}
-          <Card title="1. Lokasi Anda" icon="my_location" subtitle="Gunakan GPS atau klik peta untuk menandai titik kendaraan.">
+          <Card id="sos-location" title="1. Lokasi Anda" icon="my_location" subtitle="Gunakan GPS atau klik peta untuk menandai titik kendaraan.">
             <div className="flex flex-col gap-4">
               <div className="flex flex-wrap items-center gap-3">
                 <Button variant="danger" icon="my_location" onClick={geo.locate} loading={geo.locating} data-testid="sos-gps">
@@ -207,9 +214,12 @@ export default function EmergencyPage() {
                 onChange={(e) => setProblem(e.target.value)}
                 placeholder="mis. Ban belakang bocor, motor tidak bisa jalan"
                 maxLength={900}
+                id="sos-problem"
                 data-testid="sos-problem"
               />
-              <PriceRangeField value={range} onChange={setRange} />
+              <div id="sos-price">
+                <PriceRangeField value={range} onChange={setRange} />
+              </div>
             </div>
           </Card>
 
@@ -217,7 +227,7 @@ export default function EmergencyPage() {
           {!user && (
             <Card title="3. Kontak Anda" icon="contact_phone" subtitle="Tanpa akun? Tidak masalah, Anda masuk sebagai tamu.">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input label="Nama Anda" icon="person" required value={guest.name} onChange={(e) => setGuest({ ...guest, name: e.target.value })} data-testid="sos-guest-name" />
+                <Input id="sos-guest-name" label="Nama Anda" icon="person" required value={guest.name} onChange={(e) => setGuest({ ...guest, name: e.target.value })} data-testid="sos-guest-name" />
                 <Input
                   label="Nomor WhatsApp"
                   icon="call"
@@ -225,6 +235,7 @@ export default function EmergencyPage() {
                   value={guest.whatsapp}
                   onChange={(e) => setGuest({ ...guest, whatsapp: e.target.value })}
                   placeholder="08xxxxxxxxxx"
+                  id="sos-guest-wa"
                   data-testid="sos-guest-wa"
                 />
               </div>
@@ -236,6 +247,10 @@ export default function EmergencyPage() {
               </p>
             </Card>
           )}
+          {/* Phones: the full checklist sits here in the page; the fixed send bar only shows a one-line summary. */}
+          <div id="sos-missing" className="lg:hidden">
+            <MissingFields items={missing} />
+          </div>
         </div>
 
         {/* Nearby + send */}
@@ -308,7 +323,18 @@ export default function EmergencyPage() {
             <Button type="submit" variant="danger" size="lg" icon="e911_emergency" className="w-full" disabled={!canSend} loading={request.isPending} data-testid="sos-submit">
               Kirim permintaan bantuan
             </Button>
-            {missing && <p className="mt-2 text-center font-label text-xs text-ink-3">{missing}</p>}
+            <div className="hidden lg:block">
+              <MissingFields className="mt-2" items={missing} />
+            </div>
+            {missing.some(Boolean) && (
+              <button
+                type="button"
+                onClick={() => document.getElementById('sos-missing')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                className="mt-2 flex w-full items-center justify-center gap-1.5 font-label text-xs font-semibold text-warning-ink lg:hidden"
+              >
+                <Icon name="checklist" className="text-[16px]" /> Lengkapi {missing.filter(Boolean).length} isian lagi · lihat
+              </button>
+            )}
           </div>
         </aside>
       </form>

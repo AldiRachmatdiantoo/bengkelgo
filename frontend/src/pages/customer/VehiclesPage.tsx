@@ -4,7 +4,7 @@ import { vehicleApi } from '@/services/api/endpoints';
 import { errorMessage } from '@/services/api/client';
 import type { Vehicle, VehicleType } from '@/services/api/types';
 import { vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, Button, Card, EmptyState, Icon, Input, Loading, Modal, PageHeader, Segmented, toast } from '@/components/ui';
+import { Alert, Button, Card, EmptyState, Icon, Input, Loading, MissingFields, Modal, PageHeader, Segmented, toast } from '@/components/ui';
 import { vehicleName } from '@/utils/format';
 
 type Form = { vehicle_type: VehicleType; brand: string; model: string; year: string; color: string; plate: string };
@@ -154,12 +154,18 @@ function VehicleModal({ vehicle, onClose, onSaved }: { vehicle: Vehicle | null; 
           />
         </Card>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Merek" required value={f.brand} onChange={(e) => setF({ ...f, brand: e.target.value })} placeholder="Honda" data-testid="vehicle-brand" />
+          <Input id="veh-brand" label="Merek" required value={f.brand} onChange={(e) => setF({ ...f, brand: e.target.value })} placeholder="Honda" data-testid="vehicle-brand" />
           <Input label="Model (opsional)" value={f.model} onChange={(e) => setF({ ...f, model: e.target.value })} placeholder="Vario 125" />
-          <Input label="Tahun (opsional)" type="number" min={1950} max={2100} value={f.year} onChange={(e) => setF({ ...f, year: e.target.value })} error={badYear ? '1950–2100' : undefined} />
+          <Input id="veh-year" label="Tahun (opsional)" type="number" min={1950} max={2100} value={f.year} onChange={(e) => setF({ ...f, year: e.target.value })} error={badYear ? '1950–2100' : undefined} />
           <Input label="Warna (opsional)" value={f.color} onChange={(e) => setF({ ...f, color: e.target.value })} placeholder="Hitam" />
           <Input label="Plat nomor (opsional)" value={f.plate} onChange={(e) => setF({ ...f, plate: e.target.value.toUpperCase() })} placeholder="B 1234 XYZ" maxLength={15} data-testid="vehicle-plate" />
         </div>
+        <MissingFields
+          items={[
+            f.brand.trim().length < 2 && { label: 'Merek kendaraan', target: 'veh-brand' },
+            badYear && { label: 'Tahun 1950–2100', target: 'veh-year' },
+          ]}
+        />
         {save.error && <Alert tone="danger">{errorMessage(save.error)}</Alert>}
         <button type="submit" className="sr-only">
           Simpan

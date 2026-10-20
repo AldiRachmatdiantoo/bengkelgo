@@ -18,7 +18,7 @@ import {
   vehicleIcon,
   vehicleLabel,
 } from '@/components/workshop/WorkshopComponents';
-import { Alert, Badge, Button, Card, Icon, Input, Loading, Select, Stars, Stepper, TextArea, cx } from '@/components/ui';
+import { Alert, Badge, Button, Card, Icon, Input, Loading, MissingFields, Select, Stars, Stepper, TextArea, cx } from '@/components/ui';
 import { distance, jakartaDate, longDate, rupiah, vehicleName } from '@/utils/format';
 
 /** Straight-line distance in meters (haversine), for "x km dari lokasi Anda". */
@@ -53,9 +53,9 @@ function writeDraft(workshopId: string, d: Draft | null) {
   }
 }
 
-function Section({ n, title, subtitle, action, children }: { n: number; title: string; subtitle?: string; action?: ReactNode; children: ReactNode }) {
+function Section({ n, id, title, subtitle, action, children }: { n: number; id?: string; title: string; subtitle?: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
+    <section id={id} className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-headline-sm text-navy">
@@ -198,7 +198,7 @@ export default function WorkshopDetailPage() {
               </Link>
             </div>
 
-            <div className="border-t border-line p-5 sm:p-6">
+            <div id="booking-service" className="border-t border-line p-5 sm:p-6">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">{service ? 'Paket servis dipilih' : 'Pilih paket servis'}</p>
                 {service && (
@@ -283,6 +283,7 @@ export default function WorkshopDetailPage() {
 
           <Section
             n={2}
+            id="booking-slot"
             title="Pilih Jam Kedatangan & Slot"
             subtitle="Nomor antrean dibuat otomatis saat booking dikonfirmasi. Slot penuh tetap bisa dipilih untuk masuk daftar tunggu."
             action={
@@ -427,6 +428,10 @@ export default function WorkshopDetailPage() {
                 <Alert tone="danger">{errorMessage(book.error)}</Alert>
               </div>
             )}
+            <MissingFields
+              className="mt-4"
+              items={[!serviceId && { label: 'Paket servis', target: 'booking-service' }, !slot && { label: 'Jam kedatangan', target: 'booking-slot' }]}
+            />
             <Button type="submit" size="lg" className="mt-5 w-full" disabled={!serviceId || !slot || wrongRole} loading={book.isPending} data-testid="booking-submit">
               {user ? 'Konfirmasi & Lanjut ke QRIS' : 'Masuk untuk Booking'} <Icon name="arrow_forward" />
             </Button>

@@ -7,7 +7,8 @@ import type { Mechanic, Order, OrderStatus, OrderType, OwnWorkshop, Review, Serv
 import { MapPicker, type LatLng } from '@/components/map/Maps';
 import { OrderCard, OrderStatusBadge, ProofVerifyPanel, ResponseCountdown } from '@/components/orders/OrderComponents';
 import { DateStrip, StarRow, friendlyDay, slotRange, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, Badge, Button, Card, EmptyState, Icon, Input, Loading, Modal, PageHeader, ProgressBar, Segmented, Select, StatCard, Stars, Table, Td, TextArea, cx, toast } from '@/components/ui';
+import { Alert, Badge, Button, Card, EmptyState, Icon, Input, Loading, MissingFields, Modal, PageHeader, ProgressBar, Segmented, Select, StatCard, Stars, Table, Td, TextArea, cx, toast } from '@/components/ui';
+import { isIdPhone } from '@/utils/formChecks';
 import { ORDER_STATUS, WORKSHOP_STATUS, dateTime, distance, jakartaDate, longDate, rupiah } from '@/utils/format';
 import { NEGOTIABLE, customerRange, splitPriceRange } from '@/utils/priceRange';
 import { ACCEPT_IMAGES, ImageCheckError, fileSize, prepareImage } from '@/utils/imageUpload';
@@ -634,6 +635,33 @@ export function OwnerOrdersPage() {
           </Button>
         )}
       </div>
+      {/* Cancelled orders sit above the list (not below up to 100 cards), with a way back. */}
+      {status === 'CANCELLED' ? (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-surface-low px-4 py-2.5" data-testid="cancelled-history-bar">
+          <span className="inline-flex items-center gap-1.5 font-label text-sm font-semibold text-navy">
+            <Icon name="history" className="text-primary" /> Riwayat dibatalkan{data ? ` (${data.length})` : ''}
+          </span>
+          <button type="button" onClick={() => setStatus('')} className="inline-flex items-center gap-1.5 font-label text-sm font-semibold text-primary hover:underline">
+            <Icon name="arrow_back" /> Kembali ke semua pesanan
+          </button>
+        </div>
+      ) : (
+        hidden > 0 && (
+          <button
+            type="button"
+            onClick={() => setStatus('CANCELLED')}
+            className="mb-4 flex w-full flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-surface-low px-4 py-2.5 text-left hover:border-primary/40 hover:bg-sky"
+            data-testid="cancelled-history-link"
+          >
+            <span className="inline-flex items-center gap-1.5 text-sm text-ink-2">
+              <Icon name="history" className="text-primary" /> {hidden} pesanan dibatalkan disembunyikan dari daftar ini
+            </span>
+            <span className="inline-flex items-center gap-1 font-label text-sm font-semibold text-primary">
+              Lihat riwayat dibatalkan <Icon name="chevron_right" />
+            </span>
+          </button>
+        )
+      )}
       {isLoading ? (
         <Loading />
       ) : error ? (
@@ -645,12 +673,7 @@ export function OwnerOrdersPage() {
           ))}
         </div>
       ) : (
-        <EmptyState icon="inbox">Tidak ada pesanan.</EmptyState>
-      )}
-      {hidden > 0 && (
-        <button type="button" onClick={() => setStatus('CANCELLED')} className="mt-4 inline-flex items-center gap-1.5 font-label text-sm font-semibold text-primary hover:underline">
-          <Icon name="history" /> Lihat riwayat dibatalkan ({hidden})
-        </button>
+        <EmptyState icon="inbox">{status === 'CANCELLED' ? 'Belum ada pesanan yang dibatalkan.' : 'Tidak ada pesanan.'}</EmptyState>
       )}
     </>
   );
@@ -662,12 +685,22 @@ export function OwnerServicesPage({ embedded }: { embedded?: boolean } = {}) {
   const ws = useMyWorkshop();
   const list = useQuery({ queryKey: ['owner-services'], queryFn: ownerApi.services });
   const [f, setF] = useState({ name: '', description: '', price: '', duration_minutes: '60', vehicle_type: 'MOTOR' as VehicleType });
+  const [tried, setTried] = useState(false);
+  const serviceIssues = [
+    f.name.trim().length < 2 && { label: 'Nama layanan', target: 'svc-name' },
+    (f.price === '' || Number(f.price) < 0) && { label: 'Harga', target: 'svc-price' },
+    !(Number.isInteger(Number(f.duration_minutes)) && Number(f.duration_minutes) >= 5 && Number(f.duration_minutes) <= 1440) && {
+      label: 'Durasi 5–1440 menit',
+      target: 'svc-duration',
+    },
+  ];
   const refresh = () => qc.invalidateQueries({ queryKey: ['owner-services'] });
   const create = useMutation({
     mutationFn: () =>
       ownerApi.createService({ name: f.name, description: f.description || undefined, price: Number(f.price), duration_minutes: Number(f.duration_minutes), vehicle_type: f.vehicle_type }),
     onSuccess: () => {
       setF({ ...f, name: '', description: '', price: '' });
+      setTried(false);
       void refresh();
       toast('Layanan ditambahkan');
     },
@@ -697,16 +730,19 @@ export function OwnerServicesPage({ embedded }: { embedded?: boolean } = {}) {
       <Card title="Tambah layanan" icon="add_circle" className="mb-6">
         <form
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-end"
+          onInvalidCapture={() => setTried(true)}
           onSubmit={(e) => {
             e.preventDefault();
+            setTried(true);
+            if (serviceIssues.some(Boolean)) return;
             create.mutate();
           }}
         >
           <div className="sm:col-span-2">
-            <Input label="Nama layanan" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="mis. Ganti oli + filter" />
+            <Input id="svc-name" label="Nama layanan" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="mis. Ganti oli + filter" />
           </div>
-          <Input label="Harga (Rp)" type="number" min={0} required value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
-          <Input label="Durasi (menit)" type="number" min={5} value={f.duration_minutes} onChange={(e) => setF({ ...f, duration_minutes: e.target.value })} />
+          <Input id="svc-price" label="Harga (Rp)" type="number" min={0} required value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} />
+          <Input id="svc-duration" label="Durasi (menit)" type="number" min={5} max={1440} value={f.duration_minutes} onChange={(e) => setF({ ...f, duration_minutes: e.target.value })} />
           <div className="sm:col-span-2">
             <Input label="Deskripsi (opsional)" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
           </div>
@@ -721,6 +757,7 @@ export function OwnerServicesPage({ embedded }: { embedded?: boolean } = {}) {
             Tambah layanan
           </Button>
         </form>
+        {tried && <MissingFields className="mt-4" items={serviceIssues} />}
         {create.error && (
           <div className="mt-4">
             <Alert tone="danger">{errorMessage(create.error)}</Alert>
@@ -839,7 +876,7 @@ function EditServiceModal({ s, onClose, onSaved }: { s: Service; onClose: () => 
           submit();
         }}
       >
-        <Input label="Nama layanan" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+        <Input id="svc-edit-name" label="Nama layanan" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
         <Input
           label="Deskripsi"
           value={f.description}
@@ -847,8 +884,9 @@ function EditServiceModal({ s, onClose, onSaved }: { s: Service; onClose: () => 
           hint={s.description ? 'Kosongkan untuk tetap memakai deskripsi lama' : undefined}
         />
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Harga (Rp)" type="number" min={0} required value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} data-testid="service-price" />
+          <Input id="svc-edit-price" label="Harga (Rp)" type="number" min={0} required value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} data-testid="service-price" />
           <Input
+            id="svc-edit-duration"
             label="Durasi (menit)"
             type="number"
             min={5}
@@ -860,6 +898,13 @@ function EditServiceModal({ s, onClose, onSaved }: { s: Service; onClose: () => 
           />
         </div>
         <p className="text-xs text-ink-3">Jenis kendaraan ({vehicleLabel(s.vehicle_type)}) tetap, agar pesanan lama tidak berubah. Untuk jenis kendaraan lain, buat layanan baru.</p>
+        <MissingFields
+          items={[
+            f.name.trim().length < 2 && { label: 'Nama layanan', target: 'svc-edit-name' },
+            (f.price === '' || !Number.isFinite(price) || price < 0) && { label: 'Harga', target: 'svc-edit-price' },
+            (!Number.isInteger(duration) || duration < 5 || duration > 1440) && { label: 'Durasi 5–1440 menit', target: 'svc-edit-duration' },
+          ]}
+        />
         {save.error && <Alert tone="danger">{errorMessage(save.error)}</Alert>}
         <button type="submit" className="sr-only">
           Simpan
@@ -875,6 +920,11 @@ export function OwnerMechanicsPage() {
   const list = useQuery({ queryKey: ['owner-mechanics'], queryFn: ownerApi.mechanics });
   const recent = useRecentOrders();
   const [f, setF] = useState({ name: '', phone: '', specializations: '' });
+  const [tried, setTried] = useState(false);
+  const mechanicIssues = [
+    f.name.trim().length < 2 && { label: 'Nama teknisi (min. 2 huruf)', target: 'mech-name' },
+    !!f.phone.trim() && !isIdPhone(f.phone) && { label: 'WhatsApp belum benar (mis. 0812…)', target: 'mech-phone' },
+  ];
   const [editing, setEditing] = useState<Mechanic | null>(null);
   const [removing, setRemoving] = useState<Mechanic | null>(null);
   const [showArchived, setShowArchived] = useState(false);
@@ -888,6 +938,7 @@ export function OwnerMechanicsPage() {
       }),
     onSuccess: () => {
       setF({ name: '', phone: '', specializations: '' });
+      setTried(false);
       void refresh();
       toast('Teknisi ditambahkan');
     },
@@ -926,18 +977,22 @@ export function OwnerMechanicsPage() {
       <Card title="Tambah teknisi" icon="person_add" className="mb-6">
         <form
           className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.3fr_auto] lg:items-end"
+          onInvalidCapture={() => setTried(true)}
           onSubmit={(e) => {
             e.preventDefault();
+            setTried(true);
+            if (mechanicIssues.some(Boolean)) return;
             create.mutate();
           }}
         >
-          <Input label="Nama" icon="person" required minLength={2} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} data-testid="mechanic-name" />
-          <Input label="WhatsApp (opsional)" icon="call" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="08xxxxxxxxxx" />
+          <Input id="mech-name" label="Nama" icon="person" required minLength={2} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} data-testid="mechanic-name" />
+          <Input id="mech-phone" label="WhatsApp (opsional)" icon="call" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="08xxxxxxxxxx" />
           <Input label="Keahlian (pisahkan dengan koma)" value={f.specializations} onChange={(e) => setF({ ...f, specializations: e.target.value })} placeholder="matic, injeksi" />
           <Button type="submit" icon="add" loading={create.isPending} data-testid="mechanic-create">
             Tambah
           </Button>
         </form>
+        {tried && <MissingFields className="mt-4" items={mechanicIssues} />}
         {create.error && (
           <div className="mt-4">
             <Alert tone="danger">{errorMessage(create.error)}</Alert>
@@ -1068,7 +1123,7 @@ function EditMechanicModal({ m, onClose, onSaved }: { m: Mechanic; onClose: () =
           <Button variant="ghost" className="bg-surface-low" onClick={onClose}>
             Batal
           </Button>
-          <Button icon="save" loading={save.isPending} disabled={f.name.trim().length < 2} onClick={() => save.mutate()} data-testid="mechanic-save">
+          <Button icon="save" loading={save.isPending} disabled={f.name.trim().length < 2 || (!!f.phone.trim() && !isIdPhone(f.phone))} onClick={() => save.mutate()} data-testid="mechanic-save">
             Simpan
           </Button>
         </>
@@ -1078,12 +1133,18 @@ function EditMechanicModal({ m, onClose, onSaved }: { m: Mechanic; onClose: () =
         className="mt-3 flex flex-col gap-3"
         onSubmit={(e) => {
           e.preventDefault();
-          if (f.name.trim().length >= 2) save.mutate();
+          if (f.name.trim().length >= 2 && (!f.phone.trim() || isIdPhone(f.phone))) save.mutate();
         }}
       >
-        <Input label="Nama" icon="person" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-        <Input label="WhatsApp" icon="call" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="08xxxxxxxxxx" hint={m.phone ? 'Kosongkan untuk tetap memakai nomor lama' : undefined} />
+        <Input id="mech-edit-name" label="Nama" icon="person" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+        <Input id="mech-edit-phone" label="WhatsApp" icon="call" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} placeholder="08xxxxxxxxxx" hint={m.phone ? 'Kosongkan untuk tetap memakai nomor lama' : undefined} />
         <Input label="Keahlian" hint="Pisahkan dengan koma" value={f.specializations} onChange={(e) => setF({ ...f, specializations: e.target.value })} />
+        <MissingFields
+          items={[
+            f.name.trim().length < 2 && { label: 'Nama teknisi (min. 2 huruf)', target: 'mech-edit-name' },
+            !!f.phone.trim() && !isIdPhone(f.phone) && { label: 'WhatsApp belum benar (mis. 0812…)', target: 'mech-edit-phone' },
+          ]}
+        />
         {save.error && <Alert tone="danger">{errorMessage(save.error)}</Alert>}
         <button type="submit" className="sr-only">
           Simpan
@@ -1200,6 +1261,14 @@ export function OwnerProfilePage() {
   });
 
   if (ws.isLoading || !f.id) return <Loading />;
+  const quota = Number(f.max_slot_per_hour);
+  const profileIssues = [
+    (f.name ?? '').trim().length < 3 && { label: 'Nama bengkel (min. 3 karakter)', target: 'prof-name' },
+    !isIdPhone(f.phone ?? '') && { label: (f.phone ?? '').trim() ? 'Telepon belum benar (mis. 0812…)' : 'Telepon', target: 'prof-phone' },
+    (f.address ?? '').trim().length < 5 && { label: 'Alamat (min. 5 karakter)', target: 'prof-address' },
+    (!f.open_time || !f.close_time || f.open_time >= f.close_time) && { label: 'Jam tutup harus setelah jam buka', target: 'prof-close' },
+    !(Number.isInteger(quota) && quota >= 1 && quota <= 100) && { label: 'Kuota per jam 1–100', target: 'prof-quota' },
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -1280,16 +1349,17 @@ export function OwnerProfilePage() {
           className="grid gap-6 xl:grid-cols-[1fr_360px]"
           onSubmit={(e) => {
             e.preventDefault();
+            if (profileIssues.some(Boolean)) return;
             save.mutate();
           }}
         >
           <div className="flex min-w-0 flex-col gap-6">
             <Card title="Informasi bengkel" icon="storefront">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input label="Nama bengkel" value={f.name ?? ''} onChange={(e) => setF({ ...f, name: e.target.value })} />
-                <Input label="Telepon" icon="call" value={f.phone ?? ''} onChange={(e) => setF({ ...f, phone: e.target.value })} />
+                <Input id="prof-name" label="Nama bengkel" value={f.name ?? ''} onChange={(e) => setF({ ...f, name: e.target.value })} />
+                <Input id="prof-phone" label="Telepon" icon="call" value={f.phone ?? ''} onChange={(e) => setF({ ...f, phone: e.target.value })} />
                 <div className="sm:col-span-2">
-                  <TextArea label="Alamat" value={f.address ?? ''} onChange={(e) => setF({ ...f, address: e.target.value })} />
+                  <TextArea id="prof-address" label="Alamat" value={f.address ?? ''} onChange={(e) => setF({ ...f, address: e.target.value })} />
                 </div>
                 <div className="sm:col-span-2">
                   <TextArea label="Deskripsi" value={f.description ?? ''} onChange={(e) => setF({ ...f, description: e.target.value })} />
@@ -1305,9 +1375,10 @@ export function OwnerProfilePage() {
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-2 gap-3">
                   <Input label="Jam buka" type="time" step={3600} value={f.open_time ?? ''} onChange={(e) => setF({ ...f, open_time: e.target.value })} />
-                  <Input label="Jam tutup" type="time" step={3600} value={f.close_time ?? ''} onChange={(e) => setF({ ...f, close_time: e.target.value })} />
+                  <Input id="prof-close" label="Jam tutup" type="time" step={3600} value={f.close_time ?? ''} onChange={(e) => setF({ ...f, close_time: e.target.value })} />
                 </div>
                 <Input
+                  id="prof-quota"
                   label="Kuota default per jam"
                   type="number"
                   min={1}
@@ -1320,8 +1391,9 @@ export function OwnerProfilePage() {
                 <Toggle checked={!!f.accepts_emergency} onChange={(v) => setF({ ...f, accepts_emergency: v })} icon="e911_emergency" label="Siaga darurat SOS" hint="Masuk radar panggilan radius 5 km" />
               </div>
             </Card>
+            <MissingFields items={profileIssues} />
             {save.error && <Alert tone="danger">{errorMessage(save.error)}</Alert>}
-            <Button type="submit" size="lg" icon="save" loading={save.isPending}>
+            <Button type="submit" size="lg" icon="save" disabled={profileIssues.some(Boolean)} loading={save.isPending}>
               Simpan profil
             </Button>
             <p className="text-center font-label text-xs text-ink-3">Terakhir dibuat {dateTime(ws.data!.created_at)}</p>

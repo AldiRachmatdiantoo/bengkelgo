@@ -6,8 +6,9 @@ import { adminApi } from '@/services/api/endpoints';
 import { errorMessage } from '@/services/api/client';
 import type { AdminUser, AuditLog, Role } from '@/services/api/types';
 import { useAuth } from '@/services/auth/AuthProvider';
-import { Alert, Badge, Button, Card, EmptyState, Input, Loading, Modal, PageHeader, Select, StatCard, Table, Td, TextArea, toast } from '@/components/ui';
+import { Alert, Badge, Button, Card, EmptyState, Input, Loading, MissingFields, Modal, PageHeader, Select, StatCard, Table, Td, TextArea, toast } from '@/components/ui';
 import { ORDER_STATUS, PAYMENT_STATUS, WORKSHOP_STATUS, dateTime, jakartaDate, rupiah } from '@/utils/format';
+import { isEmail, isIdPhone, isStrongPassword } from '@/utils/formChecks';
 
 const ROLE: Record<string, string> = { CUSTOMER: 'Pelanggan', GUEST: 'Tamu', WORKSHOP_OWNER: 'Pemilik bengkel', ADMIN: 'Admin', SYSTEM: 'Sistem' };
 
@@ -442,8 +443,13 @@ export function AdminUsersPage() {
 function AddAdminModal({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
   const [f, setF] = useState({ name: '', email: '', phone: '', password: '' });
-  const strong = f.password.length >= 8 && /[a-z]/.test(f.password) && /[A-Z]/.test(f.password) && /\d/.test(f.password);
-  const ready = f.name.trim().length >= 2 && f.email.includes('@') && strong;
+  const issues = [
+    f.name.trim().length < 2 && { label: 'Nama', target: 'adm-name' },
+    !isEmail(f.email) && { label: f.email.trim() ? 'Format email belum benar' : 'Email', target: 'adm-email' },
+    !!f.phone.trim() && !isIdPhone(f.phone) && { label: 'WhatsApp belum benar (mis. 0812…)', target: 'adm-phone' },
+    !isStrongPassword(f.password) && { label: f.password ? 'Password belum memenuhi syarat' : 'Password awal', target: 'adm-password' },
+  ];
+  const ready = !issues.some(Boolean);
   const save = useMutation({
     mutationFn: () => adminApi.createAdmin({ name: f.name.trim(), email: f.email.trim(), phone: f.phone.trim() || undefined, password: f.password }),
     onSuccess: (u) => {
@@ -476,10 +482,11 @@ function AddAdminModal({ onClose }: { onClose: () => void }) {
           if (ready) save.mutate();
         }}
       >
-        <Input label="Nama" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} data-testid="admin-name" />
-        <Input label="Email" type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} data-testid="admin-email" />
-        <Input label="Nomor WhatsApp (opsional)" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
+        <Input id="adm-name" label="Nama" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} data-testid="admin-name" />
+        <Input id="adm-email" label="Email" type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} data-testid="admin-email" />
+        <Input id="adm-phone" label="Nomor WhatsApp (opsional)" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
         <Input
+          id="adm-password"
           label="Password awal"
           type="password"
           autoComplete="new-password"
@@ -489,6 +496,7 @@ function AddAdminModal({ onClose }: { onClose: () => void }) {
           hint="Min. 8 karakter, ada huruf besar, huruf kecil, dan angka. Sampaikan ke admin baru lewat jalur yang aman."
           data-testid="admin-password"
         />
+        <MissingFields items={issues} />
         {save.error && <Alert tone="danger">{errorMessage(save.error)}</Alert>}
         <button type="submit" className="sr-only">
           Tambah admin

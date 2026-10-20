@@ -42,6 +42,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 | 14 | Aktifkan lagi bengkel uji "Bengkel Uji Desain Stitch" bila masih dipakai (sekarang dinonaktifkan admin) | Data uji | Portal admin → Persetujuan Mitra |
 | 15 | ~~Dua temuan backend 19 Okt (penugasan mekanik vs SOS, refund pesanan lunas)~~ ✅ diperbaiki 20 Okt atas persetujuan tim | Backend | [Temuan nomor 4–5](#temuan-selama-pengujian) |
 | 16 | Potong otomatis QRIS: boleh dipotong ke kode QR saja (nama merchant & NMID bisa ikut terpotong) atau tetap gambar utuh | Keputusan | [Unggah foto](#unggah-foto-kondisi--rencana-perbaikan) |
+| 17 | Pengamanan penyalahgunaan booking: batas booking aktif, batas per bengkel per hari, pembatas kecepatan, verifikasi email (butuh persetujuan perubahan backend/DB), dan keputusan wajib bayar/DP (butuh keputusan tim) | Backend + keputusan | [Pengamanan penyalahgunaan booking](#pengamanan-penyalahgunaan-booking-dicatat-20-okt-2026) |
 
 **Sudah dikerjakan tanpa tim (19 Okt 2026, frontend saja, backend tidak diubah):** ubah layanan lengkap (nama/deskripsi/harga/durasi), cek + kompres foto sebelum unggah, pesan error berbahasa Indonesia, alur login Google PKCE (tombol tersembunyi sampai Client ID diisi), tes lintas browser (WebKit/Safari desktop & iPhone), tes tata letak 375px untuk semua portal. Rinciannya di [Pekerjaan frontend 19 Oktober](#pekerjaan-frontend-19-oktober-2026-tanpa-mengubah-backend).
 
@@ -49,9 +50,33 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 
 **Tahap 20 Okt 2026 (semua yang bisa dikerjakan tanpa tim):** ✅ selesai, lihat [Tahap 20 Oktober](#tahap-20-oktober-2026-frontend-paket-a--b-aksesibilitas-bundle-visual-regression-akses-admin-pengingat-h-2).
 
-**Yang tersisa tanpa tim:** tidak ada lagi. Sisanya butuh akun, izin, keputusan, atau konten (tabel di atas).
+**Yang tersisa tanpa tim:** item 17 nomor 1–4 (menunggu persetujuan perubahan backend). Sisanya butuh akun, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).
+
+## Perbaikan form & riwayat dibatalkan (20 Okt 2026)
+
+- **"Lengkapi dulu" di setiap form berisian banyak** (komponen `MissingFields` di `components/ui`): daftar isian wajib yang belum diisi atau formatnya belum benar, ditampilkan di dekat tombol kirim; setiap item bisa diklik untuk lompat ke kolomnya. Dipasang di booking, SOS (di HP: ringkasan satu baris di bilah bawah + daftar lengkap di dalam form), daftar akun pelanggan, daftar bengkel, profil bengkel, tambah/ubah layanan, tambah/ubah teknisi, kendaraan, tambah admin, dan unggah bukti bayar. Form yang tombolnya dinonaktifkan selalu menampilkan daftar; form lain menampilkannya setelah pengguna menekan simpan. Aturan password dan nomor WhatsApp disamakan dengan backend (`utils/formChecks.ts`).
+- **Riwayat dibatalkan di halaman Semua Pesanan (owner)** dipindah dari bawah daftar ke atas, tepat di bawah filter, dengan tombol "Kembali ke semua pesanan". Di halaman pesanan pelanggan, "Riwayat dibatalkan" sudah berupa filter di atas.
+- Diuji: Vitest 40/40, E2E journeys + fitur backlog + a11y (desktop & HP) lolos, visual regression 12/12 (baseline SOS-HP dan daftar bengkel diperbarui karena memang berubah), dicek manual di browser.
+
+## Pengamanan penyalahgunaan booking (dicatat 20 Okt 2026)
+
+**Kondisi sekarang:** satu akun pelanggan bisa membuat banyak booking (mis. 20 dalam 5 menit) selama slotnya berbeda. Pengaman yang sudah ada hanya: wajib login sebagai CUSTOMER, tidak boleh 2 booking di slot yang sama (`DUPLICATE_BOOKING`), maksimal 30 hari ke depan sesuai jam buka/libur, dan pembatas request umum 300/menit per IP (tidak menahan 20 booking).
+
+**Dampak bila diisengi:** kuota slot bengkel terborong sehingga pelanggan asli masuk daftar tunggu; owner kebanjiran notifikasi palsu; tiap booking memicu email konfirmasi + pengingat H-1 + H-2 sehingga kuota Gmail (±500/hari) bisa habis, apalagi digabung akun palsu (pendaftaran belum memverifikasi email); statistik dan laporan ikut kotor. Penanganan manual sementara: owner/admin membatalkan booking palsu, admin menonaktifkan akunnya (Admin → Pengguna).
+
+**Rencana perbaikan:**
+
+| # | Perbaikan | Jenis | Catatan |
+|---|---|---|---|
+| 1 | **Maksimal booking aktif per pelanggan** (usul 3 booking yang belum selesai sekaligus) | Backend, tanpa perubahan DB | Paling efektif; cek di `bookingService.create` dalam transaksi yang sama, kode error baru mis. `ACTIVE_BOOKING_LIMIT` + pesan Indonesia di frontend |
+| 2 | **Maksimal 1 booking aktif per bengkel per hari** untuk pelanggan yang sama | Backend, tanpa perubahan DB | Melengkapi `DUPLICATE_BOOKING` (sekarang hanya per slot) |
+| 3 | **Pembatas kecepatan booking** (usul maks. 5 booking per jam per akun) | Backend, tanpa perubahan DB | Memakai rate limiter yang sudah ada (Redis/memori), kunci per akun |
+| 4 | **Verifikasi email saat daftar** (kode 6 digit) | Backend + **DB** (kolom `users.email_verified_at` + tabel kode verifikasi, migrasi 006) + frontend | Mencegah banyak akun palsu; akun tamu tidak terdampak |
+| 5 | **Wajib bayar dulu / DP** sebelum slot dikunci | **Keputusan tim** + backend | Paling kuat; terkait item 5 dan 11 (alur bayar 12.2) |
+
+Angka batas (3 booking, 1 per bengkel per hari, 5 per jam) masih usulan dan bisa disesuaikan. Nomor 1–3 bisa dikerjakan tanpa tim begitu perubahan backend disetujui; nomor 4 butuh persetujuan perubahan database; nomor 5 menunggu keputusan bisnis.
 
 ---
 

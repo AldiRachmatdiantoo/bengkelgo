@@ -7,7 +7,8 @@ import type { AuthPayload, Role, VehicleType } from '@/services/api/types';
 import { canReturnTo, homeFor, useAuth } from '@/services/auth/AuthProvider';
 import { checkCallback, googleEnabled, startGoogleLogin, takePendingGoogleLogin } from '@/services/auth/googleOAuth';
 import { MapPicker, type LatLng } from '@/components/map/Maps';
-import { Alert, Button, Card, Icon, Input, Loading, Segmented, TextArea } from '@/components/ui';
+import { Alert, Button, Card, Icon, Input, Loading, MissingFields, Segmented, TextArea } from '@/components/ui';
+import { fieldIssue, isEmail, isIdPhone, isStrongPassword } from '@/utils/formChecks';
 
 /** After auth, go back to where the user came from (e.g. the workshop they were booking), else role home. */
 function useAfterAuth() {
@@ -186,6 +187,12 @@ export function GoogleCallbackPage() {
   );
 }
 
+/** "Lengkapi dulu" entry for a contact/password field: missing when empty, otherwise flags a wrong format. */
+function issueOf(value: string, label: string, valid: (v: string) => boolean, wrong: string, target: string) {
+  const l = fieldIssue(value, label, valid, wrong);
+  return l ? { label: l, target } : null;
+}
+
 const PASSWORD_HINT ='Min. 8 karakter, ada huruf besar, huruf kecil, dan angka';
 
 export function RegisterPage() {
@@ -194,6 +201,13 @@ export function RegisterPage() {
   const [f, setF] = useState({ name: '', email: '', phone: '', password: '' });
   const register = useMutation({ mutationFn: () => authApi.registerCustomer(f), onSuccess: done });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
+  const [tried, setTried] = useState(false);
+  const issues = [
+    f.name.trim().length < 2 && { label: 'Nama lengkap', target: 'reg-name' },
+    issueOf(f.email, 'Email', isEmail, 'Format email belum benar', 'reg-email'),
+    issueOf(f.phone, 'Nomor WhatsApp', isIdPhone, 'Nomor WhatsApp belum benar (mis. 0812…)', 'reg-phone'),
+    issueOf(f.password, 'Password', isStrongPassword, 'Password belum memenuhi syarat', 'reg-password'),
+  ];
 
   return (
     <AuthShell
@@ -210,15 +224,19 @@ export function RegisterPage() {
     >
       <form
         className="flex flex-col gap-4"
+        onInvalidCapture={() => setTried(true)}
         onSubmit={(e) => {
           e.preventDefault();
+          setTried(true);
+          if (issues.some(Boolean)) return;
           register.mutate();
         }}
       >
-        <Input label="Nama lengkap" icon="person" required value={f.name} onChange={set('name')} />
-        <Input label="Email" icon="mail" type="email" required value={f.email} onChange={set('email')} />
-        <Input label="Nomor WhatsApp" icon="call" required value={f.phone} onChange={set('phone')} placeholder="08xxxxxxxxxx" />
-        <Input label="Password" icon="lock" type="password" autoComplete="new-password" required value={f.password} onChange={set('password')} hint={PASSWORD_HINT} />
+        <Input id="reg-name" label="Nama lengkap" icon="person" required value={f.name} onChange={set('name')} />
+        <Input id="reg-email" label="Email" icon="mail" type="email" required value={f.email} onChange={set('email')} />
+        <Input id="reg-phone" label="Nomor WhatsApp" icon="call" required value={f.phone} onChange={set('phone')} placeholder="08xxxxxxxxxx" />
+        <Input id="reg-password" label="Password" icon="lock" type="password" autoComplete="new-password" required value={f.password} onChange={set('password')} hint={PASSWORD_HINT} />
+        {tried && <MissingFields items={issues} />}
         {register.error && <Alert tone="danger">{errorMessage(register.error)}</Alert>}
         <Button type="submit" size="lg" loading={register.isPending}>
           Daftar
@@ -234,6 +252,17 @@ export function RegisterWorkshopPage() {
   const [ws, setWs] = useState({ name: '', description: '', address: '', phone: '', open_time: '08:00', close_time: '17:00', max_slot_per_hour: 3 });
   const [vehicles, setVehicles] = useState<VehicleType[]>(['MOTOR', 'MOBIL']);
   const [point, setPoint] = useState<LatLng | null>(null);
+  const missing = [
+    owner.name.trim().length < 2 && { label: 'Nama pemilik', target: 'ws-owner-name' },
+    issueOf(owner.email, 'Email pemilik', isEmail, 'Format email belum benar', 'ws-owner-email'),
+    issueOf(owner.phone, 'WhatsApp pemilik', isIdPhone, 'WhatsApp pemilik belum benar (mis. 0812…)', 'ws-owner-phone'),
+    issueOf(owner.password, 'Password', isStrongPassword, 'Password belum memenuhi syarat', 'ws-owner-password'),
+    ws.name.trim().length < 3 && { label: 'Nama bengkel (min. 3 karakter)', target: 'ws-name' },
+    !ws.phone.trim() && { label: 'Telepon bengkel', target: 'ws-phone' },
+    ws.address.trim().length < 5 && { label: 'Alamat bengkel (min. 5 karakter)', target: 'ws-address' },
+    !!ws.open_time && !!ws.close_time && ws.open_time >= ws.close_time && { label: 'Jam tutup harus setelah jam buka', target: 'ws-close' },
+    !point && { label: 'Lokasi bengkel di peta', target: 'ws-location' },
+  ];
 
   const register = useMutation({
     mutationFn: () =>
@@ -257,30 +286,31 @@ export function RegisterWorkshopPage() {
         className="flex flex-col gap-6"
         onSubmit={(e) => {
           e.preventDefault();
+          if (missing.some(Boolean)) return;
           register.mutate();
         }}
       >
         <Card title="Data pemilik" icon="badge">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Input label="Nama pemilik" icon="person" required value={owner.name} onChange={(e) => setOwner({ ...owner, name: e.target.value })} />
-            <Input label="Email" icon="mail" type="email" required value={owner.email} onChange={(e) => setOwner({ ...owner, email: e.target.value })} />
-            <Input label="Nomor WhatsApp" icon="call" required value={owner.phone} onChange={(e) => setOwner({ ...owner, phone: e.target.value })} />
-            <Input label="Password" icon="lock" type="password" required value={owner.password} onChange={(e) => setOwner({ ...owner, password: e.target.value })} hint={PASSWORD_HINT} />
+            <Input id="ws-owner-name" label="Nama pemilik" icon="person" required value={owner.name} onChange={(e) => setOwner({ ...owner, name: e.target.value })} />
+            <Input id="ws-owner-email" label="Email" icon="mail" type="email" required value={owner.email} onChange={(e) => setOwner({ ...owner, email: e.target.value })} />
+            <Input id="ws-owner-phone" label="Nomor WhatsApp" icon="call" required value={owner.phone} onChange={(e) => setOwner({ ...owner, phone: e.target.value })} />
+            <Input id="ws-owner-password" label="Password" icon="lock" type="password" required value={owner.password} onChange={(e) => setOwner({ ...owner, password: e.target.value })} hint={PASSWORD_HINT} />
           </div>
         </Card>
 
         <Card title="Data bengkel" icon="storefront">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Input label="Nama bengkel" required value={ws.name} onChange={(e) => setWs({ ...ws, name: e.target.value })} />
-            <Input label="Telepon bengkel" icon="call" required value={ws.phone} onChange={(e) => setWs({ ...ws, phone: e.target.value })} />
+            <Input id="ws-name" label="Nama bengkel" required value={ws.name} onChange={(e) => setWs({ ...ws, name: e.target.value })} />
+            <Input id="ws-phone" label="Telepon bengkel" icon="call" required value={ws.phone} onChange={(e) => setWs({ ...ws, phone: e.target.value })} />
             <div className="sm:col-span-2">
-              <TextArea label="Alamat" required value={ws.address} onChange={(e) => setWs({ ...ws, address: e.target.value })} />
+              <TextArea id="ws-address" label="Alamat" required value={ws.address} onChange={(e) => setWs({ ...ws, address: e.target.value })} />
             </div>
             <div className="sm:col-span-2">
               <TextArea label="Deskripsi (opsional)" value={ws.description} onChange={(e) => setWs({ ...ws, description: e.target.value })} placeholder="Spesialisasi, fasilitas, dsb." />
             </div>
             <Input label="Jam buka" icon="schedule" type="time" step={3600} value={ws.open_time} onChange={(e) => setWs({ ...ws, open_time: e.target.value })} />
-            <Input label="Jam tutup" icon="schedule" type="time" step={3600} value={ws.close_time} onChange={(e) => setWs({ ...ws, close_time: e.target.value })} />
+            <Input id="ws-close" label="Jam tutup" icon="schedule" type="time" step={3600} value={ws.close_time} onChange={(e) => setWs({ ...ws, close_time: e.target.value })} />
             <Input
               label="Kuota booking per jam"
               icon="event_seat"
@@ -306,7 +336,7 @@ export function RegisterWorkshopPage() {
           </div>
         </Card>
 
-        <Card title="Lokasi bengkel" icon="location_on" subtitle="Klik pada peta untuk menandai titik bengkel. Dipakai untuk pencarian terdekat dan radius darurat 5 km.">
+        <Card id="ws-location" title="Lokasi bengkel" icon="location_on" subtitle="Klik pada peta untuk menandai titik bengkel. Dipakai untuk pencarian terdekat dan radius darurat 5 km.">
           <MapPicker value={point} onChange={setPoint} height={320} />
           <p className="mt-2 font-label text-xs text-ink-3">{point ? `Koordinat: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}` : 'Lokasi belum dipilih'}</p>
         </Card>
@@ -315,6 +345,7 @@ export function RegisterWorkshopPage() {
         <Alert tone="info" icon="verified">
           Setelah mendaftar, bengkel akan diverifikasi admin sebelum tampil ke pelanggan.
         </Alert>
+        <MissingFields items={missing} />
         <Button type="submit" size="lg" icon="how_to_reg" disabled={!point} loading={register.isPending} className="self-end">
           Daftarkan bengkel
         </Button>

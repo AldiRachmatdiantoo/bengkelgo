@@ -122,6 +122,56 @@ export function TextArea({ label, hint, error, id, className, ...rest }: Textare
   );
 }
 
+// ---------- Missing required fields ----------
+export interface MissingField {
+  label: string;
+  /** id of the field (or section) to jump to when the item is clicked */
+  target?: string;
+}
+
+function jumpTo(target: string) {
+  const el = document.getElementById(target);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const focusable = el.matches('input, select, textarea, button') ? el : el.querySelector<HTMLElement>('input, select, textarea, button');
+  focusable?.focus({ preventScroll: true });
+}
+
+/**
+ * Lists the required fields that are still empty, next to the submit button, so a disabled or refused submit
+ * always says what is missing. Each item jumps to its field. Pass `cond && { label, target }` entries.
+ */
+export function MissingFields({ items, className }: { items: (MissingField | false | null | undefined | '' | 0)[]; className?: string }) {
+  const list = items.filter((i): i is MissingField => !!i);
+  if (!list.length) return null;
+  return (
+    <div role="status" aria-live="polite" className={cx('rounded-lg border border-warning/30 bg-warning-soft px-3.5 py-3 text-xs text-warning-ink', className)} data-testid="missing-fields">
+      <p className="flex items-center gap-1.5 font-label font-bold">
+        <Icon name="checklist" className="text-[18px]" /> Lengkapi dulu ({list.length}):
+      </p>
+      <ul className="mt-2 flex flex-wrap gap-1.5">
+        {list.map((f) =>
+          f.target ? (
+            <li key={f.label}>
+              <button
+                type="button"
+                onClick={() => jumpTo(f.target!)}
+                className="rounded-full border border-warning/40 bg-white px-2.5 py-1 font-label font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-warning-ink"
+              >
+                {f.label}
+              </button>
+            </li>
+          ) : (
+            <li key={f.label} className="rounded-full border border-warning/40 bg-white px-2.5 py-1 font-label font-semibold">
+              {f.label}
+            </li>
+          ),
+        )}
+      </ul>
+    </div>
+  );
+}
+
 /** Pill toggle group (vehicle type, filters, tabs). */
 export function Segmented<T extends string>({
   options,
@@ -171,6 +221,7 @@ export function Card({
   children,
   className,
   accent,
+  id,
 }: {
   title?: ReactNode;
   icon?: string;
@@ -180,9 +231,11 @@ export function Card({
   className?: string;
   /** 3px top accent bar (recommended / emergency surfaces). */
   accent?: 'primary' | 'emergency' | 'success';
+  /** Anchor for links such as the "Lengkapi dulu" jump list. */
+  id?: string;
 }) {
   return (
-    <section className={cx('relative overflow-hidden rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6', className)}>
+    <section id={id} className={cx('relative overflow-hidden rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6', className)}>
       {accent && <span className={cx('absolute inset-x-0 top-0 h-[3px]', accent === 'primary' ? 'bg-primary' : accent === 'emergency' ? 'bg-emergency' : 'bg-success')} />}
       {(title || actions) && (
         <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
