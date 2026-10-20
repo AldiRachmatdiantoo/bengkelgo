@@ -181,6 +181,7 @@ Angka batas (3 booking, 1 per bengkel per hari, 5 per jam) masih usulan dan bisa
 - **Masuk daftar tunggu** (dengan posisi): saat slot penuh.
 - **Naik dari daftar tunggu**: saat ada pembatalan/kapasitas ditambah dan booking dipromosikan.
 - **Jadwal diubah**: setelah reschedule (pengingat H-1/H-2 ikut di-reset ke jadwal baru).
+- **Tidak pernah mengirim ke domain contoh/uji** (`example.com/.org/.net`, `*.test`, `*.example`, `*.invalid`, `*.localhost`, `*.local`; `isUndeliverable` di `config/mailer.ts`): hanya dicatat di log. Latar: tes E2E di Docker lokal (yang memakai Gmail asli) membuat booking dengan email `@example.test`, sehingga Gmail pengirim menerima banyak email gagal "Address not found" (20 Okt). Juga mencegah email gagal dari pendaftaran iseng memakai alamat contoh di produksi.
 - Kalau gagal kirim (mis. DNS/SMTP sesaat bermasalah), dicoba ulang otomatis setelah 15 detik, 1 menit, dan 5 menit. Batasan: percobaan ulang disimpan di memori, jadi hilang bila API restart di tengah jalan (antrean email di database = perbaikan berikutnya bila perlu).
 - Belum ada email untuk pembatalan, pembayaran diverifikasi, atau order selesai (notifikasi di aplikasi sudah ada). Diuji di `tests/integration/booking-email.int.test.ts`.
 

@@ -26,7 +26,21 @@ export function describeMailTransport() {
   return 'Email not configured: emails are only logged';
 }
 
+/**
+ * Domains that can never receive mail (RFC 2606 / RFC 6761): example.com/.org/.net and the .test, .example,
+ * .invalid, .localhost and .local suffixes. Test accounts and made-up sign-ups use them; sending there only
+ * bounces back to the sender's inbox, so such mail is logged instead.
+ */
+export function isUndeliverable(address: string) {
+  const domain = address.trim().toLowerCase().split('@').pop() ?? '';
+  return /(^|\.)example\.(com|org|net)$/.test(domain) || /\.(test|example|invalid|localhost|local)$/.test(domain) || ['localhost', 'test', 'example', 'invalid', 'local'].includes(domain);
+}
+
 export async function sendMail(mail: Mail): Promise<void> {
+  if (isUndeliverable(mail.to)) {
+    logger.info({ to: mail.to, subject: mail.subject }, '[mail] reserved test/example domain, email logged only');
+    return;
+  }
   if (mailTransport === 'log') {
     logger.info({ to: mail.to, subject: mail.subject }, '[mail:dev] email not configured, email logged only');
     return;

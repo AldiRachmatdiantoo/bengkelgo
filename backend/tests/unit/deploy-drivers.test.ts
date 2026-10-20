@@ -33,8 +33,8 @@ describe('Gmail API mail transport', () => {
     const mailer = loadWith(vars, () => require('../../src/config/mailer') as typeof import('../../src/config/mailer'));
     expect(mailer.mailTransport).toBe('gmail-api');
 
-    await mailer.sendMail({ to: 'budi@example.com', subject: 'Booking terkonfirmasi: Ganti Oli', text: 'Halo', html: '<p>Halo</p>' });
-    await mailer.sendMail({ to: 'ani@example.com', subject: 'Kedua', text: 'Hai' });
+    await mailer.sendMail({ to: 'budi@bengkelgo.id', subject: 'Booking terkonfirmasi: Ganti Oli', text: 'Halo', html: '<p>Halo</p>' });
+    await mailer.sendMail({ to: 'ani@bengkelgo.id', subject: 'Kedua', text: 'Hai' });
 
     const calls = fetchMock.mock.calls as unknown as FetchCall[];
     expect(calls.map((c) => c[0])).toEqual([
@@ -46,14 +46,35 @@ describe('Gmail API mail transport', () => {
     expect((calls[1][1].headers as Record<string, string>).Authorization).toBe('Bearer at-1');
     const raw = Buffer.from(JSON.parse(String(calls[1][1].body)).raw, 'base64url').toString();
     expect(raw).toMatch(/^From: BengkelGo <sender@gmail\.com>/m);
-    expect(raw).toMatch(/^To: budi@example\.com/m);
+    expect(raw).toMatch(/^To: budi@bengkelgo\.id/m);
     expect(raw).toMatch(/^Subject: Booking terkonfirmasi: Ganti Oli/m);
   });
 
   it('throws when Google rejects the refresh token, so the caller can retry', async () => {
     jest.spyOn(global, 'fetch').mockResolvedValueOnce(json(400, { error: 'invalid_grant' }));
     const mailer = loadWith(vars, () => require('../../src/config/mailer') as typeof import('../../src/config/mailer'));
-    await expect(mailer.sendMail({ to: 'x@example.com', subject: 's', text: 't' })).rejects.toThrow(/invalid_grant/);
+    await expect(mailer.sendMail({ to: 'x@bengkelgo.id', subject: 's', text: 't' })).rejects.toThrow(/invalid_grant/);
+  });
+});
+
+describe('Undeliverable test/example domains', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('recognises reserved domains but not real ones', () => {
+    const { isUndeliverable } = loadWith({}, () => require('../../src/config/mailer') as typeof import('../../src/config/mailer'));
+    for (const a of ['cust123@example.test', 'a@example.com', 'b@mail.example.org', 'c@x.invalid', 'd@host.local', 'e@localhost'])
+      expect(isUndeliverable(a)).toBe(true);
+    for (const a of ['budi@gmail.com', 'admin@bengkelgo.id', 'x@examples.com', 'y@testing.co.id']) expect(isUndeliverable(a)).toBe(false);
+  });
+
+  it('never calls the provider for them, even when email is configured', async () => {
+    const fetchMock = jest.spyOn(global, 'fetch');
+    const mailer = loadWith(
+      { GMAIL_CLIENT_ID: 'cid', GMAIL_CLIENT_SECRET: 'csecret', GMAIL_REFRESH_TOKEN: 'rtoken' },
+      () => require('../../src/config/mailer') as typeof import('../../src/config/mailer'),
+    );
+    await mailer.sendMail({ to: 'cust1792@example.test', subject: 'Booking terkonfirmasi', text: 'Halo' });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
