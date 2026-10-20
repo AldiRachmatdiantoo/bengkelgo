@@ -37,9 +37,10 @@ services:
         value: lax
       - key: CORS_ORIGINS
         sync: false # https://<project>.vercel.app
-      # Hops in front of the app: Vercel proxy + Render load balancer. Check docs/deploy-gratis.md step 7.
+      # Hops in front of the app, measured on 20 Oct 2026 (admin → Kesehatan sistem shows the chain):
+      # Vercel proxy, Cloudflare (Render's edge), Render's internal proxy and a local proxy (::1).
       - key: TRUST_PROXY
-        value: "2"
+        value: "4"
 
       # Uploaded images in a private Supabase Storage bucket (Render Free has no persistent disk)
       - key: STORAGE_DRIVER

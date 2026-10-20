@@ -112,7 +112,7 @@ Output `Admin account ready: ...` berarti berhasil. Akun bengkel & pelanggan dib
 1. Buka URL Vercel → daftar sebagai pelanggan dengan email asli → login → refresh halaman: harus tetap login.
 2. Login admin → **Kesehatan sistem** (`/admin/health`):
    - Database, PostGIS: hijau; Migrasi: 001–005; Penjadwal: aktif.
-   - **IP Anda menurut server** harus sama dengan IP internet Anda (cek di [whatismyip.com](https://www.whatismyip.com)). Kalau yang tampil IP lain (mis. milik Vercel/Render), ubah `TRUST_PROXY` di Render (coba `3`, atau `1`) sampai sama. Ini penting: kalau salah, semua pengguna berbagi satu batas percobaan login.
+   - **IP Anda menurut server** harus sama dengan IP internet Anda (cek di [whatismyip.com](https://www.whatismyip.com)). Kalau yang tampil IP lain, lihat baris `x-forwarded-for` di kartu yang sama: hitung berapa alamat (termasuk `remote_address`) yang ada di sebelah kanan IP Anda, lalu isi angka itu di `TRUST_PROXY` di Render. Hasil pengukuran 20 Okt 2026 (Vercel → Cloudflare → Render): `TRUST_PROXY=4`. Ini penting: kalau salah, semua pengguna berbagi satu batas percobaan login.
 3. Daftarkan bengkel → setujui di admin → owner unggah QRIS & foto → buka halaman bengkel: gambar tampil (tersimpan di Supabase Storage).
 4. Buat booking dengan akun pelanggan → email **"Booking terkonfirmasi"** masuk dalam ±1 menit (cek juga Spam). Kalau tidak masuk: Render → **Logs**, cari `Booking email failed`.
 5. Unggah bukti bayar → owner memverifikasi → selesai.
