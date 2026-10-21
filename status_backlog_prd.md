@@ -42,7 +42,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 | 14 | Aktifkan lagi bengkel uji "Bengkel Uji Desain Stitch" bila masih dipakai (sekarang dinonaktifkan admin) | Data uji | Portal admin → Persetujuan Mitra |
 | 15 | ~~Dua temuan backend 19 Okt (penugasan mekanik vs SOS, refund pesanan lunas)~~ ✅ diperbaiki 20 Okt atas persetujuan tim | Backend | [Temuan nomor 4–5](#temuan-selama-pengujian) |
 | 16 | Potong otomatis QRIS: boleh dipotong ke kode QR saja (nama merchant & NMID bisa ikut terpotong) atau tetap gambar utuh | Keputusan | [Unggah foto](#unggah-foto-kondisi--rencana-perbaikan) |
-| 17 | Pengamanan penyalahgunaan booking: batas booking aktif, batas per bengkel per hari, pembatas kecepatan, verifikasi email (butuh persetujuan perubahan backend/DB), dan keputusan wajib bayar/DP (butuh keputusan tim) | Backend + keputusan | [Pengamanan penyalahgunaan booking](#pengamanan-penyalahgunaan-booking-dicatat-20-okt-2026) |
+| 17 | Pengamanan penyalahgunaan booking: ~~batas booking aktif, batas per bengkel per hari, pembatas kecepatan, verifikasi email~~ ✅ selesai 21 Okt; sisa: keputusan wajib bayar/DP (butuh keputusan tim) | Keputusan | [Pengamanan penyalahgunaan booking](#pengamanan-penyalahgunaan-booking-dicatat-20-okt-2026) |
 
 **Sudah dikerjakan tanpa tim (19 Okt 2026, frontend saja, backend tidak diubah):** ubah layanan lengkap (nama/deskripsi/harga/durasi), cek + kompres foto sebelum unggah, pesan error berbahasa Indonesia, alur login Google PKCE (tombol tersembunyi sampai Client ID diisi), tes lintas browser (WebKit/Safari desktop & iPhone), tes tata letak 375px untuk semua portal. Rinciannya di [Pekerjaan frontend 19 Oktober](#pekerjaan-frontend-19-oktober-2026-tanpa-mengubah-backend).
 
@@ -50,9 +50,33 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 
 **Tahap 20 Okt 2026 (semua yang bisa dikerjakan tanpa tim):** ✅ selesai, lihat [Tahap 20 Oktober](#tahap-20-oktober-2026-frontend-paket-a--b-aksesibilitas-bundle-visual-regression-akses-admin-pengingat-h-2).
 
-**Yang tersisa tanpa tim:** item 17 nomor 1–4 (menunggu persetujuan perubahan backend). Sisanya butuh akun, izin, keputusan, atau konten (tabel di atas).
+**Tahap 21 Okt 2026:** ✅ pengaman booking, batas login per email, repository 6 fitur, antrean email di database, verifikasi email, pencarian lokasi + alamat dari titik, bilah bawah HP lebih ringkas, bahasa non-teknis di tampilan. Lihat [Tahap 21 Oktober](#tahap-21-oktober-2026).
+
+**Yang tersisa tanpa tim:** konversi foto HEIC di server (menunggu keputusan, lihat Tahap 21 Oktober). Sisanya butuh akun, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).
+
+## Tahap 21 Oktober 2026
+
+Disetujui tim: nomor 2, 3, 4, 5, 7, 8, 9, 10 (dan 11 setelah penjelasan, lihat di bawah) dari daftar usulan 21 Okt, plus permintaan tampilan HP dan bahasa non-teknis.
+
+| Bagian | Isi | Bukti |
+|---|---|---|
+| Pencarian lokasi | Kotak cari tempat (Nominatim, cadangan Photon) di Cari Bengkel, SOS, Daftar Bengkel, Profil Bengkel; **alamat dari titik** (`GET /geocode/reverse`) di bawah peta dengan tombol "Pakai sebagai alamat" / "Salin ke patokan". Sudah di-push dan live. | unit geocode 10, E2E `place-search.spec.ts` |
+| Pengaman booking | Maks. **3 booking belum selesai** per pelanggan (`ACTIVE_BOOKING_LIMIT`), **1 booking aktif per bengkel per hari** (`DAILY_WORKSHOP_LIMIT`, juga saat ganti jadwal), maks. **5 percobaan booking per jam per akun** (`BOOKING_RATE_LIMITED`, dihitung per akun, bukan per IP). Dicek di dalam transaksi dengan kunci per pelanggan, jadi request bersamaan tidak bisa menembus batas. Angka bisa diubah lewat `BOOKING_MAX_ACTIVE`, `BOOKING_MAX_PER_HOUR`. | integration `booking-limits.int.test.ts` (5 request serentak → tepat 3 lolos) |
+| Celah IP login | Batas percobaan login **per email** (10 per 15 menit, email di-hash) di samping per IP, sehingga memalsukan `X-Forwarded-For` langsung ke alamat Render tidak bisa dipakai menebak password satu akun. | integration `auth.int.test.ts` |
+| Repository | admin, notification, payment, review, stats, vehicle kini punya `*.repository.ts`; semua fitur backend berpola schema → routes → controller → service → repository. Perilaku tidak berubah. | semua tes backend |
+| Antrean email | Migrasi `006_email_outbox.sql`: email booking dan pengingat H-1/H-2 ditulis ke `email_outbox` dalam transaksi yang sama, langsung dikirim, dan dicoba ulang oleh job tiap menit (15 dtk → 1 mnt → 5 mnt → 15 mnt → 1 jam → 3 jam, lalu `FAILED`). API restart tidak menghilangkan email; aman untuk beberapa replica. Data dihapus setelah 30 hari. Halaman admin Kesehatan Sistem menampilkan "Antrean email". | integration `booking-email.int.test.ts` |
+| Verifikasi email | Migrasi `007_email_verification.sql`: akun baru (form) menerima kode 6 angka (HMAC, 15 menit, maks. 5 kali salah, kirim ulang 1×/menit). **Booking butuh email terverifikasi** (`EMAIL_NOT_VERIFIED`); SOS dan akun tamu tidak terdampak; akun lama dan login Google otomatis terverifikasi. Frontend: halaman `/verifikasi-email` setelah daftar, strip pengingat (tidak menempel), booking mengarahkan ke halaman kode dengan pilihan tetap tersimpan. Admin bisa **menandai email terverifikasi** (Admin → Pengguna, tercatat di audit log). | integration `email-verification.int.test.ts`, E2E alur daftar |
+| Tampilan HP | Bilah kirim SOS jadi satu baris 57 px (sebelumnya ±130 px), tombol SOS mengambang 48 px, header 56 px; kartu bengkel di halaman booking dirapikan. Desktop tidak berubah. | visual regression (baseline HP diperbarui) |
+| Bahasa non-teknis | Istilah database, server, API, slot/kuota, anti-overbooking, koordinat, radar, realtime diganti bahasa sehari-hari di semua halaman pelanggan dan pemilik bengkel. Halaman admin Kesehatan Sistem tetap teknis. | E2E + visual |
+| Postman | 88 request (cari lokasi, alamat dari titik, verifikasi email, kirim ulang kode, admin tandai email). Newman 88/88. | `docs:postman:verify` |
+
+**Hasil tes akhir 21 Okt:** backend unit 61/61, integration 61/61; frontend Vitest 42/42, typecheck lolos; Playwright journeys + geolocation + pencarian lokasi 11/11, fitur backlog + a11y 19/19, a11y login + 375px + lintas browser 16 lolos (6 dilewati sengaja), visual 12/12 stabil 2×; Postman/Newman 88/88. ERD diperbarui: 19 tabel, 28 relasi.
+
+**Belum di-push** (semua commit 21 Okt setelah pencarian lokasi): menunggu persetujuan. Saat push, Render menjalankan migrasi 006 dan 007 otomatis.
+
+**Nomor 11 (konversi HEIC di server) ditahan, butuh keputusan:** library gambar umum (`sharp`) tidak bisa membaca HEIC, jadi perlu dua library (`heic-convert` untuk membaca HEIC + `sharp` untuk memperkecil) dan konversinya berat untuk RAM Render Free (512 MB). Manfaatnya hanya untuk pengguna iPhone yang mengunggah lewat browser selain Safari (di Safari sudah dikonversi di browser).
 
 ## Perbaikan form & riwayat dibatalkan (20 Okt 2026)
 
@@ -97,7 +121,7 @@ Kotak "cari lokasi" seperti Google Maps (mis. "Margonda Depok", "Stasiun Bogor")
 **Melihat relasi:**
 - Seluruh database: Databases → `bengkel`/`postgres` → Schemas → klik kanan **`public`** → **View Diagram** (bisa diekspor jadi gambar). Abaikan `spatial_ref_sys` (PostGIS) dan `schema_migrations`.
 - Satu tabel: buka tabelnya → tab **Properties → Foreign Keys** (tabel ini menunjuk ke mana), **References** (tabel mana yang menunjuk ke sini), atau tab **ER Diagram**.
-- Hasil harus sama dengan [docs/erd.md](docs/erd.md) / [docs/erd-quickdbd.txt](docs/erd-quickdbd.txt): 17 tabel, 27 relasi.
+- Hasil harus sama dengan [docs/erd.md](docs/erd.md) / [docs/erd-quickdbd.txt](docs/erd-quickdbd.txt): 19 tabel, 28 relasi (sejak migrasi 007).
 
 **Hati-hati di Supabase:** cukup untuk melihat. Jangan edit/hapus data lewat DBeaver; paket gratis Supabase tidak punya backup yang bisa dipulihkan sendiri.
 
@@ -126,7 +150,7 @@ Keluhan penguji: "lokasi ditolak". Website **tidak bisa** memunculkan lagi pop-u
 | 4 | **Verifikasi email saat daftar** (kode 6 digit) | Backend + **DB** (kolom `users.email_verified_at` + tabel kode verifikasi, migrasi 006) + frontend | Mencegah banyak akun palsu; akun tamu tidak terdampak |
 | 5 | **Wajib bayar dulu / DP** sebelum slot dikunci | **Keputusan tim** + backend | Paling kuat; terkait item 5 dan 11 (alur bayar 12.2) |
 
-Angka batas (3 booking, 1 per bengkel per hari, 5 per jam) masih usulan dan bisa disesuaikan. Nomor 1–3 bisa dikerjakan tanpa tim begitu perubahan backend disetujui; nomor 4 butuh persetujuan perubahan database; nomor 5 menunggu keputusan bisnis.
+**✅ Nomor 1–4 selesai 21 Okt** (lihat [Tahap 21 Oktober](#tahap-21-oktober-2026)); angka batas bisa diubah lewat env. Nomor 5 menunggu keputusan bisnis.
 
 ---
 
@@ -223,7 +247,7 @@ Angka batas (3 booking, 1 per bengkel per hari, 5 per jam) masih usulan dan bisa
 - **Naik dari daftar tunggu**: saat ada pembatalan/kapasitas ditambah dan booking dipromosikan.
 - **Jadwal diubah**: setelah reschedule (pengingat H-1/H-2 ikut di-reset ke jadwal baru).
 - **Tidak pernah mengirim ke domain contoh/uji** (`example.com/.org/.net`, `*.test`, `*.example`, `*.invalid`, `*.localhost`, `*.local`; `isUndeliverable` di `config/mailer.ts`): hanya dicatat di log. Latar: tes E2E di Docker lokal (yang memakai Gmail asli) membuat booking dengan email `@example.test`, sehingga Gmail pengirim menerima banyak email gagal "Address not found" (20 Okt). Juga mencegah email gagal dari pendaftaran iseng memakai alamat contoh di produksi.
-- Kalau gagal kirim (mis. DNS/SMTP sesaat bermasalah), dicoba ulang otomatis setelah 15 detik, 1 menit, dan 5 menit. Batasan: percobaan ulang disimpan di memori, jadi hilang bila API restart di tengah jalan (antrean email di database = perbaikan berikutnya bila perlu).
+- Kalau gagal kirim (mis. DNS/SMTP sesaat bermasalah), dicoba ulang otomatis setelah 15 detik, 1 menit, dan 5 menit. ✅ Sejak 21 Okt percobaan ulang memakai antrean di database (`email_outbox`), jadi tidak hilang saat API restart; jeda 15 detik sampai 3 jam.
 - Belum ada email untuk pembatalan, pembayaran diverifikasi, atau order selesai (notifikasi di aplikasi sudah ada). Diuji di `tests/integration/booking-email.int.test.ts`.
 
 **Tidak perlu `docker exec` untuk operasi normal:** selama container jalan (`ENABLE_CRON=true`), cron mengirim sendiri (H-1 dicek tiap jam 08:00–20:00 WIB, H-2 tiap 5 menit, email booking langsung saat kejadian). `run-reminders.js` hanya untuk uji seketika. Container `db`/`redis`/`api`/`nginx` memakai `restart: unless-stopped`, jadi otomatis hidup lagi saat Docker Desktop menyala; aktifkan "Start Docker Desktop when you sign in" agar jalan setelah laptop dinyalakan.
@@ -294,11 +318,11 @@ Pengujian ini menemukan 2 bug di frontend, dan keduanya sudah diperbaiki.
    - Environment variable `VITE_API_URL` = URL API publik (misalnya `https://api.bengkelapp.com/api/v1`).
    - ✅ **File `vercel.json` dengan aturan rewrite SPA** sudah dibuat (19 Okt 2026) di `frontend/vercel.json`: semua URL non-aset diarahkan ke `index.html`, aset `/assets/*` di-cache 1 tahun. Saat import proyek di Vercel, set *Root Directory* = `frontend`.
 
-**Kerapian arsitektur (20 Okt, PBI-101):** setiap fitur backend kini punya `*.controller.ts` (sebelumnya hanya `auth`); file `*.routes.ts` hanya berisi URL + middleware, skema validasi yang tadinya di routes dipindah ke `*.schema.ts` (admin, notification, payment, review). Perilaku tidak berubah: backend 99/99 tes dan Postman 83/83 lolos. Sisa ketidaksesuaian PBI-101: 6 fitur (admin, notification, payment, review, stats, vehicle) belum punya `*.repository.ts` (SQL masih di service).
+**Kerapian arsitektur (20 Okt, PBI-101):** setiap fitur backend kini punya `*.controller.ts` (sebelumnya hanya `auth`); file `*.routes.ts` hanya berisi URL + middleware, skema validasi yang tadinya di routes dipindah ke `*.schema.ts` (admin, notification, payment, review). Perilaku tidak berubah: backend 99/99 tes dan Postman 83/83 lolos. ✅ 21 Okt: keenam fitur yang tersisa (admin, notification, payment, review, stats, vehicle) kini juga punya `*.repository.ts`.
 
 **✅ LIVE 20 Okt 2026:** web https://bengkelgo-eight.vercel.app, API https://bengkelgo-api.onrender.com (Render Free, Singapore; kartu debit virtual Jago hanya untuk verifikasi Render), database & Storage Supabase (Singapore). Migrasi 001–005 jalan otomatis, admin dibuat dengan `npm run seed`. `TRUST_PROXY=4` (diukur: Vercel → Cloudflare → Render internal → lokal); halaman admin Kesehatan sistem menampilkan rantai header proxy untuk mengecek ulang.
 - **Belum:** ping cron-job.org (langkah 7), Gmail API (langkah 3; sampai diisi, email hanya tercatat di log Render), uji alur lengkap di produksi (langkah 8).
-- **Risiko kecil yang dicatat:** request yang langsung ke alamat Render (tanpa Vercel) bisa memalsukan `X-Forwarded-For` dan mengakali pembatas login. Perbaikan nanti: Vercel mengirim header rahasia dan API menolak request tanpa header itu, atau pembatas login juga per email.
+- **Risiko kecil yang dicatat:** request yang langsung ke alamat Render (tanpa Vercel) bisa memalsukan `X-Forwarded-For` dan mengakali pembatas login. ✅ 21 Okt: pembatas login kini juga per email (10 percobaan / 15 menit).
 
 **✅ Disiapkan 20 Okt: jalur deploy gratis tanpa kartu kredit** (keputusan: tidak ada kartu untuk Oracle Cloud). Susunan: Vercel (frontend) → proxy `/api/*` → Render Free (API Docker, `render.yaml`) → Supabase (database + Storage) + Gmail API; cron-job.org mem-ping `/health` tiap 10 menit. Panduan lengkap langkah demi langkah: **[docs/deploy-gratis.md](docs/deploy-gratis.md)**. Perubahan kode (tanpa perubahan database):
 - `STORAGE_DRIVER=supabase`: upload ke bucket private Supabase Storage (`common/utils/storage.ts`), file tetap disajikan lewat API dengan cek akses yang sama.

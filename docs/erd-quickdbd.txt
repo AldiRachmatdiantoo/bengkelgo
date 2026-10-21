@@ -1,13 +1,13 @@
-# BengkelGo database (PostgreSQL + PostGIS), generated from migrations 001-005
+# BengkelGo database (PostgreSQL + PostGIS), generated from migrations 001-007
 # Paste into https://app.quickdatabasediagrams.com
 #
 # Enum types:
-#   order_status: PENDING, CONFIRMED, IN_QUEUE, ACCEPTED, IN_PROGRESS, COMPLETED, CANCELLED, UNASSIGNED
-#   order_type: EMERGENCY, BOOKING
-#   payment_status: UNPAID, PENDING_VERIFICATION, VERIFIED, REJECTED, REFUNDED
-#   user_role: CUSTOMER, GUEST, WORKSHOP_OWNER, ADMIN
-#   vehicle_type: MOTOR, MOBIL
-#   workshop_status: PENDING, APPROVED, REJECTED, SUSPENDED
+#   order_status: PENDING,CONFIRMED,IN_QUEUE,ACCEPTED,IN_PROGRESS,COMPLETED,CANCELLED,UNASSIGNED
+#   order_type: EMERGENCY,BOOKING
+#   payment_status: UNPAID,PENDING_VERIFICATION,VERIFIED,REJECTED,REFUNDED
+#   user_role: CUSTOMER,GUEST,WORKSHOP_OWNER,ADMIN
+#   vehicle_type: MOTOR,MOBIL
+#   workshop_status: PENDING,APPROVED,REJECTED,SUSPENDED
 
 users
 -
@@ -22,6 +22,7 @@ last_location geography(Point,4326) NULL
 is_active boolean default=true
 created_at timestamptz default=now()
 updated_at timestamptz default=now()
+email_verified_at timestamptz NULL
 
 refresh_tokens
 -
@@ -243,3 +244,26 @@ entity varchar
 entity_id uuid NULL
 details jsonb default='{}'
 created_at timestamptz default=now()
+
+email_outbox
+-
+id bigint PK
+to_address text
+subject text
+body_text text
+body_html text NULL
+context jsonb NULL
+status varchar default='PENDING'
+attempts int default=0
+next_attempt_at timestamptz default=now()
+last_error text NULL
+created_at timestamptz default=now()
+sent_at timestamptz NULL
+
+email_verifications
+-
+user_id uuid PK FK >- users.id
+code_hash text
+expires_at timestamptz
+attempts smallint default=0
+sent_at timestamptz default=now()

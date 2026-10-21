@@ -53,7 +53,7 @@ enums = rows("enums.tsv")
 ordered = [t for t in ORDER if t in tables] + sorted(t for t in tables if t not in ORDER)
 
 lines = [
-    "# BengkelGo database (PostgreSQL + PostGIS), generated from migrations 001-005",
+    "# BengkelGo database (PostgreSQL + PostGIS), generated from migrations 001-007",
     "# Paste into https://app.quickdatabasediagrams.com",
     "#",
     "# Enum types:",
