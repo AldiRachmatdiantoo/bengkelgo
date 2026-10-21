@@ -27,7 +27,8 @@ const idOf = (req: Request) => input<unknown, unknown, IdParams>(req).params.id;
 /** Public images: other sites (the web app on its own domain) may embed them. */
 async function publicImage(res: Response, key: string) {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  res.setHeader('Cache-Control', 'public, max-age=86400');
+  // A photo id never points to another picture, so browsers may keep it for a month.
+  res.setHeader('Cache-Control', 'public, max-age=2592000');
   await sendStored(res, key);
 }
 
@@ -170,8 +171,8 @@ export const workshopController = {
   },
 
   async photo(req: Request, res: Response) {
-    const { id, photoId } = input<unknown, unknown, { id: string; photoId: string }>(req).params;
-    await publicImage(res, await s.photoFile(id, photoId));
+    const { params, query } = input<unknown, { size?: 'sm' }, { id: string; photoId: string }>(req);
+    await publicImage(res, await s.photoFile(params.id, params.photoId, query.size));
   },
 
   async mechanicPhoto(req: Request, res: Response) {

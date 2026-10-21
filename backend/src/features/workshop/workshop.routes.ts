@@ -13,6 +13,7 @@ import {
   nextSlotQuery,
   ownerStatsQuery,
   photoParams,
+  photoQuery,
   replySchema,
   serviceSchema,
   updateMechanicSchema,
@@ -63,7 +64,7 @@ r.get('/', validate({ query: listWorkshopsQuery }), c.list);
 r.get('/:id', validate(idParam), c.detail);
 r.get('/:id/availability', validate({ ...idParam, query: availabilityQuery }), c.availability);
 r.get('/:id/next-slot', validate({ ...idParam, query: nextSlotQuery }), c.nextSlot);
-r.get('/:id/photos/:photoId', validate({ params: photoParams }), c.photo);
+r.get('/:id/photos/:photoId', validate({ params: photoParams, query: photoQuery }), c.photo);
 r.get('/:id/mechanics/:mechanicId/photo', validate({ params: mechanicPhotoParams }), c.mechanicPhoto);
 r.get('/:id/reviews', validate({ ...idParam, query: pagination }), c.reviews);
 

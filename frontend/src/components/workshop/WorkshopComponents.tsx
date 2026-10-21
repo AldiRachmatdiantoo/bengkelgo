@@ -54,7 +54,7 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
         {workshop.cover_photo_url ? (
           <>
             <img
-              src={apiAsset(workshop.cover_photo_url)!}
+              src={apiAsset(`${workshop.cover_photo_url}?size=sm`)!}
               alt=""
               loading="lazy"
               decoding="async"

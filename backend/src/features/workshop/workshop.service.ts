@@ -3,14 +3,38 @@ import { audit } from '../../common/db/actor';
 import { localNow, toMinutes } from '../../common/utils/time';
 import { AppError } from '../../common/errors/AppError';
 import type { AllowedImageMime } from '../../common/middlewares/upload';
-import { deleteStored, saveImage } from '../../common/utils/storage';
+import { deleteStored, readStored, saveImage } from '../../common/utils/storage';
 import { MAX_WORKSHOP_PHOTOS, holidayRepository, mechanicRepository, photoRepository, photoUrl, serviceRepository, workshopRepository, type WorkshopRow } from './workshop.repository';
 import type { ListWorkshopsQuery, MechanicInput, ServiceInput, UpdateMechanicInput, UpdateProfileInput, UpdateServiceInput } from './workshop.schema';
+import { mechanicPhoto, workshopPhotoVariants } from '../../common/utils/photos';
+import { logger } from '../../config/logger';
 
 /** Public projection: hides internal/owner-only fields. */
 export function publicWorkshop(w: WorkshopRow & { distance_meters?: number | null }) {
   const { owner_id: _o, qris_image_path, status_reason: _r, ...rest } = w;
   return { ...rest, has_qris: Boolean(qris_image_path) };
+}
+
+/** Converts an older photo to its display copy + thumbnail; null if it can't (the original is then served). */
+async function optimizeStoredPhoto(workshopId: string, photoId: string) {
+  try {
+    let replaced: string | null = null;
+    const row = await withTransaction(async (tx) => {
+      const p = await photoRepository.find(tx, workshopId, photoId, true);
+      if (!p || p.optimized) return p; // another request converted it meanwhile
+      const { main, thumb } = await workshopPhotoVariants(await readStored(p.path));
+      const key = await saveImage('photos', main, 'image/webp');
+      const thumbKey = await saveImage('photos', thumb, 'image/webp');
+      await photoRepository.setOptimized(tx, p.id, key, thumbKey);
+      replaced = p.path;
+      return { ...p, path: key, thumb_path: thumbKey, optimized: true };
+    });
+    if (replaced) await deleteStored(replaced);
+    return row;
+  } catch (err) {
+    logger.warn({ err: (err as Error).message, photoId }, 'Could not convert workshop photo; serving the original');
+    return null;
+  }
 }
 
 async function ownedWorkshop(ownerId: string) {
@@ -128,17 +152,23 @@ export const workshopService = {
   },
   async addPhoto(ownerId: string, file: { buffer: Buffer; mimetype: string }) {
     const w = await ownedWorkshop(ownerId);
-    const key = await saveImage('photos', file.buffer, file.mimetype as AllowedImageMime);
+    // Stored as WebP: a display copy (max 1600 px) and a thumbnail (640 px) for the workshop cards.
+    const { main, thumb } = await workshopPhotoVariants(file.buffer);
+    const key = await saveImage('photos', main, 'image/webp');
+    const thumbKey = await saveImage('photos', thumb, 'image/webp').catch(async (err) => {
+      await deleteStored(key);
+      throw err;
+    });
     try {
       return await withTransaction(async (tx) => {
         await tx.query('SELECT id FROM workshops WHERE id = $1 FOR UPDATE', [w.id]); // serialise the count check
         const n = await photoRepository.count(tx, w.id);
         if (n >= MAX_WORKSHOP_PHOTOS) throw AppError.unprocessable(`At most ${MAX_WORKSHOP_PHOTOS} photos per workshop`, 'PHOTO_LIMIT');
-        const row = await photoRepository.add(tx, w.id, key, n === 0);
+        const row = await photoRepository.add(tx, w.id, key, thumbKey, n === 0);
         return { ...row, url: photoUrl(w.id, row.id) };
       });
     } catch (err) {
-      await deleteStored(key);
+      await Promise.all([deleteStored(key), deleteStored(thumbKey)]);
       throw err;
     }
   },
@@ -158,19 +188,24 @@ export const workshopService = {
       if (r.is_cover) await photoRepository.setCover(tx, w.id, null);
       return r;
     });
-    await deleteStored(removed.path);
+    await Promise.all([deleteStored(removed.path), deleteStored(removed.thumb_path)]);
     return { id, deleted: true };
   },
-  /** Public image of an APPROVED workshop. */
-  async photoFile(workshopId: string, photoId: string) {
+  /**
+   * Public image of an APPROVED workshop: the display copy, or the thumbnail with size 'sm'. Photos uploaded
+   * before display copies existed are converted the first time they are asked for (once, under a row lock).
+   */
+  async photoFile(workshopId: string, photoId: string, size?: 'sm') {
     const w = await workshopRepository.findById(db, workshopId);
-    const p = w && w.status === 'APPROVED' ? await photoRepository.find(db, workshopId, photoId) : null;
+    let p = w && w.status === 'APPROVED' ? await photoRepository.find(db, workshopId, photoId) : null;
     if (!p) throw AppError.notFound('Photo not found');
-    return p.path;
+    if (!p.optimized) p = (await optimizeStoredPhoto(workshopId, photoId)) ?? p;
+    return size === 'sm' && p.thumb_path ? p.thumb_path : p.path;
   },
   async setMechanicPhoto(ownerId: string, mechanicId: string, file: { buffer: Buffer; mimetype: string } | null) {
     const w = await ownedWorkshop(ownerId);
-    const key = file ? await saveImage('photos', file.buffer, file.mimetype as AllowedImageMime) : null;
+    // A small WebP portrait is all the app ever shows.
+    const key = file ? await saveImage('photos', await mechanicPhoto(file.buffer), 'image/webp') : null;
     const prev = await mechanicRepository.setPhoto(db, w.id, mechanicId, key).catch(async (err) => {
       await deleteStored(key);
       throw err;

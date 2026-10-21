@@ -194,25 +194,30 @@ export const photoRepository = {
     const { rows } = await q.query<{ n: number }>(`SELECT COUNT(*)::int AS n FROM workshop_photos WHERE workshop_id = $1`, [workshopId]);
     return rows[0].n;
   },
-  async add(q: Queryable, workshopId: string, path: string, isCover: boolean) {
+  /** New photo, already stored as its display copy and thumbnail. */
+  async add(q: Queryable, workshopId: string, path: string, thumbPath: string, isCover: boolean) {
     const { rows } = await q.query<{ id: string; is_cover: boolean; sort_order: number }>(
-      `INSERT INTO workshop_photos (workshop_id, path, is_cover, sort_order)
-       VALUES ($1, $2, $3, COALESCE((SELECT MAX(sort_order) + 1 FROM workshop_photos WHERE workshop_id = $1), 0))
+      `INSERT INTO workshop_photos (workshop_id, path, thumb_path, optimized, is_cover, sort_order)
+       VALUES ($1, $2, $3, TRUE, $4, COALESCE((SELECT MAX(sort_order) + 1 FROM workshop_photos WHERE workshop_id = $1), 0))
        RETURNING id, is_cover, sort_order`,
-      [workshopId, path, isCover],
+      [workshopId, path, thumbPath, isCover],
     );
     return rows[0];
   },
-  async find(q: Queryable, workshopId: string, id: string) {
-    const { rows } = await q.query<{ id: string; path: string; is_cover: boolean }>(
-      `SELECT id, path, is_cover FROM workshop_photos WHERE id = $1 AND workshop_id = $2`,
+  async find(q: Queryable, workshopId: string, id: string, forUpdate = false) {
+    const { rows } = await q.query<{ id: string; path: string; thumb_path: string | null; optimized: boolean; is_cover: boolean }>(
+      `SELECT id, path, thumb_path, optimized, is_cover FROM workshop_photos WHERE id = $1 AND workshop_id = $2${forUpdate ? ' FOR UPDATE' : ''}`,
       [id, workshopId],
     );
     return rows[0] ?? null;
   },
+  /** An older photo after it was converted to its display copy and thumbnail. */
+  async setOptimized(q: Queryable, id: string, path: string, thumbPath: string) {
+    await q.query(`UPDATE workshop_photos SET path = $2, thumb_path = $3, optimized = TRUE WHERE id = $1`, [id, path, thumbPath]);
+  },
   async remove(q: Queryable, workshopId: string, id: string) {
-    const { rows } = await q.query<{ path: string; is_cover: boolean }>(
-      `DELETE FROM workshop_photos WHERE id = $1 AND workshop_id = $2 RETURNING path, is_cover`,
+    const { rows } = await q.query<{ path: string; thumb_path: string | null; is_cover: boolean }>(
+      `DELETE FROM workshop_photos WHERE id = $1 AND workshop_id = $2 RETURNING path, thumb_path, is_cover`,
       [id, workshopId],
     );
     return rows[0] ?? null;

@@ -4,7 +4,7 @@ import { pool } from '../../src/config/database';
 import { memoryStore } from '../../src/common/middlewares/rateLimiter';
 import { addDays, localNow } from '../../src/common/utils/time';
 import { weekdayOf } from '../../src/features/booking/booking.logic';
-import { API, createUser, createWorkshop, describeDb, ORIGIN, PNG, pointAt, resetDb, tomorrow } from './helpers';
+import { API, createUser, createWorkshop, describeDb, ORIGIN, PNG, pointAt, resetDb, tomorrow, REAL_PNG } from './helpers';
 
 /** Backlog "Paket B": notifications, timeline, audit log, stats, search, health, schedule, slots, vehicles, photos, reschedule. */
 const app = createApp();
@@ -157,7 +157,7 @@ describeDb('Backlog paket B (integration)', () => {
 
   it('19. workshop & mechanic photos: upload, cover, public image, limits, cleanup', async () => {
     const ws = await createWorkshop({ lat: ORIGIN.lat, lng: ORIGIN.lng, name: 'Photo Shop' });
-    const up = () => request(app).post(`${API}/workshops/photos`).set(ws.owner.auth).attach('photo', PNG, { filename: 'f.png', contentType: 'image/png' });
+    const up = () => request(app).post(`${API}/workshops/photos`).set(ws.owner.auth).attach('photo', REAL_PNG, { filename: 'f.png', contentType: 'image/png' });
     const first = (await up()).body.data;
     const second = (await up()).body.data;
     expect(first.is_cover).toBe(true);
@@ -183,12 +183,12 @@ describeDb('Backlog paket B (integration)', () => {
     expect((await up()).body.error.code).toBe('PHOTO_LIMIT');
 
     const [mechanicId] = ws.mechanicIds;
-    await request(app).put(`${API}/workshops/mechanics/${mechanicId}/photo`).set(ws.owner.auth).attach('photo', PNG, { filename: 'm.png', contentType: 'image/png' }).expect(200);
+    await request(app).put(`${API}/workshops/mechanics/${mechanicId}/photo`).set(ws.owner.auth).attach('photo', REAL_PNG, { filename: 'm.png', contentType: 'image/png' }).expect(200);
     const mech = (await request(app).get(`${API}/workshops/${ws.workshopId}`)).body.data.mechanics[0];
     expect(mech.photo_url).toBe(`/workshops/${ws.workshopId}/mechanics/${mechanicId}/photo`);
     expect((await request(app).get(`${API}${mech.photo_url}`)).status).toBe(200);
     const other = await createWorkshop({ lat: 0, lng: 0, name: 'Other Photo' });
-    expect((await request(app).put(`${API}/workshops/mechanics/${mechanicId}/photo`).set(other.owner.auth).attach('photo', PNG, { filename: 'm.png', contentType: 'image/png' })).status).toBe(404);
+    expect((await request(app).put(`${API}/workshops/mechanics/${mechanicId}/photo`).set(other.owner.auth).attach('photo', REAL_PNG, { filename: 'm.png', contentType: 'image/png' })).status).toBe(404);
     await request(app).delete(`${API}/workshops/mechanics/${mechanicId}/photo`).set(ws.owner.auth).expect(200);
     expect((await request(app).get(`${API}${mech.photo_url}`)).status).toBe(404);
 

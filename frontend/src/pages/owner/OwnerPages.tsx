@@ -1729,7 +1729,7 @@ function OwnerPhotosSection() {
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" data-testid="photo-grid">
             {photos.map((p) => (
               <li key={p.id} className="overflow-hidden rounded-xl border border-line bg-card">
-                <img src={apiAsset(p.url)!} alt="Foto bengkel" className="aspect-[4/3] w-full object-cover" loading="lazy" />
+                <img src={apiAsset(`${p.url}?size=sm`)!} alt="Foto bengkel" className="aspect-[4/3] w-full object-cover" loading="lazy" />
                 <div className="flex items-center justify-between gap-1 p-2">
                   {p.is_cover ? (
                     <Badge tone="success">Sampul</Badge>

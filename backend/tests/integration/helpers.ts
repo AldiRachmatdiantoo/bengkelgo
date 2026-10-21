@@ -77,3 +77,9 @@ export async function count(table: string): Promise<number> {
   const { rows } = await pool.query<{ n: number }>(`SELECT COUNT(*)::int AS n FROM ${table}`);
   return rows[0].n;
 }
+
+/** A real (decodable) 64x48 PNG, for uploads that are resized on the server (workshop & mechanic photos). */
+export const REAL_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAEAAAAAwCAIAAAAuKetIAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAfklEQVRoge2SAQkAURSD1s0k1x/McDHG4w8MoGPh8zSpG7AA6yuyC3mX1A1YgPUV2YW8S+oGLMD6iuxC3iV1AxZgfUV2Ie+SugELsL4iu5B3Sd2ABVhfkV3Iu6RuwAKsr8gu5F1SN2AB1ldkF/IuqRuwAOsrsgt5l9QNeDzgB1sw2Q9YlfUsAAAAAElFTkSuQmCC',
+  'base64',
+);

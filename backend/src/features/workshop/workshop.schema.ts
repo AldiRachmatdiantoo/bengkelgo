@@ -100,6 +100,8 @@ export const nextSlotQuery = z.object({ from: isoDate.optional() });
 export const replySchema = z.object({ reply: safeText(1000).pipe(z.string().min(2)) });
 export const ownerStatsQuery = z.object({ date: isoDate.optional() });
 export const photoParams = z.object({ id: z.uuid(), photoId: z.uuid() });
+/** `size=sm`: the thumbnail (cards, gallery strip). */
+export const photoQuery = z.object({ size: z.enum(['sm']).optional() });
 export const mechanicPhotoParams = z.object({ id: z.uuid(), mechanicId: z.uuid() });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

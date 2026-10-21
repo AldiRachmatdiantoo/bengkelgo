@@ -48,6 +48,12 @@ export async function sendStored(res: Response, key: string): Promise<void> {
   res.send(body);
 }
 
+/** Reads a stored image back (e.g. to make a smaller copy of it). */
+export async function readStored(key: string): Promise<Buffer> {
+  if (env.STORAGE_DRIVER === 'supabase') return supabase.download(key);
+  return fs.readFile(resolveStoredPath(key));
+}
+
 export async function deleteStored(key: string | null | undefined): Promise<void> {
   if (!key) return;
   if (env.STORAGE_DRIVER === 'supabase') await supabase.remove(key).catch(() => undefined);

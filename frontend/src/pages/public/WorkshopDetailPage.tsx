@@ -516,7 +516,7 @@ function PhotoGallery({ photos, name }: { photos: { id: string; url: string; is_
               aria-pressed={i === active}
               className={cx('h-14 w-20 shrink-0 overflow-hidden rounded-md ring-2 transition', i === active ? 'ring-primary' : 'ring-transparent opacity-70 hover:opacity-100')}
             >
-              <img src={apiAsset(p.url)!} alt="" loading="lazy" className="h-full w-full object-cover" />
+              <img src={apiAsset(`${p.url}?size=sm`)!} alt="" loading="lazy" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>
