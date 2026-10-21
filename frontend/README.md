@@ -65,7 +65,7 @@ src/
 
 ## Catatan
 
-- **Font & ikon** dimuat dari Google Fonts di `index.html` (Plus Jakarta Sans, Inter, Material Symbols Outlined). Pakai `<Icon name="…" />` dari `components/ui`. Font ikon hanya berisi ikon yang dipakai (±40 KB, bukan 2,3 MB): plugin di `vite.config.ts` mengisi `icon_names` dari semua nama ikon di `src` saat build, jadi ikon baru otomatis ikut. `e2e/icons.spec.ts` memastikan tidak ada ikon yang tampil sebagai teks.
+- **Font & ikon** dikirim dari server web sendiri, tanpa sambungan ke Google saat halaman dibuka: Plus Jakarta Sans & Inter dari paket `@fontsource` (diimpor di `src/main.tsx`, subset latin), ikon Material Symbols Outlined diunduh saat build oleh plugin di `vite.config.ts` (hanya ikon yang dipakai, ±40 KB, dipreload). Saat `npm run dev` ikon masih diambil langsung dari Google Fonts. Ikon baru otomatis ikut; `e2e/icons.spec.ts` memastikan tidak ada ikon yang tampil sebagai teks. Pakai `<Icon name="…" />` dari `components/ui`.
 - **`data-testid`** sudah dipasang pada elemen kunci alur E2E (SOS, booking, upload bukti, verifikasi, approval admin) untuk Playwright (PBI-407).
 - **Layout dipilih per halaman** (`components/layout/AppLayout.tsx`): portal owner dan admin = **sidebar + top bar**, halaman lain = situs publik (owner/admin melihat tombol "Ke Portal").
 - **Komponen baru** di `components/ui`: `Modal`, `toast()`/`Toaster`, `QrCode` (library `qrcode`, QR dari nomor pesanan), `CopyButton`, `ProgressBar`, `SectionHeading`.

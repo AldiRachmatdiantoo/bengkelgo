@@ -175,6 +175,7 @@ html.theme-dark ::selection {
   white-space: nowrap;
   direction: ltr;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: "liga";
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
   user-select: none;
 }

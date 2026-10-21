@@ -4,6 +4,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LazyMotion, MotionConfig } from 'framer-motion';
 import { AuthProvider } from '@/services/auth/AuthProvider';
 import App from './App';
+// Text fonts served with the app (same origin: no extra connections before the first paint). Latin covers Indonesian.
+import '@fontsource/plus-jakarta-sans/latin-400.css';
+import '@fontsource/plus-jakarta-sans/latin-500.css';
+import '@fontsource/plus-jakarta-sans/latin-600.css';
+import '@fontsource/plus-jakarta-sans/latin-700.css';
+import '@fontsource/plus-jakarta-sans/latin-800.css';
+import '@fontsource/inter/latin-400.css';
+import '@fontsource/inter/latin-500.css';
+import '@fontsource/inter/latin-600.css';
+import '@fontsource/inter/latin-700.css';
 import './theme/index.css';
 
 // After a new deploy, a tab still running the previous build asks for chunk files that no longer exist.
