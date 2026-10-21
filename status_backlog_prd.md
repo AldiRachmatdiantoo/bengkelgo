@@ -26,7 +26,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 
 | # | Perlu dari tim | Jenis | Detail |
 |---|---|---|---|
-| 1 | Google Cloud OAuth Client ID untuk login Google | Akun | [PBI-106](#pbi-106-google-oauth-20), [Pekerjaan siap dikerjakan A](#pekerjaan-siap-dikerjakan-butuh-tindakan-tim) |
+| 1 | ~~Google Cloud OAuth Client ID untuk login Google~~ ✅ diisi di Render & Vercel 21 Okt; tombol tampil dan Google menerima permintaan. Sisa: uji login sungguhan dengan akun Google (akun baru & akun lama) | Akun | [PBI-106](#pbi-106-google-oauth-20) |
 | 2 | ~~Isi SMTP Gmail + App Password~~ ✅ selesai 20 Okt, email pengingat terkirim | Akun | [PBI-404](#pbi-404-cron-pengingat-email) |
 | 3 | ~~Deploy gratis~~ ✅ live 20 Okt (Vercel + Render + Supabase), Gmail API & ping cron-job.org ✅ (dikonfirmasi 21 Okt). Detail awal: akun GitHub, Supabase, Render, Vercel, Google Cloud (Gmail API), cron-job.org. Kode & panduan ✅ siap 20 Okt: [docs/deploy-gratis.md](docs/deploy-gratis.md) | Akun & infrastruktur | [PBI-407 B](#b-deploy-frontend-ke-vercel) |
 | 4 | Izin & lingkungan uji untuk pen-test OWASP ZAP | Izin | [Pekerjaan siap dikerjakan B](#pekerjaan-siap-dikerjakan-butuh-tindakan-tim) |
@@ -39,7 +39,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 | 11 | Keputusan desain/bisnis: warna primer & SOS di PRD 3.1, alur bayar (12.2), slot per jam (12.3), komisi 5% (12.4), klaim marketing (12.5) | Keputusan | [Lampiran 1, bagian 12](#12-konflik-yang-harus-diputuskan-tim); catatan di [prd.md](prd.md) 3.1 |
 | 12 | Fitur sparepart masuk cakupan atau tidak | Keputusan + backend | [Lampiran 2](#lampiran-2-keputusan-dari-review-flowchart-booking) |
 | 13 | Transaction manager: terima pendekatan helper atau minta middleware | Keputusan | [PBI-103](#pbi-103-transaction-manager-middlewares) |
-| 14 | Aktifkan lagi bengkel uji "Bengkel Uji Desain Stitch" bila masih dipakai (sekarang dinonaktifkan admin) | Data uji | Portal admin → Persetujuan Mitra |
+| 14 | ~~Aktifkan lagi bengkel uji "Bengkel Uji Desain Stitch"~~ tidak relevan lagi: database lokal dikosongkan 21 Okt (lihat Tahap 21 Oktober) | Data uji | – |
 | 15 | ~~Dua temuan backend 19 Okt (penugasan mekanik vs SOS, refund pesanan lunas)~~ ✅ diperbaiki 20 Okt atas persetujuan tim | Backend | [Temuan nomor 4–5](#temuan-selama-pengujian) |
 | 16 | ~~Potong otomatis QRIS~~ ❌ tidak dikerjakan (keputusan tim 21 Okt): gambar QRIS tetap disimpan utuh | Keputusan | – |
 | 17 | Pengamanan penyalahgunaan booking: ~~batas booking aktif, batas per bengkel per hari, pembatas kecepatan, verifikasi email~~ ✅ selesai 21 Okt; sisa: keputusan wajib bayar/DP (butuh keputusan tim) | Keputusan | [Pengamanan penyalahgunaan booking](#pengamanan-penyalahgunaan-booking-dicatat-20-okt-2026) |
@@ -52,7 +52,16 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 
 **Tahap 21 Okt 2026:** ✅ pengaman booking, batas login per email, repository 6 fitur, antrean email di database, verifikasi email, pencarian lokasi + alamat dari titik, bilah bawah HP lebih ringkas, bahasa non-teknis di tampilan. Lihat [Tahap 21 Oktober](#tahap-21-oktober-2026).
 
-**Yang tersisa tanpa tim:** tidak ada. Sisanya butuh akun, izin, keputusan, atau konten (tabel di atas).
+**Lanjutan 21 Okt (sore):**
+- ✅ **Email pesanan:** dibatalkan bengkel (alasan + dana dikembalikan), dibatalkan pelanggan, pembayaran lunas (invoice), pesanan selesai (ajakan ulasan); semua email pelanggan memakai satu tampilan (`common/mail/layout.ts`). Di-push.
+- ✅ **Login Google** dipasang di produksi: `GOOGLE_CLIENT_ID/SECRET/REDIRECT_URI` di Render, `VITE_GOOGLE_CLIENT_ID` di Vercel. Dicek: tombol tampil, Google membuka halaman login tanpa error. Belum diuji sampai masuk dengan akun Google sungguhan.
+- ❌ **Potong otomatis QRIS** tidak dikerjakan (keputusan tim).
+- ✅ **Script reset database** `npm run db:reset`: mengosongkan semua data kecuali akun admin (atau hanya `--only-admin=<email>`), mengulang nomor pesanan/invoice, menghapus semua file unggahan (folder lokal atau Supabase Storage); hanya jalan dengan `--confirm=<host database>`.
+- ✅ **Database lokal dikosongkan** 21 Okt: dari 329 akun / 97 bengkel / 392 pesanan menjadi 1 akun (admin utama); 164 file unggahan dihapus.
+- ⏳ **Database produksi belum dikosongkan** (dicek 21 Okt lewat `/stats/public`: 2 bengkel, 5 pelanggan, 2 pesanan selesai). Kredensial Supabase hanya ada di Render, jadi dijalankan pemilik akun dari laptop:
+  `DATABASE_URL="<pooler URI>" DATABASE_SSL=true STORAGE_DRIVER=supabase SUPABASE_URL="<url>" SUPABASE_SERVICE_ROLE_KEY="<key>" npm run db:reset` (cek), lalu tambahkan `-- --confirm=<host> [--only-admin=<email>]`. Tidak bisa dibatalkan (Supabase Free tanpa backup yang bisa dipulihkan).
+
+**Yang tersisa tanpa tim:** tidak ada pekerjaan kode yang tertunda. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).
 
@@ -74,7 +83,7 @@ Disetujui tim: nomor 2, 3, 4, 5, 7, 8, 9, 10 (dan 11 setelah penjelasan, lihat d
 
 **Hasil tes akhir 21 Okt:** backend unit 61/61, integration 61/61; frontend Vitest 42/42, typecheck lolos; Playwright journeys + geolocation + pencarian lokasi 11/11, fitur backlog + a11y 19/19, a11y login + 375px + lintas browser 16 lolos (6 dilewati sengaja), visual 12/12 stabil 2×; Postman/Newman 88/88. ERD diperbarui: 19 tabel, 28 relasi.
 
-**Belum di-push** (semua commit 21 Okt setelah pencarian lokasi): menunggu persetujuan. Saat push, Render menjalankan migrasi 006 dan 007 otomatis.
+**✅ Di-push dan live 21 Okt** (migrasi 006 dan 007 berjalan otomatis di Render).
 
 **✅ Nomor 11 (foto HEIC iPhone) selesai 21 Okt, disetujui tim:**
 - **Di browser (utama):** Chrome/Android/Windows yang tidak bisa membuka HEIC memuat decoder `heic-to` (WebAssembly, ±793 KB gzip, file terpisah yang hanya diunduh saat pengguna memilih foto HEIC), lalu foto diperkecil jadi JPEG < 2 MB seperti foto lain. Safari tetap memakai kemampuan bawaannya. Lisensi `heic-to`/libheif: LGPL-3.0 (dimuat apa adanya sebagai file terpisah).
@@ -168,7 +177,7 @@ Keluhan penguji: "lokasi ditolak". Website **tidak bisa** memunculkan lagi pop-u
 | 103 | Migrasi, indeks, Transaction Manager | ⚠️ [lihat catatan](#pbi-103-transaction-manager-middlewares) |
 | 104 | Rate limit Redis sliding window + Helmet | ✅ |
 | 105 | JWT + refresh token rotation | ✅ |
-| 106 | Google OAuth 2.0 | ⚠️ [lihat catatan](#pbi-106-google-oauth-20) |
+| 106 | Google OAuth 2.0 | ⚠️ terpasang di produksi 21 Okt, tinggal uji login sungguhan [lihat catatan](#pbi-106-google-oauth-20) |
 | 107 | Guest session | ✅ |
 | 108 | Setup React TS + token warna Traveloka | ✅ |
 | 201 | Scan radius 5 km `ST_DWithin` | ✅ |
