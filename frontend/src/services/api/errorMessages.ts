@@ -16,6 +16,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   GOOGLE_AUTH_FAILED: 'Login Google gagal. Silakan coba lagi.',
   GOOGLE_EMAIL_UNVERIFIED: 'Email Google Anda belum terverifikasi.',
   RATE_LIMITED: 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',
+  GEOCODE_UNAVAILABLE: 'Pencarian lokasi sedang tidak tersedia. Tandai lokasi langsung di peta.',
 
   // Uploads
   INVALID_FILE_TYPE: 'File harus berupa foto JPG, PNG, atau WEBP. Video dan PDF tidak bisa diunggah.',

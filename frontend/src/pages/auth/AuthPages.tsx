@@ -7,6 +7,7 @@ import type { AuthPayload, Role, VehicleType } from '@/services/api/types';
 import { canReturnTo, homeFor, useAuth } from '@/services/auth/AuthProvider';
 import { checkCallback, googleEnabled, startGoogleLogin, takePendingGoogleLogin } from '@/services/auth/googleOAuth';
 import { MapPicker, type LatLng } from '@/components/map/Maps';
+import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { Alert, Button, Card, Icon, Input, Loading, MissingFields, Segmented, TextArea } from '@/components/ui';
 import { fieldIssue, isEmail, isIdPhone, isStrongPassword } from '@/utils/formChecks';
 
@@ -337,6 +338,12 @@ export function RegisterWorkshopPage() {
         </Card>
 
         <Card id="ws-location" title="Lokasi bengkel" icon="location_on" subtitle="Klik pada peta untuk menandai titik bengkel. Dipakai untuk pencarian terdekat dan radius darurat 5 km.">
+          <PlaceSearch
+            className="mb-3"
+            near={point}
+            placeholder="Cari alamat bengkel: jalan, kelurahan, kota"
+            onPick={(p) => setPoint({ lat: p.lat, lng: p.lng })}
+          />
           <MapPicker value={point} onChange={setPoint} height={320} />
           <p className="mt-2 font-label text-xs text-ink-3">{point ? `Koordinat: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}` : 'Lokasi belum dipilih'}</p>
         </Card>

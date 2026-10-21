@@ -3,6 +3,7 @@ import { API_URL, call, http, tokenStore } from './client';
 import type {
   AdminSearchResult,
   AdminUser,
+  Place,
   Role,
   AdminStats,
   AdminWorkshop,
@@ -236,6 +237,12 @@ export const vehicleApi = {
 
 export const statsApi = {
   public: () => call<PublicStats>(http.get('/stats/public')),
+};
+
+/** Place search (OpenStreetMap via the API). Search on submit only: the provider forbids type-ahead. */
+export const geocodeApi = {
+  search: (q: string, near?: { lat: number; lng: number }) =>
+    call<Place[]>(http.get('/geocode/search', { params: { q, limit: 6, ...(near ? { lat: near.lat, lng: near.lng } : {}) } })),
 };
 
 /** Absolute URL for a public image path returned by the API (photos are served by the API, not the web app). */

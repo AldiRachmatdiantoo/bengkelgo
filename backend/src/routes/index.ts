@@ -3,6 +3,7 @@ import adminRoutes from '../features/admin/admin.routes';
 import authRoutes from '../features/auth/auth.routes';
 import bookingRoutes from '../features/booking/booking.routes';
 import emergencyRoutes from '../features/emergency/emergency.routes';
+import geocodeRoutes from '../features/geocode/geocode.routes';
 import notificationRoutes from '../features/notification/notification.routes';
 import orderRoutes from '../features/order/order.routes';
 import paymentRoutes from '../features/payment/payment.routes';
@@ -24,5 +25,6 @@ router.use('/admin', adminRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/vehicles', vehicleRoutes);
 router.use('/stats', statsRoutes);
+router.use('/geocode', geocodeRoutes);
 
 export default router;

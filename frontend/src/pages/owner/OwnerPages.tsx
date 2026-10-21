@@ -5,6 +5,7 @@ import { apiAsset, emergencyApi, ownerApi, orderApi } from '@/services/api/endpo
 import { errorMessage } from '@/services/api/client';
 import type { Mechanic, Order, OrderStatus, OrderType, OwnWorkshop, Review, Service, SlotAvailability, VehicleType } from '@/services/api/types';
 import { MapPicker, type LatLng } from '@/components/map/Maps';
+import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { OrderCard, OrderStatusBadge, ProofVerifyPanel, ResponseCountdown } from '@/components/orders/OrderComponents';
 import { DateStrip, StarRow, friendlyDay, slotRange, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
 import { Alert, Badge, Button, Card, EmptyState, Icon, Input, Loading, MissingFields, Modal, PageHeader, ProgressBar, Segmented, Select, StatCard, Stars, Table, Td, TextArea, cx, toast } from '@/components/ui';
@@ -1367,6 +1368,12 @@ export function OwnerProfilePage() {
               </div>
             </Card>
             <Card title="Lokasi" icon="location_on" subtitle="Klik peta untuk memindahkan titik bengkel.">
+              <PlaceSearch
+                className="mb-3"
+                near={point}
+                placeholder="Cari alamat bengkel: jalan, kelurahan, kota"
+                onPick={(p) => setPoint({ lat: p.lat, lng: p.lng })}
+              />
               <MapPicker value={point} onChange={setPoint} height={300} />
             </Card>
           </div>

@@ -60,6 +60,43 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 - **Riwayat dibatalkan di halaman Semua Pesanan (owner)** dipindah dari bawah daftar ke atas, tepat di bawah filter, dengan tombol "Kembali ke semua pesanan". Di halaman pesanan pelanggan, "Riwayat dibatalkan" sudah berupa filter di atas.
 - Diuji: Vitest 40/40, E2E journeys + fitur backlog + a11y (desktop & HP) lolos, visual regression 12/12 (baseline SOS-HP dan daftar bengkel diperbarui karena memang berubah), dicek manual di browser.
 
+## Pencarian lokasi (geocoding) — ✅ selesai 21 Okt 2026
+
+Kotak "cari lokasi" seperti Google Maps (mis. "Margonda Depok", "Stasiun Bogor") untuk memudahkan mencari bengkel, **gratis** (item 9 integrasi pihak ketiga, bagian geocoding). Sudah di-commit; **belum di-push** (menunggu persetujuan, lalu Render deploy backend + Vercel deploy frontend).
+
+**Keputusan:**
+- Sumber data OpenStreetMap, gratis tanpa akun/kartu: **Nominatim utama** (±0,5 detik dari Indonesia), **Photon cadangan** (±5,5 detik, server di Jerman). Google Places tidak dipakai (berbayar, butuh billing/kartu).
+- **Cari saat Enter / tombol "Cari"**, bukan per ketikan, karena kebijakan Nominatim melarang autocomplete.
+- Selalu lewat backend (bukan langsung dari browser): User-Agent `BengkelGo/1.0 (+APP_URL)`, Nominatim maks. 1 request/detik (antrean), cache 15 menit (maks. 500 entri, tidak bocor memori), pembatas `geocode` 40 request/menit per IP, hanya wilayah Indonesia.
+
+**Isi:**
+- Backend `backend/src/features/geocode/` → `GET /api/v1/geocode/search?q=…&limit=…&lat=&lng=` (publik, min. 3 huruf). Bila kedua layanan mati: 503 `GEOCODE_UNAVAILABLE` (pesan Indonesia di frontend).
+- Frontend `components/map/PlaceSearch.tsx` (combobox aksesibel, Enter tidak mengirim form induk, panah atas/bawah, atribusi OpenStreetMap), dipasang di: **Cari Bengkel** (baris "Cari bengkel di sekitar…" + "Pakai GPS saya", label "Menampilkan bengkel di sekitar …", hapus lokasi), **SOS**, **Daftar Bengkel**, dan **Profil Bengkel** (di atas peta; peta pindah ke titik yang dipilih, titik bisa digeser dengan klik peta).
+
+**Diuji 21 Okt:** typecheck frontend & backend; backend unit 56/56 (5 tes geocode) dan integration 50/50; Vitest 42/42; E2E journeys + geolocation 8/8, fitur backlog + a11y 18/18, a11y login + 375px + lintas browser 16 lolos (6 dilewati sengaja), E2E baru `e2e/place-search.spec.ts` 2/2 (respons API tiruan: cari hanya saat Enter, pilih hasil memindah titik, Enter di form SOS tidak mengirim permintaan, pesan saat layanan mati); visual regression 12/12 stabil 2× (baseline SOS & Daftar Bengkel desktop/HP diperbarui karena ada kotak baru). Dicoba di browser terhadap Docker lokal: "Margonda Depok" (Cari Bengkel) dan "Stasiun Bogor" (SOS) menghasilkan lokasi yang benar.
+
+**Belum (opsional):** request geocode di koleksi Postman (`scripts/postman/build-collection.js`); reverse geocoding (koordinat → alamat).
+
+## Cek database & relasi lewat DBeaver (dicatat 20 Okt 2026)
+
+**Koneksi** (New Database Connection → PostgreSQL):
+
+| | Lokal (Docker di laptop) | Produksi (Supabase) |
+|---|---|---|
+| Host | `localhost` | host dari URI **Session pooler** (`aws-…pooler.supabase.com`) |
+| Port | `5433` | `5432` |
+| Database | `bengkel` | `postgres` |
+| Username | `bengkel` | `postgres.ocivvfrsienwlwmjqcsx` |
+| Password | `bengkel` (bawaan `docker-compose.yml`) | password database Supabase, **jangan ditulis di file ini / di repo** |
+| SSL | tidak | **Use SSL**, mode `require` |
+
+**Melihat relasi:**
+- Seluruh database: Databases → `bengkel`/`postgres` → Schemas → klik kanan **`public`** → **View Diagram** (bisa diekspor jadi gambar). Abaikan `spatial_ref_sys` (PostGIS) dan `schema_migrations`.
+- Satu tabel: buka tabelnya → tab **Properties → Foreign Keys** (tabel ini menunjuk ke mana), **References** (tabel mana yang menunjuk ke sini), atau tab **ER Diagram**.
+- Hasil harus sama dengan [docs/erd.md](docs/erd.md) / [docs/erd-quickdbd.txt](docs/erd-quickdbd.txt): 17 tabel, 27 relasi.
+
+**Hati-hati di Supabase:** cukup untuk melihat. Jangan edit/hapus data lewat DBeaver; paket gratis Supabase tidak punya backup yang bisa dipulihkan sendiri.
+
 ## Izin lokasi GPS (20 Okt 2026)
 
 Keluhan penguji: "lokasi ditolak". Website **tidak bisa** memunculkan lagi pop-up izin resmi browser setelah pengguna menekan Tolak/Blokir, dan tidak bisa menyalakan lokasi HP. Perbaikan di `hooks/useGeolocation.tsx` (SOS, detail bengkel, cari bengkel):

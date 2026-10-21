@@ -374,3 +374,12 @@ export interface TransactionReport {
   top_workshops: { id: string; name: string; orders: number; verified_revenue: number }[];
   daily: { date: string; orders: number; verified_revenue: number }[];
 }
+
+/** A place found by the location search (OpenStreetMap data). */
+export interface Place {
+  name: string;
+  detail: string;
+  lat: number;
+  lng: number;
+  source: 'photon' | 'nominatim';
+}

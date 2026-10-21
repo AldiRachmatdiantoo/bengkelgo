@@ -7,6 +7,7 @@ import type { ProblemCategory, VehicleType } from '@/services/api/types';
 import { useAuth } from '@/services/auth/AuthProvider';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { MapPicker, PointsMap, type LatLng } from '@/components/map/Maps';
+import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { SafetyBanner } from '@/components/orders/OrderComponents';
 import { Alert, Badge, Button, Card, EmptyState, Icon, Input, MissingFields, Segmented, Select, Stars, TextArea, cx } from '@/components/ui';
 import { isIdPhone } from '@/utils/formChecks';
@@ -128,7 +129,13 @@ export default function EmergencyPage() {
                 )}
               </div>
               {geo.error && <Alert tone="warning">{geo.error}</Alert>}
+              <PlaceSearch
+                near={geo.position}
+                placeholder="Atau cari lokasi: nama jalan, daerah, patokan"
+                onPick={(p) => geo.setPosition({ lat: p.lat, lng: p.lng })}
+              />
               <MapPicker value={geo.position} onChange={geo.setPosition} height={300} />
+              <p className="-mt-2 font-label text-xs text-ink-3">Hasil pencarian menandai titik perkiraan. Klik peta untuk menggeser ke posisi kendaraan yang tepat.</p>
               <Input label="Patokan lokasi (opsional)" icon="pin_drop" value={addressNote} onChange={(e) => setAddressNote(e.target.value)} placeholder="mis. Depan minimarket, sebelah SPBU" />
             </div>
           </Card>

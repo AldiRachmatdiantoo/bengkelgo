@@ -6,6 +6,7 @@ import { errorMessage } from '@/services/api/client';
 import type { VehicleType, Workshop } from '@/services/api/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { DEFAULT_CENTER, PointsMap } from '@/components/map/Maps';
+import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { WorkshopCard, friendlyDay, regionOf } from '@/components/workshop/WorkshopComponents';
 import { Alert, Button, EmptyState, Icon, Loading, SectionHeading, cx } from '@/components/ui';
 import { distance, jakartaDate } from '@/utils/format';
@@ -52,6 +53,8 @@ export default function WorkshopSearchPage() {
   const [slotTime, setSlotTime] = useState('');
   const [problem, setProblem] = useState(PROBLEMS[0].text);
   const geo = useGeolocation();
+  // Name of the place picked in the location search (null when the point came from GPS).
+  const [placeLabel, setPlaceLabel] = useState<string | null>(null);
 
   // Wait until typing pauses before hitting the API.
   useEffect(() => {
@@ -119,6 +122,50 @@ export default function WorkshopSearchPage() {
               })}
             </div>
 
+            {tab !== 'sos' && (
+              <div className="mb-4 flex flex-col gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                  <PlaceSearch
+                    className="flex-1"
+                    near={geo.position}
+                    placeholder="Cari bengkel di sekitar… (mis. Margonda Depok, Stasiun Bogor)"
+                    onPick={(p) => {
+                      geo.setPosition({ lat: p.lat, lng: p.lng });
+                      setPlaceLabel(p.label);
+                    }}
+                  />
+                  <Button
+                    variant="secondary"
+                    icon="my_location"
+                    loading={geo.locating}
+                    onClick={() => {
+                      setPlaceLabel(null);
+                      void geo.locate();
+                    }}
+                    className="shrink-0"
+                  >
+                    Pakai GPS saya
+                  </Button>
+                </div>
+                {geo.position && (
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-label text-xs text-ink-2" data-testid="search-around">
+                    <Icon name="near_me" className="text-[16px] text-primary" />
+                    Menampilkan bengkel di sekitar <b className="text-navy">{placeLabel ?? 'lokasi GPS Anda'}</b>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        geo.setPosition(null);
+                        setPlaceLabel(null);
+                      }}
+                      className="font-semibold text-primary hover:underline"
+                    >
+                      Hapus lokasi
+                    </button>
+                  </p>
+                )}
+              </div>
+            )}
+
             {tab === 'booking' && (
               <div className="flex flex-col gap-4">
                 <div className="grid gap-2 rounded-xl bg-surface-low p-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -128,11 +175,19 @@ export default function WorkshopSearchPage() {
                         <select value={radiusKm} onChange={(e) => setRadiusKm(Number(e.target.value))} className="min-w-0 flex-1 bg-transparent font-bold text-navy focus:outline-none" aria-label="Radius pencarian">
                           {[2, 5, 10, 20, 50].map((r) => (
                             <option key={r} value={r}>
-                              Sekitar saya · {r} km
+                              {placeLabel ? 'Sekitar lokasi dipilih' : 'Sekitar saya'} · {r} km
                             </option>
                           ))}
                         </select>
-                        <button type="button" onClick={() => geo.setPosition(null)} className="text-ink-3 hover:text-emergency" aria-label="Hapus lokasi">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            geo.setPosition(null);
+                            setPlaceLabel(null);
+                          }}
+                          className="text-ink-3 hover:text-emergency"
+                          aria-label="Hapus lokasi"
+                        >
                           <Icon name="close" />
                         </button>
                       </span>
@@ -254,7 +309,7 @@ export default function WorkshopSearchPage() {
                       <option value="MOBIL">Mobil</option>
                     </select>
                   </FieldCell>
-                  <FieldCell icon="sort" label="Urutkan Berdasarkan" hint={geo.position ? 'Lokasi Anda terdeteksi' : 'Terdekat memerlukan izin GPS'}>
+                  <FieldCell icon="sort" label="Urutkan Berdasarkan" hint={geo.position ? (placeLabel ? 'Dari lokasi yang Anda pilih' : 'Lokasi Anda terdeteksi') : 'Terdekat: pilih lokasi atau GPS'}>
                     <select
                       value={!geo.position && sort === 'near' ? 'recommended' : sort}
                       onChange={(e) => {
@@ -266,7 +321,7 @@ export default function WorkshopSearchPage() {
                       aria-label="Urutkan"
                     >
                       <option value="recommended">{geo.position ? 'Rekomendasi (jarak + rating)' : 'Rekomendasi'}</option>
-                      <option value="near">Paling dekat dari lokasi saya</option>
+                      <option value="near">Paling dekat dari lokasi</option>
                       <option value="rating">Rating tertinggi</option>
                     </select>
                   </FieldCell>

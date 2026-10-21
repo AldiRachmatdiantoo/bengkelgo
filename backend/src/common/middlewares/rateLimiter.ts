@@ -116,3 +116,5 @@ export function rateLimit(opts: RateLimitOptions) {
 export const emergencyLimiter = rateLimit({ name: 'emergency', windowMs: 60_000, limit: 10 });
 export const authLimiter = rateLimit({ name: 'auth', windowMs: 15 * 60_000, limit: 15 });
 export const globalLimiter = rateLimit({ name: 'global', windowMs: 60_000, limit: 300 });
+/** Place search proxies free OpenStreetMap services; keep one client from exhausting their fair use. */
+export const geocodeLimiter = rateLimit({ name: 'geocode', windowMs: 60_000, limit: 40 });
