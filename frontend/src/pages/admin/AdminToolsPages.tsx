@@ -333,6 +333,13 @@ export function AdminUsersPage() {
       toast(r.is_active ? 'Akun diaktifkan' : 'Akun dinonaktifkan', { text: u.name });
     },
   });
+  const verifyEmail = useMutation({
+    mutationFn: (u: AdminUser) => adminApi.verifyUserEmail(u.id),
+    onSuccess: (_r, u) => {
+      void qc.invalidateQueries({ queryKey: ['admin-users'] });
+      toast('Email ditandai terverifikasi', { text: u.name });
+    },
+  });
   const users = list.data ?? [];
 
   return (
@@ -393,8 +400,20 @@ export function AdminUsersPage() {
                   {u.orders > 0 && <p className="text-xs text-ink-3">{u.orders} pesanan</p>}
                 </Td>
                 <Td className="whitespace-nowrap">{dateTime(u.created_at)}</Td>
-                <Td>{u.is_active ? <Badge tone="success">Aktif</Badge> : <Badge tone="danger">Nonaktif</Badge>}</Td>
+                <Td>
+                  {u.is_active ? <Badge tone="success">Aktif</Badge> : <Badge tone="danger">Nonaktif</Badge>}
+                  {u.email && !u.email_verified_at && (
+                    <p className="mt-1 text-xs text-warning-ink" data-testid="user-unverified">
+                      Email belum diverifikasi
+                    </p>
+                  )}
+                </Td>
                 <Td className="text-right">
+                  {u.email && !u.email_verified_at && (
+                    <Button size="sm" variant="ghost" loading={verifyEmail.isPending && verifyEmail.variables?.id === u.id} onClick={() => verifyEmail.mutate(u)} data-testid="user-verify-email">
+                      Tandai email terverifikasi
+                    </Button>
+                  )}
                   {u.id !== me?.id && (
                     <Button size="sm" variant={u.is_active ? 'ghost' : 'secondary'} className={u.is_active ? 'text-emergency-ink hover:bg-emergency-soft' : ''} onClick={() => setToggling(u)} data-testid="user-toggle">
                       {u.is_active ? 'Nonaktifkan' : 'Aktifkan'}

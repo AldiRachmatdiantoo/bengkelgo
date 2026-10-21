@@ -58,7 +58,7 @@ src/
 
 Database diagram: [../docs/erd.md](../docs/erd.md) (regenerate with `scripts/erd/build-erd.py`).
 
-Full Postman documentation (85 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
+Full Postman documentation (88 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
 
 | Endpoint | Method | Access |
 | --- | --- | --- |
@@ -66,6 +66,7 @@ Full Postman documentation (85 requests, runnable end-to-end, with real response
 | `/auth/login` · `/auth/google` · `/auth/guest` | POST | Public |
 | `/auth/refresh` · `/auth/logout` | POST | Refresh cookie/body |
 | `/auth/me` | GET | Any authenticated user |
+| `/auth/email/verify` · `/auth/email/resend` (6-digit code mailed at sign-up; booking needs a verified email) | POST | Signed-in user |
 | `/emergency/scan` | POST | Public (rate limited) |
 | `/emergency/request` | POST | Customer / Guest |
 | `/emergency/:order_id/respond` | PATCH | Workshop owner (`ACCEPT` / `DECLINE`, optional `mechanic_id`) |
@@ -84,7 +85,7 @@ Full Postman documentation (85 requests, runnable end-to-end, with real response
 | `/reviews` | POST | Customer / Guest (completed orders) |
 | `/admin/workshops` · `/admin/workshops/:id/approval` · `/admin/reports/transactions` | GET/PATCH/GET | Admin |
 | `/admin/stats` · `/admin/search?q=` · `/admin/audit-logs` · `/admin/health` | GET | Admin |
-| `/admin/users` (GET) · `/admin/users/:id/active` (PATCH) · `/admin/users/admins` (POST) | | Admin (access management) |
+| `/admin/users` (GET) · `/admin/users/:id/active` · `/admin/users/:id/verify-email` (PATCH) · `/admin/users/admins` (POST) | | Admin (access management) |
 | `/notifications` (GET) · `/notifications/read` (PATCH) | | Any authenticated user |
 | `/orders/:id/history` (GET) · `/orders/:id/reschedule` (PATCH) | | Parties of the order · Customer |
 | `/vehicles` (GET/POST, PATCH/DELETE `/:id`) | | Customer / Guest |

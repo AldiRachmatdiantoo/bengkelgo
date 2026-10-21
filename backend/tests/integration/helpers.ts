@@ -19,7 +19,7 @@ export async function resetDb() {
 let seq = 0;
 export async function createUser(role: UserRole, name = `User ${++seq}`) {
   const { rows } = await pool.query<{ id: string }>(
-    `INSERT INTO users (name, email, phone, role) VALUES ($1, $2, '081234567890', $3) RETURNING id`,
+    `INSERT INTO users (name, email, phone, role, email_verified_at) VALUES ($1, $2, '081234567890', $3::user_role, CASE WHEN $3::user_role <> 'GUEST' THEN NOW() END) RETURNING id`,
     [name, role === 'GUEST' ? null : `u${Date.now()}${++seq}@test.local`, role],
   );
   const id = rows[0].id;

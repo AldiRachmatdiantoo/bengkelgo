@@ -5,6 +5,7 @@ import type {
   AdminUser,
   Place,
   Role,
+  User,
   AdminStats,
   AdminWorkshop,
   AppNotification,
@@ -70,6 +71,12 @@ export const authApi = {
     await http.post('/auth/logout', {}).catch(() => undefined);
     tokenStore.set(null);
   },
+  verifyEmail: async (code: string) => {
+    const { user } = await call<{ user: User }>(http.post('/auth/email/verify', { code }));
+    tokenStore.updateUser(user);
+    return user;
+  },
+  resendVerification: () => call<{ sent: boolean; already_verified: boolean }>(http.post('/auth/email/resend', {})),
 };
 
 export const workshopApi = {
@@ -219,6 +226,7 @@ export const adminApi = {
     call<AdminUser[]>(http.get('/admin/users', { params: { ...q, active: q.active === undefined ? undefined : String(q.active) } })),
   setUserActive: (id: string, active: boolean, reason?: string) => call<{ id: string; is_active: boolean }>(http.patch(`/admin/users/${id}/active`, { active, reason })),
   createAdmin: (b: { name: string; email: string; phone?: string; password: string }) => call<AdminUser>(http.post('/admin/users/admins', b)),
+  verifyUserEmail: (id: string) => call<{ id: string; email_verified: boolean }>(http.patch(`/admin/users/${id}/verify-email`, {})),
 };
 
 export const notificationApi = {

@@ -60,6 +60,10 @@ export const adminController = {
     ok(res, await usersService.setActive(currentUser(req).id, params.id, body.active, body.reason));
   },
 
+  async verifyUserEmail(req: Request, res: Response) {
+    ok(res, await usersService.verifyEmail(currentUser(req).id, input<unknown, unknown, IdParams>(req).params.id));
+  },
+
   async createAdmin(req: Request, res: Response) {
     created(res, await usersService.createAdmin(currentUser(req).id, input<CreateAdminInput>(req).body));
   },

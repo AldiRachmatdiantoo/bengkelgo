@@ -138,9 +138,30 @@ const items = [
 | phone | nomor WhatsApp Indonesia (\`08…\`, \`62…\`, \`+62…\`) |
 | password | 8–72 karakter, wajib huruf kecil, huruf besar, dan angka |
 
-**201** → \`{ user, access_token, token_type, refresh_token, refresh_expires_at }\`. **409** \`EMAIL_TAKEN\`.
+**201** → \`{ user, access_token, token_type, refresh_token, refresh_expires_at }\`; \`user.email_verified\` = \`false\` dan kode 6 angka dikirim ke email (berlaku 15 menit). Booking baru bisa dibuat setelah email diverifikasi. **409** \`EMAIL_TAKEN\`.
 
 ${ERR}`,
+      }),
+      req({
+        name: 'Verify Email (code from inbox)',
+        method: 'POST',
+        path: '/auth/email/verify',
+        token: 'customer_token',
+        status: 422,
+        body: { code: '000000' },
+        desc: `Masukkan kode 6 angka dari email pendaftaran. **200** → \`{ user }\` dengan \`email_verified: true\`.
+
+Saat dijalankan otomatis request ini **sengaja gagal** (kode contoh): **422** \`VERIFICATION_CODE_INVALID\`. Error lain: \`VERIFICATION_CODE_EXPIRED\` (lewat 15 menit), \`VERIFICATION_TOO_MANY_ATTEMPTS\` (5× salah, minta kode baru). Dibatasi 20 request/jam per akun (bersama Resend).`,
+      }),
+      req({
+        name: 'Resend Verification Code',
+        method: 'POST',
+        path: '/auth/email/resend',
+        token: 'customer_token',
+        status: 429,
+        desc: `Mengirim kode baru (kode lama tidak berlaku lagi). **200** → \`{ sent, already_verified }\`.
+
+Paling cepat 1 menit setelah kode terakhir, jadi tepat setelah daftar request ini **sengaja gagal**: **429** \`VERIFICATION_RESEND_TOO_SOON\`.`,
       }),
       req({
         name: 'Login (Customer)',
@@ -565,6 +586,13 @@ Terkunci setelah pelanggan mengirim bukti bayar atau sudah lunas → **409** \`P
 Kuota slot dikunci dengan **\`SELECT … FOR UPDATE\`** sehingga request bersamaan tidak bisa overbooking. Slot penuh → booking tetap dibuat dengan status **\`IN_QUEUE\`** (waiting list) dan otomatis naik ke \`CONFIRMED\` saat ada pembatalan / kapasitas ditambah. Setiap booking mendapat **nomor antrean** harian.`,
     [
       req({
+        name: 'Admin: Mark Customer Email Verified',
+        method: 'PATCH',
+        path: '/admin/users/{{customer_id}}/verify-email',
+        token: 'admin_token',
+        desc: 'Tindakan dukungan (role **ADMIN**): menandai email pengguna terverifikasi bila email kode tidak sampai. Tercatat di audit log \`USER_EMAIL_VERIFIED\`. Di alur Runner ini menggantikan langkah memasukkan kode dari kotak masuk, agar booking berikutnya bisa dibuat.',
+      }),
+      req({
         name: 'Create Booking',
         method: 'POST',
         path: '/booking',
@@ -581,7 +609,7 @@ Kuota slot dikunci dengan **\`SELECT … FOR UPDATE\`** sehingga request bersama
 
 **201** → \`status\` = \`CONFIRMED\` (mekanik otomatis ditugaskan) atau \`IN_QUEUE\`, plus \`booking.queue_number\` dan \`booking.waitlist_position\`.
 
-Error: **404** bengkel/layanan tidak ditemukan, **422** \`OUTSIDE_OPERATING_HOURS\` / \`SLOT_ALREADY_STARTED\` / \`DATE_TOO_FAR\` / \`WORKSHOP_CLOSED\`, **409** \`DUPLICATE_BOOKING\`.`,
+Error: **403** \`EMAIL_NOT_VERIFIED\` (email pelanggan belum diverifikasi), **404** bengkel/layanan tidak ditemukan, **422** \`OUTSIDE_OPERATING_HOURS\` / \`SLOT_ALREADY_STARTED\` / \`DATE_TOO_FAR\` / \`WORKSHOP_CLOSED\`, **409** \`DUPLICATE_BOOKING\` (slot yang sama), \`DAILY_WORKSHOP_LIMIT\` (sudah punya booking di bengkel ini pada tanggal itu), \`ACTIVE_BOOKING_LIMIT\` (maks. 3 booking belum selesai), **429** \`BOOKING_RATE_LIMITED\` (maks. 5 percobaan booking per jam per akun).`,
       }),
       req({
         name: 'Cancel Booking (Customer)',

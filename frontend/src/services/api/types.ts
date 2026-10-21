@@ -22,6 +22,8 @@ export interface User {
   email: string | null;
   phone: string | null;
   role: Role;
+  /** False until the code mailed at sign-up is entered (older accounts and Google sign-ins are already true). */
+  email_verified?: boolean;
 }
 
 export interface AuthPayload {
@@ -196,6 +198,7 @@ export interface AdminUser {
   phone: string | null;
   role: Role;
   is_active: boolean;
+  email_verified_at: string | null;
   created_at: string;
   workshop_id: string | null;
   workshop_name: string | null;

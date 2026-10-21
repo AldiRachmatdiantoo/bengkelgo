@@ -10,8 +10,8 @@ async function seed() {
   }
   const hash = await hashPassword(password);
   await pool.query(
-    `INSERT INTO users (name, email, password_hash, role) VALUES ('Platform Admin', $1, $2, 'ADMIN')
-     ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, role = 'ADMIN', updated_at = NOW()`,
+    `INSERT INTO users (name, email, password_hash, role, email_verified_at) VALUES ('Platform Admin', $1, $2, 'ADMIN', NOW())
+     ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, role = 'ADMIN', email_verified_at = COALESCE(users.email_verified_at, NOW()), updated_at = NOW()`,
     [email, hash],
   );
   console.log(`Admin account ready: ${email}`);

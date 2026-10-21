@@ -8,6 +8,7 @@ import { orderRepository, type OrderRow } from '../order/order.repository';
 import { vehicleService } from '../vehicle/vehicle.service';
 import { holidayRepository, scheduleOf, serviceRepository, workshopRepository, type WorkshopRow } from '../workshop/workshop.repository';
 import { MAX_BOOKING_DAYS_AHEAD, decideSlot, promotableCount, validateSlot } from './booking.logic';
+import { authRepository } from '../auth/auth.repository';
 import { bookingRepository } from './booking.repository';
 import { emailBookingAfterCommit } from './booking.email';
 import type { CreateBookingInput, RescheduleInput } from './booking.schema';
@@ -66,6 +67,9 @@ export const bookingService = {
    * Any failure rolls back every insert, so no orphaned order rows or leaked quota.
    */
   async create(customerId: string, input: CreateBookingInput, role: ActorRole = 'CUSTOMER') {
+    // Fake sign-ups can't fill workshop slots or bounce booking emails: the address must be confirmed first.
+    const customer = await authRepository.findUserById(db, customerId);
+    if (!customer?.email_verified_at) throw AppError.forbidden('Verify your email address before booking', 'EMAIL_NOT_VERIFIED');
     const workshop = await workshopRepository.findById(db, input.workshop_id);
     if (!workshop || workshop.status !== 'APPROVED') throw AppError.notFound('Workshop not found');
     if (!workshop.is_open) throw AppError.unprocessable('Workshop is currently not accepting bookings', 'WORKSHOP_CLOSED');

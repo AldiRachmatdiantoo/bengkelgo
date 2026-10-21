@@ -127,6 +127,10 @@ export default function WorkshopDetailPage() {
       writeDraft(id, { serviceId, date, slot, plate, notes });
       return navigate('/login', { state: { from: location.pathname } });
     }
+    if (user.role === 'CUSTOMER' && user.email_verified === false) {
+      writeDraft(id, { serviceId, date, slot, plate, notes });
+      return navigate('/verifikasi-email', { state: { from: location.pathname } });
+    }
     book.mutate();
   };
 

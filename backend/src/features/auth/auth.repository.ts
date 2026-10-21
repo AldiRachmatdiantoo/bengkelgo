@@ -10,6 +10,7 @@ export interface UserRow {
   role: UserRole;
   google_sub: string | null;
   is_active: boolean;
+  email_verified_at: string | null;
   created_at: string;
 }
 
@@ -21,7 +22,7 @@ export interface RefreshTokenRow {
   revoked_at: Date | null;
 }
 
-const USER_COLS = 'id, name, email, phone, password_hash, role, google_sub, is_active, created_at';
+const USER_COLS = 'id, name, email, phone, password_hash, role, google_sub, is_active, email_verified_at, created_at';
 
 export const authRepository = {
   async findUserByEmail(q: Queryable, email: string) {
@@ -41,20 +42,53 @@ export const authRepository = {
 
   async createUser(
     q: Queryable,
-    u: { name: string; email?: string | null; phone?: string | null; passwordHash?: string | null; role: UserRole; googleSub?: string | null; lat?: number; lng?: number },
+    u: {
+      name: string; email?: string | null; phone?: string | null; passwordHash?: string | null; role: UserRole; googleSub?: string | null;
+      lat?: number; lng?: number; emailVerified?: boolean;
+    },
   ) {
     const { rows } = await q.query<UserRow>(
-      `INSERT INTO users (name, email, phone, password_hash, role, google_sub, last_location)
+      `INSERT INTO users (name, email, phone, password_hash, role, google_sub, last_location, email_verified_at)
        VALUES ($1, $2, $3, $4, $5, $6,
-               CASE WHEN $7::float8 IS NULL THEN NULL ELSE ST_SetSRID(ST_MakePoint($8::float8, $7::float8), 4326)::geography END)
+               CASE WHEN $7::float8 IS NULL THEN NULL ELSE ST_SetSRID(ST_MakePoint($8::float8, $7::float8), 4326)::geography END,
+               CASE WHEN $9::bool THEN NOW() END)
        RETURNING ${USER_COLS}`,
-      [u.name, u.email ?? null, u.phone ?? null, u.passwordHash ?? null, u.role, u.googleSub ?? null, u.lat ?? null, u.lng ?? null],
+      [u.name, u.email ?? null, u.phone ?? null, u.passwordHash ?? null, u.role, u.googleSub ?? null, u.lat ?? null, u.lng ?? null, u.emailVerified ?? false],
     );
     return rows[0];
   },
 
+  /** Google has confirmed the address, so linking also marks the email verified. */
   async linkGoogle(q: Queryable, userId: string, sub: string) {
-    await q.query('UPDATE users SET google_sub = $2, updated_at = NOW() WHERE id = $1', [userId, sub]);
+    await q.query('UPDATE users SET google_sub = $2, email_verified_at = COALESCE(email_verified_at, NOW()), updated_at = NOW() WHERE id = $1', [userId, sub]);
+  },
+
+  // ---------- email verification ----------
+  /** Stores a new code (replacing any earlier one) with a fresh expiry and attempt counter. */
+  async saveVerificationCode(q: Queryable, userId: string, codeHash: string, ttlMinutes: number) {
+    await q.query(
+      `INSERT INTO email_verifications (user_id, code_hash, expires_at, attempts, sent_at)
+       VALUES ($1, $2, NOW() + make_interval(mins => $3), 0, NOW())
+       ON CONFLICT (user_id) DO UPDATE SET code_hash = EXCLUDED.code_hash, expires_at = EXCLUDED.expires_at, attempts = 0, sent_at = NOW()`,
+      [userId, codeHash, ttlMinutes],
+    );
+  },
+
+  async findVerificationForUpdate(q: Queryable, userId: string) {
+    const { rows } = await q.query<{ code_hash: string; expires_at: Date; attempts: number; sent_at: Date }>(
+      'SELECT code_hash, expires_at, attempts, sent_at FROM email_verifications WHERE user_id = $1 FOR UPDATE',
+      [userId],
+    );
+    return rows[0] ?? null;
+  },
+
+  async countVerificationAttempt(q: Queryable, userId: string) {
+    await q.query('UPDATE email_verifications SET attempts = attempts + 1 WHERE user_id = $1', [userId]);
+  },
+
+  async markEmailVerified(q: Queryable, userId: string) {
+    await q.query('UPDATE users SET email_verified_at = COALESCE(email_verified_at, NOW()), updated_at = NOW() WHERE id = $1', [userId]);
+    await q.query('DELETE FROM email_verifications WHERE user_id = $1', [userId]);
   },
 
   // ---------- refresh tokens ----------

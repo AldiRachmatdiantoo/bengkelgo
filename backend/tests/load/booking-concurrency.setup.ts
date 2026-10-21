@@ -43,8 +43,8 @@ async function prepare(customers: number) {
     [workshopId],
   );
   const users = await pool.query<{ id: string }>(
-    `INSERT INTO users (name, email, phone, role)
-     SELECT 'Customer ' || g, $1 || '-c' || g || '@loadtest.local', '081200000000', 'CUSTOMER'
+    `INSERT INTO users (name, email, phone, role, email_verified_at)
+     SELECT 'Customer ' || g, $1 || '-c' || g || '@loadtest.local', '081200000000', 'CUSTOMER', NOW()
      FROM generate_series(1, $2::int) g RETURNING id`,
     [tag, customers],
   );

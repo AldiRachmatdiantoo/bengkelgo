@@ -9,14 +9,20 @@ export const API_URL = import.meta.env.VITE_API_URL ?? '/api/v1';
  * The refresh token is an httpOnly cookie managed by the browser.
  */
 let accessToken: string | null = null;
+let current: AuthPayload | null = null;
 type Listener = (session: AuthPayload | null) => void;
 const listeners = new Set<Listener>();
 
 export const tokenStore = {
   get: () => accessToken,
   set(session: AuthPayload | null) {
+    current = session;
     accessToken = session?.access_token ?? null;
     listeners.forEach((l) => l(session));
+  },
+  /** Replaces the signed-in user's details (e.g. after verifying the email) without a new login. */
+  updateUser(user: AuthPayload['user']) {
+    if (current) this.set({ ...current, user });
   },
   subscribe(l: Listener) {
     listeners.add(l);

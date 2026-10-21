@@ -61,3 +61,8 @@ export type RegisterWorkshopInput = z.infer<typeof registerWorkshopSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleInput = z.infer<typeof googleSchema>;
 export type GuestInput = z.infer<typeof guestSchema>;
+
+export const verifyEmailSchema = z.object({
+  code: z.string().trim().regex(/^\d{6}$/, 'Code must be 6 digits'),
+});
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;

@@ -1,5 +1,6 @@
 import { notificationService } from '../notification/notification.service';
 import crypto from 'crypto';
+import { queueEmailAfterCommit } from '../../common/mail/outbox';
 import { OAuth2Client } from 'google-auth-library';
 import { env } from '../../config/env';
 import { db, withTransaction, type Queryable } from '../../common/db/transaction';
@@ -8,6 +9,7 @@ import { DUMMY_PASSWORD_HASH, generateOpaqueToken, hashPassword, sha256, verifyP
 import { signAccessToken } from '../../common/utils/jwt';
 import { workshopRepository } from '../workshop/workshop.repository';
 import { authRepository, type UserRow } from './auth.repository';
+import { verificationEmail } from './auth.email';
 import type { GoogleInput, GuestInput, LoginInput, RegisterCustomerInput, RegisterWorkshopInput } from './auth.schema';
 
 export interface AuthResult {
@@ -17,9 +19,25 @@ export interface AuthResult {
   refreshExpiresAt: Date;
 }
 
-export type PublicUser = Pick<UserRow, 'id' | 'name' | 'email' | 'phone' | 'role'>;
+export type PublicUser = Pick<UserRow, 'id' | 'name' | 'email' | 'phone' | 'role'> & { email_verified: boolean };
 
-const toPublic = (u: UserRow): PublicUser => ({ id: u.id, name: u.name, email: u.email, phone: u.phone, role: u.role });
+const toPublic = (u: UserRow): PublicUser => ({ id: u.id, name: u.name, email: u.email, phone: u.phone, role: u.role, email_verified: Boolean(u.email && u.email_verified_at) });
+
+// ---------- email verification (6-digit code) ----------
+const CODE_TTL_MINUTES = 15;
+const MAX_CODE_ATTEMPTS = 5;
+const RESEND_AFTER_SECONDS = 60;
+
+/** Keyed hash, so a leaked table can't be brute-forced offline without the server secret. */
+const codeHash = (userId: string, code: string) => crypto.createHmac('sha256', env.JWT_ACCESS_SECRET).update(`email-verify:${userId}:${code}`).digest('hex');
+
+/** Creates a new code for the account and queues the email (sent once the transaction commits). */
+async function sendVerificationCode(q: Queryable, user: Pick<UserRow, 'id' | 'name' | 'email'>) {
+  if (!user.email) return;
+  const code = crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
+  await authRepository.saveVerificationCode(q, user.id, codeHash(user.id, code), CODE_TTL_MINUTES);
+  await queueEmailAfterCommit(q, verificationEmail(user.email, user.name, code, CODE_TTL_MINUTES), { user_id: user.id, kind: 'email_verification' });
+}
 
 async function issueTokens(q: Queryable, user: UserRow, userAgent?: string, familyId: string = crypto.randomUUID()) {
   const refreshToken = generateOpaqueToken();
@@ -71,6 +89,7 @@ export const authService = {
     return withTransaction(async (tx) => {
       if (await authRepository.findUserByEmail(tx, input.email)) throw AppError.conflict('Email is already registered', 'EMAIL_TAKEN');
       const user = await authRepository.createUser(tx, { name: input.name, email: input.email, phone: input.phone, passwordHash, role: 'CUSTOMER' });
+      await sendVerificationCode(tx, user);
       return result(tx, user, userAgent);
     });
   },
@@ -88,6 +107,7 @@ export const authService = {
         role: 'WORKSHOP_OWNER',
       });
       const workshop = await workshopRepository.create(tx, { ownerId: user.id, ...input.workshop });
+      await sendVerificationCode(tx, user);
       await notificationService.notifyAdmins(tx, { type: 'WORKSHOP_REGISTERED', title: 'Pendaftaran mitra baru', body: workshop.name, link: '/admin/workshops' });
       return { ...(await result(tx, user, userAgent)), workshop };
     });
@@ -112,9 +132,12 @@ export const authService = {
       let user = await authRepository.findUserByGoogleSub(tx, profile.sub);
       if (!user) {
         user = await authRepository.findUserByEmail(tx, profile.email);
-        if (user) await authRepository.linkGoogle(tx, user.id, profile.sub);
+        if (user) {
+          await authRepository.linkGoogle(tx, user.id, profile.sub);
+          user = (await authRepository.findUserById(tx, user.id))!;
+        }
         else {
-          user = await authRepository.createUser(tx, { name: profile.name.slice(0, 100), email: profile.email, role: 'CUSTOMER', googleSub: profile.sub });
+          user = await authRepository.createUser(tx, { name: profile.name.slice(0, 100), email: profile.email, role: 'CUSTOMER', googleSub: profile.sub, emailVerified: true });
           isNewUser = true;
         }
       }
@@ -177,6 +200,44 @@ export const authService = {
     await withTransaction(async (tx) => {
       const stored = await authRepository.findRefreshTokenForUpdate(tx, sha256(rawToken));
       if (stored) await authRepository.revokeFamily(tx, stored.family_id);
+    });
+  },
+
+  /** Confirms the account's email with the code that was mailed to it. */
+  async verifyEmail(userId: string, code: string): Promise<PublicUser> {
+    return withTransaction(async (tx) => {
+      const user = await authRepository.findUserById(tx, userId);
+      if (!user?.email) throw AppError.notFound('User not found');
+      if (user.email_verified_at) return toPublic(user);
+      const v = await authRepository.findVerificationForUpdate(tx, userId);
+      if (!v || v.expires_at.getTime() <= Date.now()) throw AppError.unprocessable('The code has expired, request a new one', 'VERIFICATION_CODE_EXPIRED');
+      if (v.attempts >= MAX_CODE_ATTEMPTS) throw AppError.unprocessable('Too many wrong codes, request a new one', 'VERIFICATION_TOO_MANY_ATTEMPTS');
+      const given = Buffer.from(codeHash(userId, code));
+      const expected = Buffer.from(v.code_hash);
+      if (given.length !== expected.length || !crypto.timingSafeEqual(given, expected)) {
+        await authRepository.countVerificationAttempt(tx, userId);
+        return { error: true as const };
+      }
+      await authRepository.markEmailVerified(tx, userId);
+      return toPublic({ ...user, email_verified_at: new Date().toISOString() });
+    }).then((r) => {
+      // Thrown outside the transaction so the wrong-attempt counter is committed.
+      if ('error' in r) throw AppError.unprocessable('The code is not correct', 'VERIFICATION_CODE_INVALID');
+      return r;
+    });
+  },
+
+  /** Mails a new code (at most once a minute; the route also caps sends per hour). */
+  async resendVerification(userId: string) {
+    return withTransaction(async (tx) => {
+      const user = await authRepository.findUserById(tx, userId);
+      if (!user?.email) throw AppError.unprocessable('This account has no email address', 'NO_EMAIL');
+      if (user.email_verified_at) return { sent: false, already_verified: true };
+      const v = await authRepository.findVerificationForUpdate(tx, userId);
+      const wait = v ? Math.ceil((v.sent_at.getTime() + RESEND_AFTER_SECONDS * 1000 - Date.now()) / 1000) : 0;
+      if (wait > 0) throw AppError.tooMany(`Wait ${wait} seconds before requesting another code`, 'VERIFICATION_RESEND_TOO_SOON');
+      await sendVerificationCode(tx, user);
+      return { sent: true, already_verified: false };
     });
   },
 

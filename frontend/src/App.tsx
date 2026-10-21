@@ -22,6 +22,7 @@ const LoginPage = named(auth, 'LoginPage');
 const RegisterPage = named(auth, 'RegisterPage');
 const RegisterWorkshopPage = named(auth, 'RegisterWorkshopPage');
 const GoogleCallbackPage = named(auth, 'GoogleCallbackPage');
+const VerifyEmailPage = named(auth, 'VerifyEmailPage');
 const orders = () => import('@/pages/customer/OrderPages');
 const MyOrdersPage = named(orders, 'MyOrdersPage');
 const OrderDetailPage = named(orders, 'OrderDetailPage');
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
       { path: '/register/workshop', element: page(<RegisterWorkshopPage />) },
       { path: '/privasi', element: page(<PrivacyPage />) },
       { path: '/auth/google/callback', element: page(<GoogleCallbackPage />) },
+      { path: '/verifikasi-email', element: page(<VerifyEmailPage />) },
 
       // Customer & guest
       {

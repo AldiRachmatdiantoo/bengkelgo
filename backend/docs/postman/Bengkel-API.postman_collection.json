@@ -135,7 +135,7 @@
                 "customer"
               ]
             },
-            "description": "Daftar akun pelanggan via form.\n\n| Field | Aturan |\n|---|---|\n| name | 2–100 karakter |\n| email | email valid, unik |\n| phone | nomor WhatsApp Indonesia (`08…`, `62…`, `+62…`) |\n| password | 8–72 karakter, wajib huruf kecil, huruf besar, dan angka |\n\n**201** → `{ user, access_token, token_type, refresh_token, refresh_expires_at }`. **409** `EMAIL_TAKEN`.\n\n**Error response** (all endpoints):\n```json\n{ \"success\": false, \"error\": { \"code\": \"VALIDATION_ERROR\", \"message\": \"Validation failed\", \"details\": { \"location\": \"body\", \"issues\": [{ \"path\": \"email\", \"message\": \"Invalid email address\" }] } } }\n```",
+            "description": "Daftar akun pelanggan via form.\n\n| Field | Aturan |\n|---|---|\n| name | 2–100 karakter |\n| email | email valid, unik |\n| phone | nomor WhatsApp Indonesia (`08…`, `62…`, `+62…`) |\n| password | 8–72 karakter, wajib huruf kecil, huruf besar, dan angka |\n\n**201** → `{ user, access_token, token_type, refresh_token, refresh_expires_at }`; `user.email_verified` = `false` dan kode 6 angka dikirim ke email (berlaku 15 menit). Booking baru bisa dibuat setelah email diverifikasi. **409** `EMAIL_TAKEN`.\n\n**Error response** (all endpoints):\n```json\n{ \"success\": false, \"error\": { \"code\": \"VALIDATION_ERROR\", \"message\": \"Validation failed\", \"details\": { \"location\": \"body\", \"issues\": [{ \"path\": \"email\", \"message\": \"Invalid email address\" }] } } }\n```",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"email\": \"budi+{{run_id}}@example.com\",\n  \"phone\": \"081234567890\",\n  \"password\": \"Rahasia123\"\n}",
@@ -171,7 +171,7 @@
                     "customer"
                   ]
                 },
-                "description": "Daftar akun pelanggan via form.\n\n| Field | Aturan |\n|---|---|\n| name | 2–100 karakter |\n| email | email valid, unik |\n| phone | nomor WhatsApp Indonesia (`08…`, `62…`, `+62…`) |\n| password | 8–72 karakter, wajib huruf kecil, huruf besar, dan angka |\n\n**201** → `{ user, access_token, token_type, refresh_token, refresh_expires_at }`. **409** `EMAIL_TAKEN`.\n\n**Error response** (all endpoints):\n```json\n{ \"success\": false, \"error\": { \"code\": \"VALIDATION_ERROR\", \"message\": \"Validation failed\", \"details\": { \"location\": \"body\", \"issues\": [{ \"path\": \"email\", \"message\": \"Invalid email address\" }] } } }\n```",
+                "description": "Daftar akun pelanggan via form.\n\n| Field | Aturan |\n|---|---|\n| name | 2–100 karakter |\n| email | email valid, unik |\n| phone | nomor WhatsApp Indonesia (`08…`, `62…`, `+62…`) |\n| password | 8–72 karakter, wajib huruf kecil, huruf besar, dan angka |\n\n**201** → `{ user, access_token, token_type, refresh_token, refresh_expires_at }`; `user.email_verified` = `false` dan kode 6 angka dikirim ke email (berlaku 15 menit). Booking baru bisa dibuat setelah email diverifikasi. **409** `EMAIL_TAKEN`.\n\n**Error response** (all endpoints):\n```json\n{ \"success\": false, \"error\": { \"code\": \"VALIDATION_ERROR\", \"message\": \"Validation failed\", \"details\": { \"location\": \"body\", \"issues\": [{ \"path\": \"email\", \"message\": \"Invalid email address\" }] } } }\n```",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"email\": \"budi+{{run_id}}@example.com\",\n  \"phone\": \"081234567890\",\n  \"password\": \"Rahasia123\"\n}",
@@ -191,7 +191,199 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"938b5c91-3c37-4996-897f-98eef36a1e7d\",\n      \"name\": \"Budi Santoso\",\n      \"email\": \"budi+mvhkyswd@example.com\",\n      \"phone\": \"081234567890\",\n      \"role\": \"CUSTOMER\"\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T03:56:44.082Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n      \"name\": \"Budi Santoso\",\n      \"email\": \"budi+mvhn4yt8@example.com\",\n      \"phone\": \"081234567890\",\n      \"role\": \"CUSTOMER\",\n      \"email_verified\": false\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T04:57:31.081Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify Email (code from inbox)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 422', () => pm.expect(pm.response.code).to.be.oneOf([422]));",
+                  "let json = {}; try { json = pm.response.json(); } catch (e) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/email/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "email",
+                "verify"
+              ]
+            },
+            "description": "Masukkan kode 6 angka dari email pendaftaran. **200** → `{ user }` dengan `email_verified: true`.\n\nSaat dijalankan otomatis request ini **sengaja gagal** (kode contoh): **422** `VERIFICATION_CODE_INVALID`. Error lain: `VERIFICATION_CODE_EXPIRED` (lewat 15 menit), `VERIFICATION_TOO_MANY_ATTEMPTS` (5× salah, minta kode baru). Dibatasi 20 request/jam per akun (bersama Resend).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "name": "422 Unprocessable Entity",
+              "originalRequest": {
+                "method": "POST",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{customer_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/auth/email/verify",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "email",
+                    "verify"
+                  ]
+                },
+                "description": "Masukkan kode 6 angka dari email pendaftaran. **200** → `{ user }` dengan `email_verified: true`.\n\nSaat dijalankan otomatis request ini **sengaja gagal** (kode contoh): **422** `VERIFICATION_CODE_INVALID`. Error lain: `VERIFICATION_CODE_EXPIRED` (lewat 15 menit), `VERIFICATION_TOO_MANY_ATTEMPTS` (5× salah, minta kode baru). Dibatasi 20 request/jam per akun (bersama Resend).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"000000\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VERIFICATION_CODE_INVALID\",\n    \"message\": \"The code is not correct\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Resend Verification Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 429', () => pm.expect(pm.response.code).to.be.oneOf([429]));",
+                  "let json = {}; try { json = pm.response.json(); } catch (e) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/email/resend",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "email",
+                "resend"
+              ]
+            },
+            "description": "Mengirim kode baru (kode lama tidak berlaku lagi). **200** → `{ sent, already_verified }`.\n\nPaling cepat 1 menit setelah kode terakhir, jadi tepat setelah daftar request ini **sengaja gagal**: **429** `VERIFICATION_RESEND_TOO_SOON`."
+          },
+          "response": [
+            {
+              "name": "429 Too Many Requests",
+              "originalRequest": {
+                "method": "POST",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{customer_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/auth/email/resend",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "email",
+                    "resend"
+                  ]
+                },
+                "description": "Mengirim kode baru (kode lama tidak berlaku lagi). **200** → `{ sent, already_verified }`.\n\nPaling cepat 1 menit setelah kode terakhir, jadi tepat setelah daftar request ini **sengaja gagal**: **429** `VERIFICATION_RESEND_TOO_SOON`."
+              },
+              "status": "Too Many Requests",
+              "code": 429,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"VERIFICATION_RESEND_TOO_SOON\",\n    \"message\": \"Wait 60 seconds before requesting another code\"\n  }\n}"
             }
           ]
         },
@@ -287,7 +479,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"938b5c91-3c37-4996-897f-98eef36a1e7d\",\n      \"name\": \"Budi Santoso\",\n      \"email\": \"budi+mvhkyswd@example.com\",\n      \"phone\": \"081234567890\",\n      \"role\": \"CUSTOMER\"\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T03:56:44.452Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n      \"name\": \"Budi Santoso\",\n      \"email\": \"budi+mvhn4yt8@example.com\",\n      \"phone\": \"081234567890\",\n      \"role\": \"CUSTOMER\",\n      \"email_verified\": false\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T04:57:31.867Z\"\n  }\n}"
             }
           ]
         },
@@ -367,7 +559,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"938b5c91-3c37-4996-897f-98eef36a1e7d\",\n    \"name\": \"Budi Santoso\",\n    \"email\": \"budi+mvhkyswd@example.com\",\n    \"phone\": \"081234567890\",\n    \"role\": \"CUSTOMER\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n    \"name\": \"Budi Santoso\",\n    \"email\": \"budi+mvhn4yt8@example.com\",\n    \"phone\": \"081234567890\",\n    \"role\": \"CUSTOMER\",\n    \"email_verified\": false\n  }\n}"
             }
           ]
         },
@@ -463,7 +655,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"938b5c91-3c37-4996-897f-98eef36a1e7d\",\n      \"name\": \"Budi Santoso\",\n      \"email\": \"budi+mvhkyswd@example.com\",\n      \"phone\": \"081234567890\",\n      \"role\": \"CUSTOMER\"\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T03:56:44.673Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n      \"name\": \"Budi Santoso\",\n      \"email\": \"budi+mvhn4yt8@example.com\",\n      \"phone\": \"081234567890\",\n      \"role\": \"CUSTOMER\",\n      \"email_verified\": false\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T04:57:32.070Z\"\n  }\n}"
             }
           ]
         },
@@ -562,7 +754,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n      \"name\": \"Pak Joko\",\n      \"email\": \"joko+mvhkyswd@example.com\",\n      \"phone\": \"081298765432\",\n      \"role\": \"WORKSHOP_OWNER\"\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T03:56:45.094Z\",\n    \"workshop\": {\n      \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"owner_id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Servis motor & mobil, tambal ban, ganti oli\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -5.910514,\n      \"longitude\": 106.444737,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"PENDING\",\n      \"status_reason\": null,\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"17:00\",\n      \"max_slot_per_hour\": 3,\n      \"qris_image_path\": null,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-21T03:56:45.078Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null\n    }\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n      \"name\": \"Pak Joko\",\n      \"email\": \"joko+mvhn4yt8@example.com\",\n      \"phone\": \"081298765432\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"email_verified\": false\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T04:57:32.690Z\",\n    \"workshop\": {\n      \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"owner_id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Servis motor & mobil, tambal ban, ganti oli\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.397134,\n      \"longitude\": 106.832555,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"PENDING\",\n      \"status_reason\": null,\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"17:00\",\n      \"max_slot_per_hour\": 3,\n      \"qris_image_path\": null,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-21T04:57:32.680Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null\n    }\n  }\n}"
             }
           ]
         },
@@ -657,7 +849,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n      \"name\": \"Pak Joko\",\n      \"email\": \"joko+mvhkyswd@example.com\",\n      \"phone\": \"081298765432\",\n      \"role\": \"WORKSHOP_OWNER\"\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T03:56:45.512Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n      \"name\": \"Pak Joko\",\n      \"email\": \"joko+mvhn4yt8@example.com\",\n      \"phone\": \"081298765432\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"email_verified\": false\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T04:57:33.271Z\"\n  }\n}"
             }
           ]
         },
@@ -752,7 +944,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"1a69c6ae-543a-45eb-9f29-d61854546dbe\",\n      \"name\": \"Andi (Tamu)\",\n      \"email\": null,\n      \"phone\": \"081311112222\",\n      \"role\": \"GUEST\"\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T03:56:45.623Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"94da6ec6-4ad9-4589-94dc-220fadf31216\",\n      \"name\": \"Andi (Tamu)\",\n      \"email\": null,\n      \"phone\": \"081311112222\",\n      \"role\": \"GUEST\",\n      \"email_verified\": false\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T04:57:33.380Z\"\n  }\n}"
             }
           ]
         },
@@ -947,7 +1139,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"name\": \"Platform Admin\",\n      \"email\": \"admin@bengkelapp.com\",\n      \"phone\": null,\n      \"role\": \"ADMIN\"\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T03:56:46.278Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"name\": \"Platform Admin\",\n      \"email\": \"admin@bengkelapp.com\",\n      \"phone\": null,\n      \"role\": \"ADMIN\",\n      \"email_verified\": true\n    },\n    \"access_token\": \"<redacted>\",\n    \"token_type\": \"Bearer\",\n    \"refresh_token\": \"<redacted>\",\n    \"refresh_expires_at\": \"2026-10-28T04:57:34.241Z\"\n  }\n}"
             }
           ]
         },
@@ -1059,7 +1251,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"owner_id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Servis motor & mobil, tambal ban, ganti oli\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -5.910514,\n      \"longitude\": 106.444737,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"PENDING\",\n      \"status_reason\": null,\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"17:00\",\n      \"max_slot_per_hour\": 3,\n      \"qris_image_path\": null,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-21T03:56:45.078Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"owner_name\": \"Pak Joko\",\n      \"owner_email\": \"joko+mvhkyswd@example.com\",\n      \"owner_phone\": \"081298765432\"\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"owner_id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Servis motor & mobil, tambal ban, ganti oli\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.397134,\n      \"longitude\": 106.832555,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"PENDING\",\n      \"status_reason\": null,\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"17:00\",\n      \"max_slot_per_hour\": 3,\n      \"qris_image_path\": null,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-21T04:57:32.680Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"owner_name\": \"Pak Joko\",\n      \"owner_email\": \"joko+mvhn4yt8@example.com\",\n      \"owner_phone\": \"081298765432\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -1171,7 +1363,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"status\": \"APPROVED\",\n    \"status_reason\": null,\n    \"approved_at\": \"2026-10-21T03:56:46.505Z\",\n    \"reviewed_by\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"status\": \"APPROVED\",\n    \"status_reason\": null,\n    \"approved_at\": \"2026-10-21T04:57:34.419Z\",\n    \"reviewed_by\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\"\n  }\n}"
             }
           ]
         }
@@ -1257,7 +1449,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"owner_id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"description\": \"Servis motor & mobil, tambal ban, ganti oli\",\n    \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n    \"phone\": \"081298765432\",\n    \"latitude\": -5.910514,\n    \"longitude\": 106.444737,\n    \"vehicle_types\": [\n      \"MOTOR\",\n      \"MOBIL\"\n    ],\n    \"status\": \"APPROVED\",\n    \"status_reason\": null,\n    \"is_open\": true,\n    \"accepts_emergency\": true,\n    \"open_time\": \"08:00\",\n    \"close_time\": \"17:00\",\n    \"max_slot_per_hour\": 3,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"created_at\": \"2026-10-21T03:56:45.078Z\",\n    \"closed_weekdays\": [],\n    \"break_start\": null,\n    \"break_end\": null,\n    \"has_qris\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"owner_id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"description\": \"Servis motor & mobil, tambal ban, ganti oli\",\n    \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n    \"phone\": \"081298765432\",\n    \"latitude\": -6.397134,\n    \"longitude\": 106.832555,\n    \"vehicle_types\": [\n      \"MOTOR\",\n      \"MOBIL\"\n    ],\n    \"status\": \"APPROVED\",\n    \"status_reason\": null,\n    \"is_open\": true,\n    \"accepts_emergency\": true,\n    \"open_time\": \"08:00\",\n    \"close_time\": \"17:00\",\n    \"max_slot_per_hour\": 3,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"created_at\": \"2026-10-21T04:57:32.680Z\",\n    \"closed_weekdays\": [],\n    \"break_start\": null,\n    \"break_end\": null,\n    \"has_qris\": false\n  }\n}"
             }
           ]
         },
@@ -1365,7 +1557,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"description\": \"Spesialis motor matic & injeksi\",\n    \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n    \"phone\": \"081298765432\",\n    \"latitude\": -5.910514,\n    \"longitude\": 106.444737,\n    \"vehicle_types\": [\n      \"MOTOR\",\n      \"MOBIL\"\n    ],\n    \"status\": \"APPROVED\",\n    \"is_open\": true,\n    \"accepts_emergency\": true,\n    \"open_time\": \"08:00\",\n    \"close_time\": \"20:00\",\n    \"max_slot_per_hour\": 3,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"created_at\": \"2026-10-21T03:56:45.078Z\",\n    \"closed_weekdays\": [],\n    \"break_start\": null,\n    \"break_end\": null,\n    \"has_qris\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"description\": \"Spesialis motor matic & injeksi\",\n    \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n    \"phone\": \"081298765432\",\n    \"latitude\": -6.397134,\n    \"longitude\": 106.832555,\n    \"vehicle_types\": [\n      \"MOTOR\",\n      \"MOBIL\"\n    ],\n    \"status\": \"APPROVED\",\n    \"is_open\": true,\n    \"accepts_emergency\": true,\n    \"open_time\": \"08:00\",\n    \"close_time\": \"20:00\",\n    \"max_slot_per_hour\": 3,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"created_at\": \"2026-10-21T04:57:32.680Z\",\n    \"closed_weekdays\": [],\n    \"break_start\": null,\n    \"break_end\": null,\n    \"has_qris\": false\n  }\n}"
             }
           ]
         },
@@ -1576,7 +1768,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"663ca936-4312-483e-8865-383f4f04692f\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Servis Rutin + Ganti Oli\",\n    \"description\": \"Termasuk cek rem & busi\",\n    \"price\": 75000,\n    \"duration_minutes\": 60,\n    \"vehicle_type\": \"MOTOR\",\n    \"is_active\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"ae96398a-9236-4414-9f53-5b6169bb5831\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Servis Rutin + Ganti Oli\",\n    \"description\": \"Termasuk cek rem & busi\",\n    \"price\": 75000,\n    \"duration_minutes\": 60,\n    \"vehicle_type\": \"MOTOR\",\n    \"is_active\": true\n  }\n}"
             }
           ]
         },
@@ -1656,7 +1848,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"663ca936-4312-483e-8865-383f4f04692f\",\n      \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Servis Rutin + Ganti Oli\",\n      \"description\": \"Termasuk cek rem & busi\",\n      \"price\": 75000,\n      \"duration_minutes\": 60,\n      \"vehicle_type\": \"MOTOR\",\n      \"is_active\": true\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"ae96398a-9236-4414-9f53-5b6169bb5831\",\n      \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"name\": \"Servis Rutin + Ganti Oli\",\n      \"description\": \"Termasuk cek rem & busi\",\n      \"price\": 75000,\n      \"duration_minutes\": 60,\n      \"vehicle_type\": \"MOTOR\",\n      \"is_active\": true\n    }\n  ]\n}"
             }
           ]
         },
@@ -1766,7 +1958,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"663ca936-4312-483e-8865-383f4f04692f\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Servis Rutin + Ganti Oli\",\n    \"description\": \"Termasuk cek rem & busi\",\n    \"price\": 80000,\n    \"duration_minutes\": 60,\n    \"vehicle_type\": \"MOTOR\",\n    \"is_active\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"ae96398a-9236-4414-9f53-5b6169bb5831\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Servis Rutin + Ganti Oli\",\n    \"description\": \"Termasuk cek rem & busi\",\n    \"price\": 80000,\n    \"duration_minutes\": 60,\n    \"vehicle_type\": \"MOTOR\",\n    \"is_active\": true\n  }\n}"
             }
           ]
         },
@@ -1875,7 +2067,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"f3113b77-26b8-4d42-852b-299335775f79\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Layanan Percobaan\",\n    \"description\": null,\n    \"price\": 10000,\n    \"duration_minutes\": 60,\n    \"vehicle_type\": \"MOTOR\",\n    \"is_active\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"8e51b4fb-803b-4b78-9ac3-c86cff354a32\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Layanan Percobaan\",\n    \"description\": null,\n    \"price\": 10000,\n    \"duration_minutes\": 60,\n    \"vehicle_type\": \"MOTOR\",\n    \"is_active\": true\n  }\n}"
             }
           ]
         },
@@ -1957,7 +2149,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"f3113b77-26b8-4d42-852b-299335775f79\",\n    \"deleted\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"8e51b4fb-803b-4b78-9ac3-c86cff354a32\",\n    \"deleted\": true\n  }\n}"
             }
           ]
         },
@@ -2066,7 +2258,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Rudi Hartono\",\n    \"phone\": \"081355556666\",\n    \"specializations\": [\n      \"matic\",\n      \"injeksi\",\n      \"kelistrikan\"\n    ],\n    \"is_active\": true,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"has_photo\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Rudi Hartono\",\n    \"phone\": \"081355556666\",\n    \"specializations\": [\n      \"matic\",\n      \"injeksi\",\n      \"kelistrikan\"\n    ],\n    \"is_active\": true,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"has_photo\": false\n  }\n}"
             }
           ]
         },
@@ -2175,7 +2367,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"789404a6-dd48-4f3d-9a0a-2edd7f7247e1\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Sari Wulandari\",\n    \"phone\": null,\n    \"specializations\": [\n      \"tambal ban\"\n    ],\n    \"is_active\": true,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"has_photo\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"e54ac567-88ad-49d8-aeb2-d2e2b6b9b5b7\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Sari Wulandari\",\n    \"phone\": null,\n    \"specializations\": [\n      \"tambal ban\"\n    ],\n    \"is_active\": true,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"has_photo\": false\n  }\n}"
             }
           ]
         },
@@ -2255,7 +2447,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n      \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Rudi Hartono\",\n      \"phone\": \"081355556666\",\n      \"specializations\": [\n        \"matic\",\n        \"injeksi\",\n        \"kelistrikan\"\n      ],\n      \"is_active\": true,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"has_photo\": false\n    },\n    {\n      \"id\": \"789404a6-dd48-4f3d-9a0a-2edd7f7247e1\",\n      \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Sari Wulandari\",\n      \"phone\": null,\n      \"specializations\": [\n        \"tambal ban\"\n      ],\n      \"is_active\": true,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"has_photo\": false\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n      \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"name\": \"Rudi Hartono\",\n      \"phone\": \"081355556666\",\n      \"specializations\": [\n        \"matic\",\n        \"injeksi\",\n        \"kelistrikan\"\n      ],\n      \"is_active\": true,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"has_photo\": false\n    },\n    {\n      \"id\": \"e54ac567-88ad-49d8-aeb2-d2e2b6b9b5b7\",\n      \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"name\": \"Sari Wulandari\",\n      \"phone\": null,\n      \"specializations\": [\n        \"tambal ban\"\n      ],\n      \"is_active\": true,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"has_photo\": false\n    }\n  ]\n}"
             }
           ]
         },
@@ -2365,7 +2557,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Rudi Hartono\",\n    \"phone\": \"081355556666\",\n    \"specializations\": [\n      \"matic\",\n      \"injeksi\",\n      \"kelistrikan\",\n      \"cvt\"\n    ],\n    \"is_active\": true,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"has_photo\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Rudi Hartono\",\n    \"phone\": \"081355556666\",\n    \"specializations\": [\n      \"matic\",\n      \"injeksi\",\n      \"kelistrikan\",\n      \"cvt\"\n    ],\n    \"is_active\": true,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"has_photo\": false\n  }\n}"
             }
           ]
         },
@@ -2447,7 +2639,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"789404a6-dd48-4f3d-9a0a-2edd7f7247e1\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Sari Wulandari\",\n    \"phone\": null,\n    \"specializations\": [\n      \"tambal ban\"\n    ],\n    \"is_active\": false,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"has_photo\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"e54ac567-88ad-49d8-aeb2-d2e2b6b9b5b7\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Sari Wulandari\",\n    \"phone\": null,\n    \"specializations\": [\n      \"tambal ban\"\n    ],\n    \"is_active\": false,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"has_photo\": false\n  }\n}"
             }
           ]
         },
@@ -2793,7 +2985,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"3ce27b8a-1d47-4115-af93-e15ae908fe91\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.231173,\n      \"longitude\": 107.19527,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T00:23:26.490Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"084f1409-3f18-437f-bdeb-0bdbcabbb05c\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.272955,\n      \"longitude\": 107.017003,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T00:43:34.293Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"a5a6dc45-ee16-45fe-bf43-e46e91ab1b50\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.503214,\n      \"longitude\": 106.902001,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T04:53:49.624Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"406db37b-cfec-4965-aa8f-12288a2f4f37\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.57288,\n      \"longitude\": 107.010324,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T12:44:39.587Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -5.910514,\n      \"longitude\": 106.444737,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-21T03:56:45.078Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": true\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"3ce27b8a-1d47-4115-af93-e15ae908fe91\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.231173,\n      \"longitude\": 107.19527,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T00:23:26.490Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"084f1409-3f18-437f-bdeb-0bdbcabbb05c\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.272955,\n      \"longitude\": 107.017003,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T00:43:34.293Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"a5a6dc45-ee16-45fe-bf43-e46e91ab1b50\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.503214,\n      \"longitude\": 106.902001,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T04:53:49.624Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"406db37b-cfec-4965-aa8f-12288a2f4f37\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.57288,\n      \"longitude\": 107.010324,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T12:44:39.587Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -5.910514,\n      \"longitude\": 106.444737,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-21T03:56:45.078Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.397134,\n      \"longitude\": 106.832555,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-21T04:57:32.680Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": true\n    }\n  ]\n}"
             }
           ]
         },
@@ -2887,7 +3079,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -5.910514,\n      \"longitude\": 106.444737,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-21T03:56:45.078Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": 0,\n      \"has_qris\": true\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.397134,\n      \"longitude\": 106.832555,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-21T04:57:32.680Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": 0,\n      \"has_qris\": true\n    }\n  ]\n}"
             }
           ]
         },
@@ -2953,7 +3145,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"description\": \"Spesialis motor matic & injeksi\",\n    \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n    \"phone\": \"081298765432\",\n    \"latitude\": -5.910514,\n    \"longitude\": 106.444737,\n    \"vehicle_types\": [\n      \"MOTOR\",\n      \"MOBIL\"\n    ],\n    \"status\": \"APPROVED\",\n    \"is_open\": true,\n    \"accepts_emergency\": true,\n    \"open_time\": \"08:00\",\n    \"close_time\": \"20:00\",\n    \"max_slot_per_hour\": 3,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"created_at\": \"2026-10-21T03:56:45.078Z\",\n    \"closed_weekdays\": [],\n    \"break_start\": null,\n    \"break_end\": null,\n    \"has_qris\": true,\n    \"services\": [\n      {\n        \"id\": \"663ca936-4312-483e-8865-383f4f04692f\",\n        \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n        \"name\": \"Servis Rutin + Ganti Oli\",\n        \"description\": \"Termasuk cek rem & busi\",\n        \"price\": 80000,\n        \"duration_minutes\": 60,\n        \"vehicle_type\": \"MOTOR\",\n        \"is_active\": true\n      }\n    ],\n    \"mechanics\": [\n      {\n        \"id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n        \"name\": \"Rudi Hartono\",\n        \"specializations\": [\n          \"matic\",\n          \"injeksi\",\n          \"kelistrikan\",\n          \"cvt\"\n        ],\n        \"is_active\": true,\n        \"avg_rating\": 0,\n        \"total_reviews\": 0,\n        \"has_photo\": false,\n        \"photo_url\": null\n      }\n    ],\n    \"photos\": []\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"description\": \"Spesialis motor matic & injeksi\",\n    \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n    \"phone\": \"081298765432\",\n    \"latitude\": -6.397134,\n    \"longitude\": 106.832555,\n    \"vehicle_types\": [\n      \"MOTOR\",\n      \"MOBIL\"\n    ],\n    \"status\": \"APPROVED\",\n    \"is_open\": true,\n    \"accepts_emergency\": true,\n    \"open_time\": \"08:00\",\n    \"close_time\": \"20:00\",\n    \"max_slot_per_hour\": 3,\n    \"avg_rating\": 0,\n    \"total_reviews\": 0,\n    \"created_at\": \"2026-10-21T04:57:32.680Z\",\n    \"closed_weekdays\": [],\n    \"break_start\": null,\n    \"break_end\": null,\n    \"has_qris\": true,\n    \"services\": [\n      {\n        \"id\": \"ae96398a-9236-4414-9f53-5b6169bb5831\",\n        \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n        \"name\": \"Servis Rutin + Ganti Oli\",\n        \"description\": \"Termasuk cek rem & busi\",\n        \"price\": 80000,\n        \"duration_minutes\": 60,\n        \"vehicle_type\": \"MOTOR\",\n        \"is_active\": true\n      }\n    ],\n    \"mechanics\": [\n      {\n        \"id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n        \"name\": \"Rudi Hartono\",\n        \"specializations\": [\n          \"matic\",\n          \"injeksi\",\n          \"kelistrikan\",\n          \"cvt\"\n        ],\n        \"is_active\": true,\n        \"avg_rating\": 0,\n        \"total_reviews\": 0,\n        \"has_photo\": false,\n        \"photo_url\": null\n      }\n    ],\n    \"photos\": []\n  }\n}"
             }
           ]
         },
@@ -3330,7 +3522,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"name\": \"Banten\",\n    \"detail\": \"\",\n    \"lat\": -6.4453801,\n    \"lng\": 106.1375586,\n    \"source\": \"nominatim\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"name\": \"Mekar Jaya\",\n    \"detail\": \"Depok, Jawa Barat\",\n    \"lat\": -6.3973143,\n    \"lng\": 106.8325456,\n    \"source\": \"nominatim\"\n  }\n}"
             }
           ]
         }
@@ -3430,7 +3622,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"radius_meters\": 5000,\n    \"workshops\": [\n      {\n        \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n        \"phone\": \"081298765432\",\n        \"avg_rating\": 0,\n        \"vehicle_types\": [\n          \"MOTOR\",\n          \"MOBIL\"\n        ],\n        \"latitude\": -5.910514,\n        \"longitude\": 106.444737,\n        \"distance_meters\": 0,\n        \"top_mechanic_rating\": 0,\n        \"rated_mechanics\": 0,\n        \"available_mechanics\": 1,\n        \"score\": 0.84\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"radius_meters\": 5000,\n    \"workshops\": [\n      {\n        \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n        \"phone\": \"081298765432\",\n        \"avg_rating\": 0,\n        \"vehicle_types\": [\n          \"MOTOR\",\n          \"MOBIL\"\n        ],\n        \"latitude\": -6.397134,\n        \"longitude\": 106.832555,\n        \"distance_meters\": 0,\n        \"top_mechanic_rating\": 0,\n        \"rated_mechanics\": 0,\n        \"available_mechanics\": 1,\n        \"score\": 0.84\n      }\n    ]\n  }\n}"
             }
           ]
         },
@@ -3539,7 +3731,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"order_number\": \"EM-20261021-000357\",\n    \"type\": \"EMERGENCY\",\n    \"status\": \"PENDING\",\n    \"customer_id\": \"1a69c6ae-543a-45eb-9f29-d61854546dbe\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"mechanic_id\": null,\n    \"vehicle_type\": \"MOTOR\",\n    \"vehicle_plate\": \"B 1234 XYZ\",\n    \"vehicle_id\": null,\n    \"notes\": null,\n    \"total_amount\": 0,\n    \"created_at\": \"2026-10-21T03:56:53.577Z\",\n    \"updated_at\": \"2026-10-21T03:56:53.577Z\",\n    \"response_timeout_seconds\": 120,\n    \"assigned_workshop\": {\n      \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"phone\": \"081298765432\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"distance_meters\": 0,\n      \"score\": 0.84\n    }\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"order_number\": \"EM-20261021-000374\",\n    \"type\": \"EMERGENCY\",\n    \"status\": \"PENDING\",\n    \"customer_id\": \"94da6ec6-4ad9-4589-94dc-220fadf31216\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"mechanic_id\": null,\n    \"vehicle_type\": \"MOTOR\",\n    \"vehicle_plate\": \"B 1234 XYZ\",\n    \"vehicle_id\": null,\n    \"notes\": null,\n    \"total_amount\": 0,\n    \"created_at\": \"2026-10-21T04:57:38.089Z\",\n    \"updated_at\": \"2026-10-21T04:57:38.089Z\",\n    \"response_timeout_seconds\": 120,\n    \"assigned_workshop\": {\n      \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"phone\": \"081298765432\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"distance_meters\": 0,\n      \"score\": 0.84\n    }\n  }\n}"
             }
           ]
         },
@@ -3649,7 +3841,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"action\": \"ACCEPTED\",\n    \"status\": \"ACCEPTED\",\n    \"mechanic\": {\n      \"id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n      \"name\": \"Rudi Hartono\",\n      \"phone\": \"081355556666\"\n    },\n    \"estimated_price\": 50000\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"action\": \"ACCEPTED\",\n    \"status\": \"ACCEPTED\",\n    \"mechanic\": {\n      \"id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n      \"name\": \"Rudi Hartono\",\n      \"phone\": \"081355556666\"\n    },\n    \"estimated_price\": 50000\n  }\n}"
             }
           ]
         },
@@ -3759,7 +3951,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"status\": \"ACCEPTED\",\n    \"estimated_price\": 60000\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"status\": \"ACCEPTED\",\n    \"estimated_price\": 60000\n  }\n}"
             }
           ]
         },
@@ -3880,6 +4072,90 @@
       "description": "Booking servis terjadwal per jam (role **CUSTOMER**).\n\nKuota slot dikunci dengan **`SELECT … FOR UPDATE`** sehingga request bersamaan tidak bisa overbooking. Slot penuh → booking tetap dibuat dengan status **`IN_QUEUE`** (waiting list) dan otomatis naik ke `CONFIRMED` saat ada pembatalan / kapasitas ditambah. Setiap booking mendapat **nomor antrean** harian.",
       "item": [
         {
+          "name": "Admin: Mark Customer Email Verified",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "let json = {}; try { json = pm.response.json(); } catch (e) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/users/{{customer_id}}/verify-email",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users",
+                "{{customer_id}}",
+                "verify-email"
+              ]
+            },
+            "description": "Tindakan dukungan (role **ADMIN**): menandai email pengguna terverifikasi bila email kode tidak sampai. Tercatat di audit log `USER_EMAIL_VERIFIED`. Di alur Runner ini menggantikan langkah memasukkan kode dari kotak masuk, agar booking berikutnya bisa dibuat."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PATCH",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{admin_token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/admin/users/{{customer_id}}/verify-email",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "users",
+                    "{{customer_id}}",
+                    "verify-email"
+                  ]
+                },
+                "description": "Tindakan dukungan (role **ADMIN**): menandai email pengguna terverifikasi bila email kode tidak sampai. Tercatat di audit log `USER_EMAIL_VERIFIED`. Di alur Runner ini menggantikan langkah memasukkan kode dari kotak masuk, agar booking berikutnya bisa dibuat."
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n    \"email_verified\": true\n  }\n}"
+            }
+          ]
+        },
+        {
           "name": "Create Booking",
           "event": [
             {
@@ -3932,7 +4208,7 @@
                 "booking"
               ]
             },
-            "description": "| Field | Aturan |\n|---|---|\n| booking_date | `YYYY-MM-DD`, hari ini s/d +30 hari |\n| time_slot | `HH:00`, dalam jam operasional, belum lewat |\n| vehicle_plate | opsional, format plat Indonesia |\n\n**201** → `status` = `CONFIRMED` (mekanik otomatis ditugaskan) atau `IN_QUEUE`, plus `booking.queue_number` dan `booking.waitlist_position`.\n\nError: **404** bengkel/layanan tidak ditemukan, **422** `OUTSIDE_OPERATING_HOURS` / `SLOT_ALREADY_STARTED` / `DATE_TOO_FAR` / `WORKSHOP_CLOSED`, **409** `DUPLICATE_BOOKING`.",
+            "description": "| Field | Aturan |\n|---|---|\n| booking_date | `YYYY-MM-DD`, hari ini s/d +30 hari |\n| time_slot | `HH:00`, dalam jam operasional, belum lewat |\n| vehicle_plate | opsional, format plat Indonesia |\n\n**201** → `status` = `CONFIRMED` (mekanik otomatis ditugaskan) atau `IN_QUEUE`, plus `booking.queue_number` dan `booking.waitlist_position`.\n\nError: **403** `EMAIL_NOT_VERIFIED` (email pelanggan belum diverifikasi), **404** bengkel/layanan tidak ditemukan, **422** `OUTSIDE_OPERATING_HOURS` / `SLOT_ALREADY_STARTED` / `DATE_TOO_FAR` / `WORKSHOP_CLOSED`, **409** `DUPLICATE_BOOKING` (slot yang sama), `DAILY_WORKSHOP_LIMIT` (sudah punya booking di bengkel ini pada tanggal itu), `ACTIVE_BOOKING_LIMIT` (maks. 3 booking belum selesai), **429** `BOOKING_RATE_LIMITED` (maks. 5 percobaan booking per jam per akun).",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"workshop_id\": \"{{workshop_id}}\",\n  \"service_id\": \"{{service_id}}\",\n  \"booking_date\": \"{{booking_date}}\",\n  \"time_slot\": \"10:00\",\n  \"vehicle_plate\": \"B 5678 ABC\",\n  \"notes\": \"Rem depan bunyi\"\n}",
@@ -3973,7 +4249,7 @@
                     "booking"
                   ]
                 },
-                "description": "| Field | Aturan |\n|---|---|\n| booking_date | `YYYY-MM-DD`, hari ini s/d +30 hari |\n| time_slot | `HH:00`, dalam jam operasional, belum lewat |\n| vehicle_plate | opsional, format plat Indonesia |\n\n**201** → `status` = `CONFIRMED` (mekanik otomatis ditugaskan) atau `IN_QUEUE`, plus `booking.queue_number` dan `booking.waitlist_position`.\n\nError: **404** bengkel/layanan tidak ditemukan, **422** `OUTSIDE_OPERATING_HOURS` / `SLOT_ALREADY_STARTED` / `DATE_TOO_FAR` / `WORKSHOP_CLOSED`, **409** `DUPLICATE_BOOKING`.",
+                "description": "| Field | Aturan |\n|---|---|\n| booking_date | `YYYY-MM-DD`, hari ini s/d +30 hari |\n| time_slot | `HH:00`, dalam jam operasional, belum lewat |\n| vehicle_plate | opsional, format plat Indonesia |\n\n**201** → `status` = `CONFIRMED` (mekanik otomatis ditugaskan) atau `IN_QUEUE`, plus `booking.queue_number` dan `booking.waitlist_position`.\n\nError: **403** `EMAIL_NOT_VERIFIED` (email pelanggan belum diverifikasi), **404** bengkel/layanan tidak ditemukan, **422** `OUTSIDE_OPERATING_HOURS` / `SLOT_ALREADY_STARTED` / `DATE_TOO_FAR` / `WORKSHOP_CLOSED`, **409** `DUPLICATE_BOOKING` (slot yang sama), `DAILY_WORKSHOP_LIMIT` (sudah punya booking di bengkel ini pada tanggal itu), `ACTIVE_BOOKING_LIMIT` (maks. 3 booking belum selesai), **429** `BOOKING_RATE_LIMITED` (maks. 5 percobaan booking per jam per akun).",
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"workshop_id\": \"{{workshop_id}}\",\n  \"service_id\": \"{{service_id}}\",\n  \"booking_date\": \"{{booking_date}}\",\n  \"time_slot\": \"10:00\",\n  \"vehicle_plate\": \"B 5678 ABC\",\n  \"notes\": \"Rem depan bunyi\"\n}",
@@ -3993,7 +4269,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"ea6171c1-bb8a-4ce0-ac7b-fbc6b6c73030\",\n    \"order_number\": \"BK-20261021-000358\",\n    \"type\": \"BOOKING\",\n    \"status\": \"CONFIRMED\",\n    \"customer_id\": \"938b5c91-3c37-4996-897f-98eef36a1e7d\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"mechanic_id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n    \"vehicle_type\": \"MOTOR\",\n    \"vehicle_plate\": \"B 5678 ABC\",\n    \"vehicle_id\": null,\n    \"notes\": \"Rem depan bunyi\",\n    \"total_amount\": 80000,\n    \"created_at\": \"2026-10-21T03:56:54.015Z\",\n    \"updated_at\": \"2026-10-21T03:56:54.015Z\",\n    \"booking\": {\n      \"booking_date\": \"2026-10-22\",\n      \"time_slot\": \"10:00\",\n      \"queue_number\": 1,\n      \"waitlist_position\": null\n    },\n    \"service\": {\n      \"id\": \"663ca936-4312-483e-8865-383f4f04692f\",\n      \"name\": \"Servis Rutin + Ganti Oli\",\n      \"price\": 80000\n    }\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"659fdb1e-a1ec-4e8c-8249-516c9dc9cebf\",\n    \"order_number\": \"BK-20261021-000375\",\n    \"type\": \"BOOKING\",\n    \"status\": \"CONFIRMED\",\n    \"customer_id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"mechanic_id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n    \"vehicle_type\": \"MOTOR\",\n    \"vehicle_plate\": \"B 5678 ABC\",\n    \"vehicle_id\": null,\n    \"notes\": \"Rem depan bunyi\",\n    \"total_amount\": 80000,\n    \"created_at\": \"2026-10-21T04:57:38.659Z\",\n    \"updated_at\": \"2026-10-21T04:57:38.659Z\",\n    \"booking\": {\n      \"booking_date\": \"2026-10-22\",\n      \"time_slot\": \"10:00\",\n      \"queue_number\": 1,\n      \"waitlist_position\": null\n    },\n    \"service\": {\n      \"id\": \"ae96398a-9236-4414-9f53-5b6169bb5831\",\n      \"name\": \"Servis Rutin + Ganti Oli\",\n      \"price\": 80000\n    }\n  }\n}"
             }
           ]
         },
@@ -4103,7 +4379,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"ea6171c1-bb8a-4ce0-ac7b-fbc6b6c73030\",\n    \"previous_status\": \"CONFIRMED\",\n    \"status\": \"CANCELLED\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"659fdb1e-a1ec-4e8c-8249-516c9dc9cebf\",\n    \"previous_status\": \"CONFIRMED\",\n    \"status\": \"CANCELLED\"\n  }\n}"
             }
           ]
         }
@@ -4233,7 +4509,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n      \"order_number\": \"EM-20261021-000357\",\n      \"type\": \"EMERGENCY\",\n      \"status\": \"ACCEPTED\",\n      \"customer_id\": \"1a69c6ae-543a-45eb-9f29-d61854546dbe\",\n      \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"vehicle_type\": \"MOTOR\",\n      \"vehicle_plate\": \"B 1234 XYZ\",\n      \"notes\": null,\n      \"total_amount\": 60000,\n      \"created_at\": \"2026-10-21T03:56:53.577Z\",\n      \"updated_at\": \"2026-10-21T03:56:53.811Z\",\n      \"completed_at\": null,\n      \"cancelled_at\": null,\n      \"cancel_reason\": null,\n      \"cancelled_by\": null,\n      \"customer\": {\n        \"id\": \"1a69c6ae-543a-45eb-9f29-d61854546dbe\",\n        \"name\": \"Andi (Tamu)\",\n        \"phone\": \"081311112222\"\n      },\n      \"workshop\": {\n        \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"phone\": \"081298765432\",\n        \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n        \"latitude\": -5.910514,\n        \"longitude\": 106.444737\n      },\n      \"mechanic\": {\n        \"id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n        \"name\": \"Rudi Hartono\",\n        \"phone\": \"081355556666\",\n        \"avg_rating\": 0\n      },\n      \"emergency\": {\n        \"latitude\": -5.910514,\n        \"longitude\": 106.444737,\n        \"address_note\": \"Depan minimarket, dekat halte\",\n        \"problem_description\": \"Ban belakang bocor, motor tidak bisa jalan\",\n        \"distance_meters\": 0,\n        \"response_deadline\": null,\n        \"routing_attempts\": 1,\n        \"price_min\": 50000,\n        \"price_max\": 150000,\n        \"problem_category\": null\n      },\n      \"vehicle\": null,\n      \"booking\": null,\n      \"payment\": {\n        \"status\": \"UNPAID\",\n        \"amount\": 60000,\n        \"uploaded_at\": null,\n        \"verified_at\": null,\n        \"rejection_reason\": null,\n        \"refunded_at\": null,\n        \"refund_note\": null,\n        \"invoice_number\": null,\n        \"payer_reference\": null,\n        \"payer_name\": null\n      },\n      \"reviewed\": false\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n      \"order_number\": \"EM-20261021-000374\",\n      \"type\": \"EMERGENCY\",\n      \"status\": \"ACCEPTED\",\n      \"customer_id\": \"94da6ec6-4ad9-4589-94dc-220fadf31216\",\n      \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"vehicle_type\": \"MOTOR\",\n      \"vehicle_plate\": \"B 1234 XYZ\",\n      \"notes\": null,\n      \"total_amount\": 60000,\n      \"created_at\": \"2026-10-21T04:57:38.089Z\",\n      \"updated_at\": \"2026-10-21T04:57:38.338Z\",\n      \"completed_at\": null,\n      \"cancelled_at\": null,\n      \"cancel_reason\": null,\n      \"cancelled_by\": null,\n      \"customer\": {\n        \"id\": \"94da6ec6-4ad9-4589-94dc-220fadf31216\",\n        \"name\": \"Andi (Tamu)\",\n        \"phone\": \"081311112222\"\n      },\n      \"workshop\": {\n        \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"phone\": \"081298765432\",\n        \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n        \"latitude\": -6.397134,\n        \"longitude\": 106.832555\n      },\n      \"mechanic\": {\n        \"id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n        \"name\": \"Rudi Hartono\",\n        \"phone\": \"081355556666\",\n        \"avg_rating\": 0\n      },\n      \"emergency\": {\n        \"latitude\": -6.397134,\n        \"longitude\": 106.832555,\n        \"address_note\": \"Depan minimarket, dekat halte\",\n        \"problem_description\": \"Ban belakang bocor, motor tidak bisa jalan\",\n        \"distance_meters\": 0,\n        \"response_deadline\": null,\n        \"routing_attempts\": 1,\n        \"price_min\": 50000,\n        \"price_max\": 150000,\n        \"problem_category\": null\n      },\n      \"vehicle\": null,\n      \"booking\": null,\n      \"payment\": {\n        \"status\": \"UNPAID\",\n        \"amount\": 60000,\n        \"uploaded_at\": null,\n        \"verified_at\": null,\n        \"rejection_reason\": null,\n        \"refunded_at\": null,\n        \"refund_note\": null,\n        \"invoice_number\": null,\n        \"payer_reference\": null,\n        \"payer_name\": null\n      },\n      \"reviewed\": false\n    }\n  ]\n}"
             }
           ]
         },
@@ -4365,7 +4641,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"ea6171c1-bb8a-4ce0-ac7b-fbc6b6c73030\",\n      \"order_number\": \"BK-20261021-000358\",\n      \"type\": \"BOOKING\",\n      \"status\": \"CANCELLED\",\n      \"customer_id\": \"938b5c91-3c37-4996-897f-98eef36a1e7d\",\n      \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"vehicle_type\": \"MOTOR\",\n      \"vehicle_plate\": \"B 5678 ABC\",\n      \"notes\": \"Rem depan bunyi\",\n      \"total_amount\": 80000,\n      \"created_at\": \"2026-10-21T03:56:54.015Z\",\n      \"updated_at\": \"2026-10-21T03:56:54.122Z\",\n      \"completed_at\": null,\n      \"cancelled_at\": \"2026-10-21T03:56:54.122Z\",\n      \"cancel_reason\": \"Ada urusan mendadak\",\n      \"cancelled_by\": \"CUSTOMER\",\n      \"customer\": {\n        \"id\": \"938b5c91-3c37-4996-897f-98eef36a1e7d\",\n        \"name\": \"Budi Santoso\",\n        \"phone\": \"081234567890\"\n      },\n      \"workshop\": {\n        \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"phone\": \"081298765432\",\n        \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n        \"latitude\": -5.910514,\n        \"longitude\": 106.444737\n      },\n      \"mechanic\": null,\n      \"emergency\": null,\n      \"vehicle\": null,\n      \"booking\": {\n        \"service_id\": \"663ca936-4312-483e-8865-383f4f04692f\",\n        \"service_name\": \"Servis Rutin + Ganti Oli\",\n        \"booking_date\": \"2026-10-22\",\n        \"time_slot\": \"10:00\",\n        \"queue_number\": 1\n      },\n      \"payment\": {\n        \"status\": \"UNPAID\",\n        \"amount\": 80000,\n        \"uploaded_at\": null,\n        \"verified_at\": null,\n        \"rejection_reason\": null,\n        \"refunded_at\": null,\n        \"refund_note\": null,\n        \"invoice_number\": null,\n        \"payer_reference\": null,\n        \"payer_name\": null\n      },\n      \"reviewed\": false\n    },\n    {\n      \"id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n      \"order_number\": \"EM-20261021-000357\",\n      \"type\": \"EMERGENCY\",\n      \"status\": \"ACCEPTED\",\n      \"customer_id\": \"1a69c6ae-543a-45eb-9f29-d61854546dbe\",\n      \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"vehicle_type\": \"MOTOR\",\n      \"vehicle_plate\": \"B 1234 XYZ\",\n      \"notes\": null,\n      \"total_amount\": 60000,\n      \"created_at\": \"2026-10-21T03:56:53.577Z\",\n      \"updated_at\": \"2026-10-21T03:56:53.811Z\",\n      \"completed_at\": null,\n      \"cancelled_at\": null,\n      \"cancel_reason\": null,\n      \"cancelled_by\": null,\n      \"customer\": {\n        \"id\": \"1a69c6ae-543a-45eb-9f29-d61854546dbe\",\n        \"name\": \"Andi (Tamu)\",\n        \"phone\": \"081311112222\"\n      },\n      \"workshop\": {\n        \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"phone\": \"081298765432\",\n        \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n        \"latitude\": -5.910514,\n        \"longitude\": 106.444737\n      },\n      \"mechanic\": {\n        \"id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n        \"name\": \"Rudi Hartono\",\n        \"phone\": \"081355556666\",\n        \"avg_rating\": 0\n      },\n      \"emergency\": {\n        \"latitude\": -5.910514,\n        \"longitude\": 106.444737,\n        \"address_note\": \"Depan minimarket, dekat halte\",\n        \"problem_description\": \"Ban belakang bocor, motor tidak bisa jalan\",\n        \"distance_meters\": 0,\n        \"response_deadline\": null,\n        \"routing_attempts\": 1,\n        \"price_min\": 50000,\n        \"price_max\": 150000,\n        \"problem_category\": null\n      },\n      \"vehicle\": null,\n      \"booking\": null,\n      \"payment\": {\n        \"status\": \"UNPAID\",\n        \"amount\": 60000,\n        \"uploaded_at\": null,\n        \"verified_at\": null,\n        \"rejection_reason\": null,\n        \"refunded_at\": null,\n        \"refund_note\": null,\n        \"invoice_number\": null,\n        \"payer_reference\": null,\n        \"payer_name\": null\n      },\n      \"reviewed\": false\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"659fdb1e-a1ec-4e8c-8249-516c9dc9cebf\",\n      \"order_number\": \"BK-20261021-000375\",\n      \"type\": \"BOOKING\",\n      \"status\": \"CANCELLED\",\n      \"customer_id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n      \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"vehicle_type\": \"MOTOR\",\n      \"vehicle_plate\": \"B 5678 ABC\",\n      \"notes\": \"Rem depan bunyi\",\n      \"total_amount\": 80000,\n      \"created_at\": \"2026-10-21T04:57:38.659Z\",\n      \"updated_at\": \"2026-10-21T04:57:38.792Z\",\n      \"completed_at\": null,\n      \"cancelled_at\": \"2026-10-21T04:57:38.792Z\",\n      \"cancel_reason\": \"Ada urusan mendadak\",\n      \"cancelled_by\": \"CUSTOMER\",\n      \"customer\": {\n        \"id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n        \"name\": \"Budi Santoso\",\n        \"phone\": \"081234567890\"\n      },\n      \"workshop\": {\n        \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"phone\": \"081298765432\",\n        \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n        \"latitude\": -6.397134,\n        \"longitude\": 106.832555\n      },\n      \"mechanic\": null,\n      \"emergency\": null,\n      \"vehicle\": null,\n      \"booking\": {\n        \"service_id\": \"ae96398a-9236-4414-9f53-5b6169bb5831\",\n        \"service_name\": \"Servis Rutin + Ganti Oli\",\n        \"booking_date\": \"2026-10-22\",\n        \"time_slot\": \"10:00\",\n        \"queue_number\": 1\n      },\n      \"payment\": {\n        \"status\": \"UNPAID\",\n        \"amount\": 80000,\n        \"uploaded_at\": null,\n        \"verified_at\": null,\n        \"rejection_reason\": null,\n        \"refunded_at\": null,\n        \"refund_note\": null,\n        \"invoice_number\": null,\n        \"payer_reference\": null,\n        \"payer_name\": null\n      },\n      \"reviewed\": false\n    },\n    {\n      \"id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n      \"order_number\": \"EM-20261021-000374\",\n      \"type\": \"EMERGENCY\",\n      \"status\": \"ACCEPTED\",\n      \"customer_id\": \"94da6ec6-4ad9-4589-94dc-220fadf31216\",\n      \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"vehicle_type\": \"MOTOR\",\n      \"vehicle_plate\": \"B 1234 XYZ\",\n      \"notes\": null,\n      \"total_amount\": 60000,\n      \"created_at\": \"2026-10-21T04:57:38.089Z\",\n      \"updated_at\": \"2026-10-21T04:57:38.338Z\",\n      \"completed_at\": null,\n      \"cancelled_at\": null,\n      \"cancel_reason\": null,\n      \"cancelled_by\": null,\n      \"customer\": {\n        \"id\": \"94da6ec6-4ad9-4589-94dc-220fadf31216\",\n        \"name\": \"Andi (Tamu)\",\n        \"phone\": \"081311112222\"\n      },\n      \"workshop\": {\n        \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"phone\": \"081298765432\",\n        \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n        \"latitude\": -6.397134,\n        \"longitude\": 106.832555\n      },\n      \"mechanic\": {\n        \"id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n        \"name\": \"Rudi Hartono\",\n        \"phone\": \"081355556666\",\n        \"avg_rating\": 0\n      },\n      \"emergency\": {\n        \"latitude\": -6.397134,\n        \"longitude\": 106.832555,\n        \"address_note\": \"Depan minimarket, dekat halte\",\n        \"problem_description\": \"Ban belakang bocor, motor tidak bisa jalan\",\n        \"distance_meters\": 0,\n        \"response_deadline\": null,\n        \"routing_attempts\": 1,\n        \"price_min\": 50000,\n        \"price_max\": 150000,\n        \"problem_category\": null\n      },\n      \"vehicle\": null,\n      \"booking\": null,\n      \"payment\": {\n        \"status\": \"UNPAID\",\n        \"amount\": 60000,\n        \"uploaded_at\": null,\n        \"verified_at\": null,\n        \"rejection_reason\": null,\n        \"refunded_at\": null,\n        \"refund_note\": null,\n        \"invoice_number\": null,\n        \"payer_reference\": null,\n        \"payer_name\": null\n      },\n      \"reviewed\": false\n    }\n  ]\n}"
             }
           ]
         },
@@ -4445,7 +4721,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"order_number\": \"EM-20261021-000357\",\n    \"type\": \"EMERGENCY\",\n    \"status\": \"ACCEPTED\",\n    \"customer_id\": \"1a69c6ae-543a-45eb-9f29-d61854546dbe\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"vehicle_type\": \"MOTOR\",\n    \"vehicle_plate\": \"B 1234 XYZ\",\n    \"notes\": null,\n    \"total_amount\": 60000,\n    \"created_at\": \"2026-10-21T03:56:53.577Z\",\n    \"updated_at\": \"2026-10-21T03:56:53.811Z\",\n    \"completed_at\": null,\n    \"cancelled_at\": null,\n    \"cancel_reason\": null,\n    \"cancelled_by\": null,\n    \"customer\": {\n      \"id\": \"1a69c6ae-543a-45eb-9f29-d61854546dbe\",\n      \"name\": \"Andi (Tamu)\",\n      \"phone\": \"081311112222\"\n    },\n    \"workshop\": {\n      \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"phone\": \"081298765432\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"latitude\": -5.910514,\n      \"longitude\": 106.444737\n    },\n    \"mechanic\": {\n      \"id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n      \"name\": \"Rudi Hartono\",\n      \"phone\": \"081355556666\",\n      \"avg_rating\": 0\n    },\n    \"emergency\": {\n      \"latitude\": -5.910514,\n      \"longitude\": 106.444737,\n      \"address_note\": \"Depan minimarket, dekat halte\",\n      \"problem_description\": \"Ban belakang bocor, motor tidak bisa jalan\",\n      \"distance_meters\": 0,\n      \"response_deadline\": null,\n      \"routing_attempts\": 1,\n      \"price_min\": 50000,\n      \"price_max\": 150000,\n      \"problem_category\": null\n    },\n    \"vehicle\": null,\n    \"booking\": null,\n    \"payment\": {\n      \"status\": \"UNPAID\",\n      \"amount\": 60000,\n      \"uploaded_at\": null,\n      \"verified_at\": null,\n      \"rejection_reason\": null,\n      \"refunded_at\": null,\n      \"refund_note\": null,\n      \"invoice_number\": null,\n      \"payer_reference\": null,\n      \"payer_name\": null\n    },\n    \"reviewed\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"order_number\": \"EM-20261021-000374\",\n    \"type\": \"EMERGENCY\",\n    \"status\": \"ACCEPTED\",\n    \"customer_id\": \"94da6ec6-4ad9-4589-94dc-220fadf31216\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"vehicle_type\": \"MOTOR\",\n    \"vehicle_plate\": \"B 1234 XYZ\",\n    \"notes\": null,\n    \"total_amount\": 60000,\n    \"created_at\": \"2026-10-21T04:57:38.089Z\",\n    \"updated_at\": \"2026-10-21T04:57:38.338Z\",\n    \"completed_at\": null,\n    \"cancelled_at\": null,\n    \"cancel_reason\": null,\n    \"cancelled_by\": null,\n    \"customer\": {\n      \"id\": \"94da6ec6-4ad9-4589-94dc-220fadf31216\",\n      \"name\": \"Andi (Tamu)\",\n      \"phone\": \"081311112222\"\n    },\n    \"workshop\": {\n      \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"phone\": \"081298765432\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"latitude\": -6.397134,\n      \"longitude\": 106.832555\n    },\n    \"mechanic\": {\n      \"id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n      \"name\": \"Rudi Hartono\",\n      \"phone\": \"081355556666\",\n      \"avg_rating\": 0\n    },\n    \"emergency\": {\n      \"latitude\": -6.397134,\n      \"longitude\": 106.832555,\n      \"address_note\": \"Depan minimarket, dekat halte\",\n      \"problem_description\": \"Ban belakang bocor, motor tidak bisa jalan\",\n      \"distance_meters\": 0,\n      \"response_deadline\": null,\n      \"routing_attempts\": 1,\n      \"price_min\": 50000,\n      \"price_max\": 150000,\n      \"problem_category\": null\n    },\n    \"vehicle\": null,\n    \"booking\": null,\n    \"payment\": {\n      \"status\": \"UNPAID\",\n      \"amount\": 60000,\n      \"uploaded_at\": null,\n      \"verified_at\": null,\n      \"rejection_reason\": null,\n      \"refunded_at\": null,\n      \"refund_note\": null,\n      \"invoice_number\": null,\n      \"payer_reference\": null,\n      \"payer_name\": null\n    },\n    \"reviewed\": false\n  }\n}"
             }
           ]
         },
@@ -4555,7 +4831,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"previous_status\": \"ACCEPTED\",\n    \"status\": \"IN_PROGRESS\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"previous_status\": \"ACCEPTED\",\n    \"status\": \"IN_PROGRESS\"\n  }\n}"
             }
           ]
         },
@@ -4665,7 +4941,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"previous_status\": \"IN_PROGRESS\",\n    \"status\": \"COMPLETED\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"previous_status\": \"IN_PROGRESS\",\n    \"status\": \"COMPLETED\"\n  }\n}"
             }
           ]
         }
@@ -4751,7 +5027,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"order_number\": \"EM-20261021-000357\",\n    \"amount\": 65000,\n    \"status\": \"UNPAID\",\n    \"has_proof\": false,\n    \"has_qris\": true,\n    \"uploaded_at\": null,\n    \"verified_at\": null,\n    \"rejection_reason\": null,\n    \"refunded_at\": null,\n    \"refund_note\": null,\n    \"invoice_number\": null,\n    \"payer_reference\": null,\n    \"payer_name\": null\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"order_number\": \"EM-20261021-000374\",\n    \"amount\": 65000,\n    \"status\": \"UNPAID\",\n    \"has_proof\": false,\n    \"has_qris\": true,\n    \"uploaded_at\": null,\n    \"verified_at\": null,\n    \"rejection_reason\": null,\n    \"refunded_at\": null,\n    \"refund_note\": null,\n    \"invoice_number\": null,\n    \"payer_reference\": null,\n    \"payer_name\": null\n  }\n}"
             }
           ]
         },
@@ -4931,7 +5207,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"order_number\": \"EM-20261021-000357\",\n    \"amount\": 65000,\n    \"status\": \"PENDING_VERIFICATION\",\n    \"has_proof\": true,\n    \"has_qris\": true,\n    \"uploaded_at\": null,\n    \"verified_at\": null,\n    \"rejection_reason\": null,\n    \"refunded_at\": null,\n    \"refund_note\": null,\n    \"invoice_number\": null,\n    \"payer_reference\": \"123456789012\",\n    \"payer_name\": \"Andi\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"order_number\": \"EM-20261021-000374\",\n    \"amount\": 65000,\n    \"status\": \"PENDING_VERIFICATION\",\n    \"has_proof\": true,\n    \"has_qris\": true,\n    \"uploaded_at\": null,\n    \"verified_at\": null,\n    \"rejection_reason\": null,\n    \"refunded_at\": null,\n    \"refund_note\": null,\n    \"invoice_number\": null,\n    \"payer_reference\": \"123456789012\",\n    \"payer_name\": \"Andi\"\n  }\n}"
             }
           ]
         },
@@ -5083,7 +5359,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"status\": \"VERIFIED\",\n    \"rejection_reason\": null,\n    \"invoice_number\": \"INV-20261021-000032\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"order_id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"status\": \"VERIFIED\",\n    \"rejection_reason\": null,\n    \"invoice_number\": \"INV-20261021-000043\"\n  }\n}"
             }
           ]
         }
@@ -5196,7 +5472,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"43ec6bb4-2a2e-464c-ac99-5b13712afb44\",\n    \"order_id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"mechanic_id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n    \"rating\": 5,\n    \"comment\": \"Mekanik datang cepat, ramah, harga jujur!\",\n    \"created_at\": \"2026-10-21T03:56:55.276Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"e015b7a8-00c0-483d-b137-2828f448e1e5\",\n    \"order_id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"mechanic_id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n    \"rating\": 5,\n    \"comment\": \"Mekanik datang cepat, ramah, harga jujur!\",\n    \"created_at\": \"2026-10-21T04:57:39.934Z\"\n  }\n}"
             }
           ]
         },
@@ -5308,7 +5584,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"43ec6bb4-2a2e-464c-ac99-5b13712afb44\",\n    \"rating\": 5,\n    \"comment\": \"Mekanik datang cepat, ramah, harga jujur!\",\n    \"created_at\": \"2026-10-21T03:56:55.276Z\",\n    \"owner_reply\": \"Terima kasih, Kak! Semoga perjalanannya lancar.\",\n    \"replied_at\": \"2026-10-21T03:56:55.387Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"e015b7a8-00c0-483d-b137-2828f448e1e5\",\n    \"rating\": 5,\n    \"comment\": \"Mekanik datang cepat, ramah, harga jujur!\",\n    \"created_at\": \"2026-10-21T04:57:39.934Z\",\n    \"owner_reply\": \"Terima kasih, Kak! Semoga perjalanannya lancar.\",\n    \"replied_at\": \"2026-10-21T04:57:40.074Z\"\n  }\n}"
             }
           ]
         },
@@ -5390,7 +5666,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"43ec6bb4-2a2e-464c-ac99-5b13712afb44\",\n      \"rating\": 5,\n      \"comment\": \"Mekanik datang cepat, ramah, harga jujur!\",\n      \"created_at\": \"2026-10-21T03:56:55.276Z\",\n      \"customer_name\": \"Andi (Tamu)\",\n      \"mechanic_name\": \"Rudi Hartono\",\n      \"owner_reply\": \"Terima kasih, Kak! Semoga perjalanannya lancar.\",\n      \"replied_at\": \"2026-10-21T03:56:55.387Z\"\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"e015b7a8-00c0-483d-b137-2828f448e1e5\",\n      \"rating\": 5,\n      \"comment\": \"Mekanik datang cepat, ramah, harga jujur!\",\n      \"created_at\": \"2026-10-21T04:57:39.934Z\",\n      \"customer_name\": \"Andi (Tamu)\",\n      \"mechanic_name\": \"Rudi Hartono\",\n      \"owner_reply\": \"Terima kasih, Kak! Semoga perjalanannya lancar.\",\n      \"replied_at\": \"2026-10-21T04:57:40.074Z\"\n    }\n  ]\n}"
             }
           ]
         }
@@ -5518,7 +5794,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"period\": {\n      \"from\": \"2026-09-21\",\n      \"to\": \"2026-10-21\"\n    },\n    \"summary\": {\n      \"total_orders\": 358,\n      \"completed_orders\": 40,\n      \"cancelled_orders\": 36,\n      \"verified_revenue\": 4760000,\n      \"pending_verification_amount\": 125000,\n      \"verified_payments\": 37,\n      \"rejected_payments\": 0,\n      \"refunded_amount\": 1040000,\n      \"refunded_payments\": 13\n    },\n    \"by_type\": [\n      {\n        \"type\": \"EMERGENCY\",\n        \"orders\": 56,\n        \"verified_revenue\": 4575000\n      },\n      {\n        \"type\": \"BOOKING\",\n        \"orders\": 302,\n        \"verified_revenue\": 185000\n      }\n    ],\n    \"by_status\": [\n      {\n        \"status\": \"CONFIRMED\",\n        \"orders\": 18\n      },\n      {\n        \"status\": \"IN_QUEUE\",\n        \"orders\": 261\n      },\n      {\n        \"status\": \"ACCEPTED\",\n        \"orders\": 1\n      },\n      {\n        \"status\": \"IN_PROGRESS\",\n        \"orders\": 1\n      },\n      {\n        \"status\": \"COMPLETED\",\n        \"orders\": 40\n      },\n      {\n        \"status\": \"CANCELLED\",\n        \"orders\": 36\n      },\n      {\n        \"status\": \"UNASSIGNED\",\n        \"orders\": 1\n      }\n    ],\n    \"top_workshops\": [\n      {\n        \"id\": \"30e1e68a-6ebb-4c80-a4e9-5d97014e8946\",\n        \"name\": \"Bengkel E2E mvgrlxku\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"181e501c-c7da-4cfd-9746-370890954623\",\n        \"name\": \"Bengkel E2E mvfxsg08\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"93dfb38f-f93b-49d9-8296-e543b7ebbb13\",\n        \"name\": \"Bengkel E2E mvfwwt6v\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"97d2a3e8-f491-4cf5-8d8a-0b136050f197\",\n        \"name\": \"Bengkel E2E mvgr9ahe\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"2d867162-a41d-4bdd-adca-8a491a1b49a9\",\n        \"name\": \"Bengkel E2E mvfwvdnm\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"584e6d4a-3867-4c56-9c8f-ab870e726f8a\",\n        \"name\": \"Bengkel E2E mvfwyc5j\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"5d8cbfd7-061b-434d-b22c-b40356cbe15d\",\n        \"name\": \"Bengkel E2E mvfyhgtc\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"95ba618d-6889-4977-99a6-af85216e7f44\",\n        \"name\": \"Bengkel E2E mvg7ambt\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"59bcce39-e404-44a5-a253-c4f8ee626b8c\",\n        \"name\": \"Bengkel E2E mvfx3cl1\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"876ffaf5-6559-46d1-bcad-9ccc7c79e91d\",\n        \"name\": \"Bengkel E2E mvgb7ql2\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      }\n    ],\n    \"daily\": [\n      {\n        \"date\": \"2026-10-18\",\n        \"orders\": 288,\n        \"verified_revenue\": 315000\n      },\n      {\n        \"date\": \"2026-10-19\",\n        \"orders\": 11,\n        \"verified_revenue\": 900000\n      },\n      {\n        \"date\": \"2026-10-20\",\n        \"orders\": 53,\n        \"verified_revenue\": 3190000\n      },\n      {\n        \"date\": \"2026-10-21\",\n        \"orders\": 6,\n        \"verified_revenue\": 355000\n      }\n    ]\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"period\": {\n      \"from\": \"2026-09-21\",\n      \"to\": \"2026-10-21\"\n    },\n    \"summary\": {\n      \"total_orders\": 375,\n      \"completed_orders\": 48,\n      \"cancelled_orders\": 44,\n      \"verified_revenue\": 5835000,\n      \"pending_verification_amount\": 125000,\n      \"verified_payments\": 45,\n      \"rejected_payments\": 0,\n      \"refunded_amount\": 1280000,\n      \"refunded_payments\": 16\n    },\n    \"by_type\": [\n      {\n        \"type\": \"EMERGENCY\",\n        \"orders\": 67,\n        \"verified_revenue\": 5650000\n      },\n      {\n        \"type\": \"BOOKING\",\n        \"orders\": 308,\n        \"verified_revenue\": 185000\n      }\n    ],\n    \"by_status\": [\n      {\n        \"status\": \"CONFIRMED\",\n        \"orders\": 19\n      },\n      {\n        \"status\": \"IN_QUEUE\",\n        \"orders\": 261\n      },\n      {\n        \"status\": \"ACCEPTED\",\n        \"orders\": 1\n      },\n      {\n        \"status\": \"IN_PROGRESS\",\n        \"orders\": 1\n      },\n      {\n        \"status\": \"COMPLETED\",\n        \"orders\": 48\n      },\n      {\n        \"status\": \"CANCELLED\",\n        \"orders\": 44\n      },\n      {\n        \"status\": \"UNASSIGNED\",\n        \"orders\": 1\n      }\n    ],\n    \"top_workshops\": [\n      {\n        \"id\": \"95ba618d-6889-4977-99a6-af85216e7f44\",\n        \"name\": \"Bengkel E2E mvg7ambt\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"93dfb38f-f93b-49d9-8296-e543b7ebbb13\",\n        \"name\": \"Bengkel E2E mvfwwt6v\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"5d8cbfd7-061b-434d-b22c-b40356cbe15d\",\n        \"name\": \"Bengkel E2E mvfyhgtc\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"181e501c-c7da-4cfd-9746-370890954623\",\n        \"name\": \"Bengkel E2E mvfxsg08\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"584e6d4a-3867-4c56-9c8f-ab870e726f8a\",\n        \"name\": \"Bengkel E2E mvfwyc5j\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"2d867162-a41d-4bdd-adca-8a491a1b49a9\",\n        \"name\": \"Bengkel E2E mvfwvdnm\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"246f2a9c-3167-44fb-8385-38cf320198b9\",\n        \"name\": \"Bengkel E2E mvhm4a5m\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"dbdd5b66-2d4b-4ec7-8505-783a9a1ab94d\",\n        \"name\": \"Bengkel E2E mvhmxplk\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"1e90e2d3-e1df-48bc-93c7-a44e2956e132\",\n        \"name\": \"Bengkel E2E mvhl1qba\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      },\n      {\n        \"id\": \"59bcce39-e404-44a5-a253-c4f8ee626b8c\",\n        \"name\": \"Bengkel E2E mvfx3cl1\",\n        \"orders\": 2,\n        \"verified_revenue\": 150000\n      }\n    ],\n    \"daily\": [\n      {\n        \"date\": \"2026-10-18\",\n        \"orders\": 288,\n        \"verified_revenue\": 315000\n      },\n      {\n        \"date\": \"2026-10-19\",\n        \"orders\": 11,\n        \"verified_revenue\": 900000\n      },\n      {\n        \"date\": \"2026-10-20\",\n        \"orders\": 53,\n        \"verified_revenue\": 3190000\n      },\n      {\n        \"date\": \"2026-10-21\",\n        \"orders\": 23,\n        \"verified_revenue\": 1430000\n      }\n    ]\n  }\n}"
             }
           ]
         }
@@ -5634,7 +5910,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [\n      {\n        \"id\": \"0df5d9ee-8ed7-47f6-99ab-dc27e3f574c8\",\n        \"type\": \"REVIEW_NEW\",\n        \"title\": \"Ulasan baru 5/5 dari Andi (Tamu)\",\n        \"body\": \"Mekanik datang cepat, ramah, harga jujur! · EM-20261021-000357\",\n        \"link\": \"/orders/b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T03:56:55.276Z\"\n      },\n      {\n        \"id\": \"9a6e8e20-5e4e-4a6d-a6ea-b51d4f014d40\",\n        \"type\": \"PAYMENT_PROOF\",\n        \"title\": \"Bukti bayar masuk dari Andi (Tamu)\",\n        \"body\": \"Rp65.000 · EM-20261021-000357\",\n        \"link\": \"/orders/b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T03:56:54.975Z\"\n      },\n      {\n        \"id\": \"b52e7997-e200-4ddb-a10a-f2efb673d090\",\n        \"type\": \"ORDER_CANCELLED\",\n        \"title\": \"Pesanan dibatalkan oleh Budi Santoso\",\n        \"body\": \"Ada urusan mendadak · BK-20261021-000358\",\n        \"link\": \"/orders/ea6171c1-bb8a-4ce0-ac7b-fbc6b6c73030\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T03:56:54.122Z\"\n      },\n      {\n        \"id\": \"366d728e-856b-48a0-bab7-c6b0ec1f8a65\",\n        \"type\": \"BOOKING_NEW\",\n        \"title\": \"Booking baru dari Budi Santoso\",\n        \"body\": \"Servis Rutin + Ganti Oli · 2026-10-22 pukul 10:00 · BK-20261021-000358\",\n        \"link\": \"/orders/ea6171c1-bb8a-4ce0-ac7b-fbc6b6c73030\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T03:56:54.015Z\"\n      },\n      {\n        \"id\": \"6fc524f3-da8c-4e86-9548-28631fab45a2\",\n        \"type\": \"SOS_INCOMING\",\n        \"title\": \"SOS masuk dari Andi (Tamu)\",\n        \"body\": \"Respons dalam 2 menit · EM-20261021-000357\",\n        \"link\": \"/orders/b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T03:56:53.577Z\"\n      },\n      {\n        \"id\": \"deb9daec-1db9-4f7b-a9f0-9aeb67cf1d7f\",\n        \"type\": \"WORKSHOP_APPROVED\",\n        \"title\": \"Bengkel Anda disetujui dan sudah tampil ke pelanggan\",\n        \"body\": null,\n        \"link\": \"/owner\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T03:56:46.505Z\"\n      }\n    ],\n    \"unread\": 6\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"items\": [\n      {\n        \"id\": \"0426fccc-f298-4339-808f-b5d813daf0ab\",\n        \"type\": \"REVIEW_NEW\",\n        \"title\": \"Ulasan baru 5/5 dari Andi (Tamu)\",\n        \"body\": \"Mekanik datang cepat, ramah, harga jujur! · EM-20261021-000374\",\n        \"link\": \"/orders/8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T04:57:39.934Z\"\n      },\n      {\n        \"id\": \"5c6a084a-a692-49d9-879a-c77b17d8929d\",\n        \"type\": \"PAYMENT_PROOF\",\n        \"title\": \"Bukti bayar masuk dari Andi (Tamu)\",\n        \"body\": \"Rp65.000 · EM-20261021-000374\",\n        \"link\": \"/orders/8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T04:57:39.621Z\"\n      },\n      {\n        \"id\": \"416e7d19-60a4-4f78-bdaf-f0b5ac9b745d\",\n        \"type\": \"ORDER_CANCELLED\",\n        \"title\": \"Pesanan dibatalkan oleh Budi Santoso\",\n        \"body\": \"Ada urusan mendadak · BK-20261021-000375\",\n        \"link\": \"/orders/659fdb1e-a1ec-4e8c-8249-516c9dc9cebf\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T04:57:38.792Z\"\n      },\n      {\n        \"id\": \"d5396f7a-7fc8-4231-b9d0-c3ef55dbca20\",\n        \"type\": \"BOOKING_NEW\",\n        \"title\": \"Booking baru dari Budi Santoso\",\n        \"body\": \"Servis Rutin + Ganti Oli · 2026-10-22 pukul 10:00 · BK-20261021-000375\",\n        \"link\": \"/orders/659fdb1e-a1ec-4e8c-8249-516c9dc9cebf\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T04:57:38.659Z\"\n      },\n      {\n        \"id\": \"da942a0b-0172-45a3-b330-f5e1727c9d96\",\n        \"type\": \"SOS_INCOMING\",\n        \"title\": \"SOS masuk dari Andi (Tamu)\",\n        \"body\": \"Respons dalam 2 menit · EM-20261021-000374\",\n        \"link\": \"/orders/8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T04:57:38.089Z\"\n      },\n      {\n        \"id\": \"6a0fbd9d-29a3-4057-9f88-a0d2772cb4eb\",\n        \"type\": \"WORKSHOP_APPROVED\",\n        \"title\": \"Bengkel Anda disetujui dan sudah tampil ke pelanggan\",\n        \"body\": null,\n        \"link\": \"/owner\",\n        \"read_at\": null,\n        \"created_at\": \"2026-10-21T04:57:34.419Z\"\n      }\n    ],\n    \"unread\": 6\n  }\n}"
             }
           ]
         },
@@ -5824,7 +6100,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"kind\": \"ORDER\",\n      \"from_status\": null,\n      \"to_status\": \"PENDING\",\n      \"actor_role\": \"GUEST\",\n      \"actor_name\": \"Andi (Tamu)\",\n      \"created_at\": \"2026-10-21T03:56:53.611Z\"\n    },\n    {\n      \"kind\": \"ORDER\",\n      \"from_status\": \"PENDING\",\n      \"to_status\": \"ACCEPTED\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T03:56:53.707Z\"\n    },\n    {\n      \"kind\": \"ORDER\",\n      \"from_status\": \"ACCEPTED\",\n      \"to_status\": \"IN_PROGRESS\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T03:56:54.524Z\"\n    },\n    {\n      \"kind\": \"ORDER\",\n      \"from_status\": \"IN_PROGRESS\",\n      \"to_status\": \"COMPLETED\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T03:56:54.632Z\"\n    },\n    {\n      \"kind\": \"PAYMENT\",\n      \"from_status\": \"UNPAID\",\n      \"to_status\": \"PENDING_VERIFICATION\",\n      \"actor_role\": \"GUEST\",\n      \"actor_name\": \"Andi (Tamu)\",\n      \"created_at\": \"2026-10-21T03:56:54.978Z\"\n    },\n    {\n      \"kind\": \"PAYMENT\",\n      \"from_status\": \"PENDING_VERIFICATION\",\n      \"to_status\": \"VERIFIED\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T03:56:55.171Z\"\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"kind\": \"ORDER\",\n      \"from_status\": null,\n      \"to_status\": \"PENDING\",\n      \"actor_role\": \"GUEST\",\n      \"actor_name\": \"Andi (Tamu)\",\n      \"created_at\": \"2026-10-21T04:57:38.127Z\"\n    },\n    {\n      \"kind\": \"ORDER\",\n      \"from_status\": \"PENDING\",\n      \"to_status\": \"ACCEPTED\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T04:57:38.238Z\"\n    },\n    {\n      \"kind\": \"ORDER\",\n      \"from_status\": \"ACCEPTED\",\n      \"to_status\": \"IN_PROGRESS\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T04:57:39.196Z\"\n    },\n    {\n      \"kind\": \"ORDER\",\n      \"from_status\": \"IN_PROGRESS\",\n      \"to_status\": \"COMPLETED\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T04:57:39.305Z\"\n    },\n    {\n      \"kind\": \"PAYMENT\",\n      \"from_status\": \"UNPAID\",\n      \"to_status\": \"PENDING_VERIFICATION\",\n      \"actor_role\": \"GUEST\",\n      \"actor_name\": \"Andi (Tamu)\",\n      \"created_at\": \"2026-10-21T04:57:39.624Z\"\n    },\n    {\n      \"kind\": \"PAYMENT\",\n      \"from_status\": \"PENDING_VERIFICATION\",\n      \"to_status\": \"VERIFIED\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T04:57:39.835Z\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -5931,7 +6207,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"d19875f5-0d67-4840-aacc-285729bdaf9f\",\n    \"vehicle_type\": \"MOTOR\",\n    \"brand\": \"Honda\",\n    \"model\": \"Vario 125\",\n    \"year\": 2021,\n    \"color\": \"Hitam\",\n    \"plate\": \"B 5678 ABC\",\n    \"created_at\": \"2026-10-21T03:56:55.995Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"083e62bf-02f3-4fd5-953d-b35edfd8c26a\",\n    \"vehicle_type\": \"MOTOR\",\n    \"brand\": \"Honda\",\n    \"model\": \"Vario 125\",\n    \"year\": 2021,\n    \"color\": \"Hitam\",\n    \"plate\": \"B 5678 ABC\",\n    \"created_at\": \"2026-10-21T04:57:40.677Z\"\n  }\n}"
             }
           ]
         },
@@ -6009,7 +6285,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"d19875f5-0d67-4840-aacc-285729bdaf9f\",\n      \"vehicle_type\": \"MOTOR\",\n      \"brand\": \"Honda\",\n      \"model\": \"Vario 125\",\n      \"year\": 2021,\n      \"color\": \"Hitam\",\n      \"plate\": \"B 5678 ABC\",\n      \"created_at\": \"2026-10-21T03:56:55.995Z\"\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"083e62bf-02f3-4fd5-953d-b35edfd8c26a\",\n      \"vehicle_type\": \"MOTOR\",\n      \"brand\": \"Honda\",\n      \"model\": \"Vario 125\",\n      \"year\": 2021,\n      \"color\": \"Hitam\",\n      \"plate\": \"B 5678 ABC\",\n      \"created_at\": \"2026-10-21T04:57:40.677Z\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -6127,7 +6403,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"cea8154c-02eb-42be-8461-a89a798cca54\",\n    \"order_number\": \"BK-20261021-000359\",\n    \"type\": \"BOOKING\",\n    \"status\": \"CONFIRMED\",\n    \"customer_id\": \"938b5c91-3c37-4996-897f-98eef36a1e7d\",\n    \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"mechanic_id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n    \"vehicle_type\": \"MOTOR\",\n    \"vehicle_plate\": \"B 5678 ABC\",\n    \"vehicle_id\": \"d19875f5-0d67-4840-aacc-285729bdaf9f\",\n    \"notes\": null,\n    \"total_amount\": 80000,\n    \"created_at\": \"2026-10-21T03:56:56.190Z\",\n    \"updated_at\": \"2026-10-21T03:56:56.190Z\",\n    \"booking\": {\n      \"booking_date\": \"2026-10-22\",\n      \"time_slot\": \"11:00\",\n      \"queue_number\": 2,\n      \"waitlist_position\": null\n    },\n    \"service\": {\n      \"id\": \"663ca936-4312-483e-8865-383f4f04692f\",\n      \"name\": \"Servis Rutin + Ganti Oli\",\n      \"price\": 80000\n    }\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"ff12c1fb-916c-4420-bea3-52e51b783bfd\",\n    \"order_number\": \"BK-20261021-000376\",\n    \"type\": \"BOOKING\",\n    \"status\": \"CONFIRMED\",\n    \"customer_id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n    \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"mechanic_id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n    \"vehicle_type\": \"MOTOR\",\n    \"vehicle_plate\": \"B 5678 ABC\",\n    \"vehicle_id\": \"083e62bf-02f3-4fd5-953d-b35edfd8c26a\",\n    \"notes\": null,\n    \"total_amount\": 80000,\n    \"created_at\": \"2026-10-21T04:57:40.882Z\",\n    \"updated_at\": \"2026-10-21T04:57:40.882Z\",\n    \"booking\": {\n      \"booking_date\": \"2026-10-22\",\n      \"time_slot\": \"11:00\",\n      \"queue_number\": 2,\n      \"waitlist_position\": null\n    },\n    \"service\": {\n      \"id\": \"ae96398a-9236-4414-9f53-5b6169bb5831\",\n      \"name\": \"Servis Rutin + Ganti Oli\",\n      \"price\": 80000\n    }\n  }\n}"
             }
           ]
         },
@@ -6237,7 +6513,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"cea8154c-02eb-42be-8461-a89a798cca54\",\n    \"status\": \"CONFIRMED\",\n    \"previous\": {\n      \"booking_date\": \"2026-10-22\",\n      \"time_slot\": \"11:00\"\n    },\n    \"booking\": {\n      \"booking_date\": \"2026-10-22\",\n      \"time_slot\": \"14:00\",\n      \"queue_number\": 3,\n      \"waitlist_position\": null\n    }\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"ff12c1fb-916c-4420-bea3-52e51b783bfd\",\n    \"status\": \"CONFIRMED\",\n    \"previous\": {\n      \"booking_date\": \"2026-10-22\",\n      \"time_slot\": \"11:00\"\n    },\n    \"booking\": {\n      \"booking_date\": \"2026-10-22\",\n      \"time_slot\": \"14:00\",\n      \"queue_number\": 3,\n      \"waitlist_position\": null\n    }\n  }\n}"
             }
           ]
         },
@@ -6345,7 +6621,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"description\": \"Spesialis motor matic & injeksi\",\n    \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n    \"phone\": \"081298765432\",\n    \"latitude\": -5.910514,\n    \"longitude\": 106.444737,\n    \"vehicle_types\": [\n      \"MOTOR\",\n      \"MOBIL\"\n    ],\n    \"status\": \"APPROVED\",\n    \"is_open\": true,\n    \"accepts_emergency\": true,\n    \"open_time\": \"08:00\",\n    \"close_time\": \"20:00\",\n    \"max_slot_per_hour\": 3,\n    \"avg_rating\": 5,\n    \"total_reviews\": 1,\n    \"created_at\": \"2026-10-21T03:56:45.078Z\",\n    \"closed_weekdays\": [],\n    \"break_start\": \"12:00\",\n    \"break_end\": \"13:00\",\n    \"has_qris\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n    \"name\": \"Bengkel Jaya Motor\",\n    \"description\": \"Spesialis motor matic & injeksi\",\n    \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n    \"phone\": \"081298765432\",\n    \"latitude\": -6.397134,\n    \"longitude\": 106.832555,\n    \"vehicle_types\": [\n      \"MOTOR\",\n      \"MOBIL\"\n    ],\n    \"status\": \"APPROVED\",\n    \"is_open\": true,\n    \"accepts_emergency\": true,\n    \"open_time\": \"08:00\",\n    \"close_time\": \"20:00\",\n    \"max_slot_per_hour\": 3,\n    \"avg_rating\": 5,\n    \"total_reviews\": 1,\n    \"created_at\": \"2026-10-21T04:57:32.680Z\",\n    \"closed_weekdays\": [],\n    \"break_start\": \"12:00\",\n    \"break_end\": \"13:00\",\n    \"has_qris\": true\n  }\n}"
             }
           ]
         },
@@ -6464,7 +6740,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"6362d81e-b741-4a95-ac5a-8a86351feb8d\",\n    \"holiday_date\": \"2026-10-26\",\n    \"note\": \"Cuti bersama\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"402b9168-a0c3-4213-a0c6-0894e6d7037b\",\n    \"holiday_date\": \"2026-10-26\",\n    \"note\": \"Cuti bersama\"\n  }\n}"
             }
           ]
         },
@@ -6544,7 +6820,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"6362d81e-b741-4a95-ac5a-8a86351feb8d\",\n      \"holiday_date\": \"2026-10-26\",\n      \"note\": \"Cuti bersama\"\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"402b9168-a0c3-4213-a0c6-0894e6d7037b\",\n      \"holiday_date\": \"2026-10-26\",\n      \"note\": \"Cuti bersama\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -6626,7 +6902,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"6362d81e-b741-4a95-ac5a-8a86351feb8d\",\n    \"deleted\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"402b9168-a0c3-4213-a0c6-0894e6d7037b\",\n    \"deleted\": true\n  }\n}"
             }
           ]
         },
@@ -6694,7 +6970,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"booking_date\": \"2026-10-21\",\n    \"time_slot\": \"11:00\",\n    \"remaining\": 3\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"booking_date\": \"2026-10-21\",\n    \"time_slot\": \"13:00\",\n    \"remaining\": 3\n  }\n}"
             }
           ]
         },
@@ -6789,7 +7065,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"410efb59-4c02-4820-bd02-b825a45c91e8\",\n      \"name\": \"BengkelDi\",\n      \"description\": \"BengkelDi adalah pusat perawatan dan perbaikan kendaraan terpercaya yang siap melayani segala jenis mobil dan sepeda motor.\\nKami hadir sebagai solusi total untuk menjaga performa kendaraan Anda tetap prima. Mulai dari servis berkala, ganti oli, tune-up, perbaikan mesin (overhaul), sistem kelistrikan, hingga perbaikan kaki-kaki kendaraan. Didukung oleh tim mekanik berpengalaman dan peralatan modern, kami menjamin setiap pengerjaan dilakukan secara presisi, transparan, jujur, dan bergaransi demi kenyamanan serta keselamatan Anda di jalan.\",\n      \"address\": \"Kota Wisata Cluster Wescovina Blok SH 6/18 Ciangsana Gunung Putri Bogor\",\n      \"phone\": \"081316476470\",\n      \"latitude\": -7.3393083468508875,\n      \"longitude\": 112.73771286248656,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"17:00\",\n      \"max_slot_per_hour\": 12,\n      \"avg_rating\": 5,\n      \"total_reviews\": 2,\n      \"created_at\": \"2026-10-18T16:51:40.381Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": false\n    },\n    {\n      \"id\": \"3ce27b8a-1d47-4115-af93-e15ae908fe91\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.231173,\n      \"longitude\": 107.19527,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T00:23:26.490Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"084f1409-3f18-437f-bdeb-0bdbcabbb05c\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.272955,\n      \"longitude\": 107.017003,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T00:43:34.293Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"a5a6dc45-ee16-45fe-bf43-e46e91ab1b50\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.503214,\n      \"longitude\": 106.902001,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T04:53:49.624Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -5.910514,\n      \"longitude\": 106.444737,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-21T03:56:45.078Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"406db37b-cfec-4965-aa8f-12288a2f4f37\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.57288,\n      \"longitude\": 107.010324,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T12:44:39.587Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"7f8b3ac0-9c90-4bda-bbc2-fc4cfba32392\",\n      \"name\": \"Bengkel E2E mvgb66wg\",\n      \"description\": null,\n      \"address\": \"Jl. Uji Otomatis No. 1\",\n      \"phone\": \"081386743604\",\n      \"latitude\": -6.199989534440782,\n      \"longitude\": 106.81667804718019,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"17:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-20T06:34:47.882Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": true\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"410efb59-4c02-4820-bd02-b825a45c91e8\",\n      \"name\": \"BengkelDi\",\n      \"description\": \"BengkelDi adalah pusat perawatan dan perbaikan kendaraan terpercaya yang siap melayani segala jenis mobil dan sepeda motor.\\nKami hadir sebagai solusi total untuk menjaga performa kendaraan Anda tetap prima. Mulai dari servis berkala, ganti oli, tune-up, perbaikan mesin (overhaul), sistem kelistrikan, hingga perbaikan kaki-kaki kendaraan. Didukung oleh tim mekanik berpengalaman dan peralatan modern, kami menjamin setiap pengerjaan dilakukan secara presisi, transparan, jujur, dan bergaransi demi kenyamanan serta keselamatan Anda di jalan.\",\n      \"address\": \"Kota Wisata Cluster Wescovina Blok SH 6/18 Ciangsana Gunung Putri Bogor\",\n      \"phone\": \"081316476470\",\n      \"latitude\": -7.3393083468508875,\n      \"longitude\": 112.73771286248656,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"17:00\",\n      \"max_slot_per_hour\": 12,\n      \"avg_rating\": 5,\n      \"total_reviews\": 2,\n      \"created_at\": \"2026-10-18T16:51:40.381Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": false\n    },\n    {\n      \"id\": \"3ce27b8a-1d47-4115-af93-e15ae908fe91\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.231173,\n      \"longitude\": 107.19527,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T00:23:26.490Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"084f1409-3f18-437f-bdeb-0bdbcabbb05c\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.272955,\n      \"longitude\": 107.017003,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T00:43:34.293Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"a5a6dc45-ee16-45fe-bf43-e46e91ab1b50\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.503214,\n      \"longitude\": 106.902001,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T04:53:49.624Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"406db37b-cfec-4965-aa8f-12288a2f4f37\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.57288,\n      \"longitude\": 107.010324,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-20T12:44:39.587Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -5.910514,\n      \"longitude\": 106.444737,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-21T03:56:45.078Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"name\": \"Bengkel Jaya Motor\",\n      \"description\": \"Spesialis motor matic & injeksi\",\n      \"address\": \"Jl. Medan Merdeka Barat No. 1, Jakarta Pusat\",\n      \"phone\": \"081298765432\",\n      \"latitude\": -6.397134,\n      \"longitude\": 106.832555,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"20:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 5,\n      \"total_reviews\": 1,\n      \"created_at\": \"2026-10-21T04:57:32.680Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": \"12:00\",\n      \"break_end\": \"13:00\",\n      \"distance_meters\": null,\n      \"has_qris\": true\n    },\n    {\n      \"id\": \"7f8b3ac0-9c90-4bda-bbc2-fc4cfba32392\",\n      \"name\": \"Bengkel E2E mvgb66wg\",\n      \"description\": null,\n      \"address\": \"Jl. Uji Otomatis No. 1\",\n      \"phone\": \"081386743604\",\n      \"latitude\": -6.199989534440782,\n      \"longitude\": 106.81667804718019,\n      \"vehicle_types\": [\n        \"MOTOR\",\n        \"MOBIL\"\n      ],\n      \"status\": \"APPROVED\",\n      \"is_open\": true,\n      \"accepts_emergency\": true,\n      \"open_time\": \"08:00\",\n      \"close_time\": \"17:00\",\n      \"max_slot_per_hour\": 3,\n      \"avg_rating\": 0,\n      \"total_reviews\": 0,\n      \"created_at\": \"2026-10-20T06:34:47.882Z\",\n      \"closed_weekdays\": [],\n      \"break_start\": null,\n      \"break_end\": null,\n      \"distance_meters\": null,\n      \"has_qris\": true\n    }\n  ]\n}"
             }
           ]
         },
@@ -6892,7 +7168,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"26a62bb8-8ae5-4887-9a21-209694bd5545\",\n    \"is_cover\": true,\n    \"sort_order\": 0,\n    \"url\": \"/workshops/b2c5ef84-499d-492e-bebb-5346ed09cb69/photos/26a62bb8-8ae5-4887-9a21-209694bd5545\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"c1895f12-6a18-42c4-a86b-0039bb8e0b60\",\n    \"is_cover\": true,\n    \"sort_order\": 0,\n    \"url\": \"/workshops/56a292f9-8df8-4c8b-81a9-074c48657c44/photos/c1895f12-6a18-42c4-a86b-0039bb8e0b60\"\n  }\n}"
             }
           ]
         },
@@ -6972,7 +7248,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"26a62bb8-8ae5-4887-9a21-209694bd5545\",\n      \"is_cover\": true,\n      \"sort_order\": 0,\n      \"url\": \"/workshops/b2c5ef84-499d-492e-bebb-5346ed09cb69/photos/26a62bb8-8ae5-4887-9a21-209694bd5545\"\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"c1895f12-6a18-42c4-a86b-0039bb8e0b60\",\n      \"is_cover\": true,\n      \"sort_order\": 0,\n      \"url\": \"/workshops/56a292f9-8df8-4c8b-81a9-074c48657c44/photos/c1895f12-6a18-42c4-a86b-0039bb8e0b60\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -7056,7 +7332,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"26a62bb8-8ae5-4887-9a21-209694bd5545\",\n    \"is_cover\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"c1895f12-6a18-42c4-a86b-0039bb8e0b60\",\n    \"is_cover\": true\n  }\n}"
             }
           ]
         },
@@ -7198,7 +7474,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"1b795bd6-9fb8-4acb-9327-aee451dc38a2\",\n    \"has_photo\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"46f8b258-1d15-40f8-8a43-552084e8c835\",\n    \"has_photo\": true\n  }\n}"
             }
           ]
         },
@@ -7280,7 +7556,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"26a62bb8-8ae5-4887-9a21-209694bd5545\",\n    \"deleted\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"c1895f12-6a18-42c4-a86b-0039bb8e0b60\",\n    \"deleted\": true\n  }\n}"
             }
           ]
         },
@@ -7346,7 +7622,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"active_workshops\": 7,\n    \"active_mechanics\": 8,\n    \"total_customers\": 184,\n    \"completed_orders\": 40,\n    \"avg_platform_rating\": 4.47,\n    \"total_reviews\": 19,\n    \"avg_emergency_response_minutes\": 0.1\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"active_workshops\": 7,\n    \"active_mechanics\": 8,\n    \"total_customers\": 200,\n    \"completed_orders\": 46,\n    \"avg_platform_rating\": 4.41,\n    \"total_reviews\": 22,\n    \"avg_emergency_response_minutes\": 0.1\n  }\n}"
             }
           ]
         },
@@ -7508,7 +7784,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"date\": \"2026-10-21\",\n    \"workshops_by_status\": {\n      \"SUSPENDED\": 35,\n      \"REJECTED\": 22,\n      \"APPROVED\": 7\n    },\n    \"users_by_role\": {\n      \"GUEST\": 43,\n      \"ADMIN\": 1,\n      \"WORKSHOP_OWNER\": 64,\n      \"CUSTOMER\": 141\n    },\n    \"orders_today\": 7,\n    \"live_emergencies\": 2,\n    \"payments_to_verify\": 1,\n    \"verified_revenue_30d\": 4760000,\n    \"refunded_30d\": 1040000\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"date\": \"2026-10-21\",\n    \"workshops_by_status\": {\n      \"SUSPENDED\": 42,\n      \"REJECTED\": 29,\n      \"APPROVED\": 8\n    },\n    \"users_by_role\": {\n      \"GUEST\": 50,\n      \"ADMIN\": 1,\n      \"WORKSHOP_OWNER\": 79,\n      \"CUSTOMER\": 154\n    },\n    \"orders_today\": 24,\n    \"live_emergencies\": 2,\n    \"payments_to_verify\": 1,\n    \"verified_revenue_30d\": 5835000,\n    \"refunded_30d\": 1280000\n  }\n}"
             }
           ]
         },
@@ -7602,7 +7878,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"query\": \"Jaya\",\n    \"workshops\": [\n      {\n        \"id\": \"0bec030e-0009-4cf2-a8ea-c42c3d72effc\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"SUSPENDED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"f2c2a0c7-3d4f-4f9c-9f77-716d6f67eff3\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"SUSPENDED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"acce9fc8-378a-459d-9db7-043e6c8213a3\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"SUSPENDED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"3ce27b8a-1d47-4115-af93-e15ae908fe91\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"084f1409-3f18-437f-bdeb-0bdbcabbb05c\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"a5a6dc45-ee16-45fe-bf43-e46e91ab1b50\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"406db37b-cfec-4965-aa8f-12288a2f4f37\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      }\n    ],\n    \"orders\": [],\n    \"payments\": [],\n    \"users\": []\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"query\": \"Jaya\",\n    \"workshops\": [\n      {\n        \"id\": \"0bec030e-0009-4cf2-a8ea-c42c3d72effc\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"SUSPENDED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"f2c2a0c7-3d4f-4f9c-9f77-716d6f67eff3\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"SUSPENDED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"acce9fc8-378a-459d-9db7-043e6c8213a3\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"SUSPENDED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"3ce27b8a-1d47-4115-af93-e15ae908fe91\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"084f1409-3f18-437f-bdeb-0bdbcabbb05c\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"a5a6dc45-ee16-45fe-bf43-e46e91ab1b50\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"406db37b-cfec-4965-aa8f-12288a2f4f37\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      },\n      {\n        \"id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n        \"name\": \"Bengkel Jaya Motor\",\n        \"status\": \"APPROVED\",\n        \"phone\": \"081298765432\"\n      }\n    ],\n    \"orders\": [],\n    \"payments\": [],\n    \"users\": []\n  }\n}"
             }
           ]
         },
@@ -7718,7 +7994,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 170,\n      \"action\": \"PAYMENT_VERIFIED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n      \"details\": {\n        \"amount\": 65000,\n        \"reason\": null,\n        \"invoice_number\": \"INV-20261021-000032\",\n        \"payer_reference\": \"123456789012\"\n      },\n      \"actor_id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T03:56:55.167Z\"\n    },\n    {\n      \"id\": 169,\n      \"action\": \"EMERGENCY_PRICE_CHANGED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"b47a1dfe-1ce1-4538-a51c-4ecc065744af\",\n      \"details\": {\n        \"to\": 60000,\n        \"from\": 50000\n      },\n      \"actor_id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T03:56:53.811Z\"\n    },\n    {\n      \"id\": 168,\n      \"action\": \"SERVICE_DELETED\",\n      \"entity\": \"service\",\n      \"entity_id\": \"f3113b77-26b8-4d42-852b-299335775f79\",\n      \"details\": {},\n      \"actor_id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T03:56:47.365Z\"\n    },\n    {\n      \"id\": 167,\n      \"action\": \"QRIS_UPLOADED\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"details\": {},\n      \"actor_id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T03:56:46.874Z\"\n    },\n    {\n      \"id\": 166,\n      \"action\": \"WORKSHOP_APPROVE\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"details\": {\n        \"to\": \"APPROVED\",\n        \"from\": \"PENDING\",\n        \"reason\": null\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T03:56:46.505Z\"\n    },\n    {\n      \"id\": 165,\n      \"action\": \"WORKSHOP_REJECT\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"51815b43-1d14-4585-a2b7-616e6e71b951\",\n      \"details\": {\n        \"to\": \"REJECTED\",\n        \"from\": \"PENDING\",\n        \"reason\": \"Data uji E2E otomatis\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T03:40:14.873Z\"\n    },\n    {\n      \"id\": 164,\n      \"action\": \"WORKSHOP_REJECT\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"ae6ffa7e-0a12-4775-a2f1-c6bb3ee5a760\",\n      \"details\": {\n        \"to\": \"REJECTED\",\n        \"from\": \"PENDING\",\n        \"reason\": \"Data uji E2E otomatis\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T03:39:09.885Z\"\n    },\n    {\n      \"id\": 163,\n      \"action\": \"WORKSHOP_SUSPEND\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"972b06ef-3a2e-495a-b4f6-d725947cce41\",\n      \"details\": {\n        \"to\": \"SUSPENDED\",\n        \"from\": \"APPROVED\",\n        \"reason\": \"Data uji E2E otomatis\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T03:37:05.013Z\"\n    },\n    {\n      \"id\": 162,\n      \"action\": \"USER_ACTIVATED\",\n      \"entity\": \"user\",\n      \"entity_id\": \"0df9afe0-d29e-4521-a325-88c027077e28\",\n      \"details\": {\n        \"name\": \"Sinta Fitur\",\n        \"role\": \"CUSTOMER\",\n        \"reason\": null\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T03:37:04.091Z\"\n    },\n    {\n      \"id\": 161,\n      \"action\": \"USER_DEACTIVATED\",\n      \"entity\": \"user\",\n      \"entity_id\": \"0df9afe0-d29e-4521-a325-88c027077e28\",\n      \"details\": {\n        \"name\": \"Sinta Fitur\",\n        \"role\": \"CUSTOMER\",\n        \"reason\": null\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T03:37:03.284Z\"\n    },\n    {\n      \"id\": 160,\n      \"action\": \"SERVICE_DELETED\",\n      \"entity\": \"service\",\n      \"entity_id\": \"cc5d2a34-1dbd-474b-aa5d-6a731ce3c6ea\",\n      \"details\": {},\n      \"actor_id\": \"74b966e3-9162-487a-8c58-75db66f3bcde\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik Fitur\",\n      \"created_at\": \"2026-10-21T03:36:57.751Z\"\n    },\n    {\n      \"id\": 159,\n      \"action\": \"PAYMENT_VERIFIED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"10fb3166-2b8b-4732-9035-7e25c7c6b451\",\n      \"details\": {\n        \"amount\": 140000,\n        \"reason\": null,\n        \"invoice_number\": \"INV-20261021-000031\",\n        \"payer_reference\": \"RRN998877\"\n      },\n      \"actor_id\": \"74b966e3-9162-487a-8c58-75db66f3bcde\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik Fitur\",\n      \"created_at\": \"2026-10-21T03:36:50.456Z\"\n    },\n    {\n      \"id\": 158,\n      \"action\": \"EMERGENCY_PRICE_CHANGED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"10fb3166-2b8b-4732-9035-7e25c7c6b451\",\n      \"details\": {\n        \"to\": 140000,\n        \"from\": 120000\n      },\n      \"actor_id\": \"74b966e3-9162-487a-8c58-75db66f3bcde\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik Fitur\",\n      \"created_at\": \"2026-10-21T03:36:47.535Z\"\n    },\n    {\n      \"id\": 157,\n      \"action\": \"QRIS_UPLOADED\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"972b06ef-3a2e-495a-b4f6-d725947cce41\",\n      \"details\": {},\n      \"actor_id\": \"74b966e3-9162-487a-8c58-75db66f3bcde\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik Fitur\",\n      \"created_at\": \"2026-10-21T03:36:35.657Z\"\n    },\n    {\n      \"id\": 156,\n      \"action\": \"WORKSHOP_APPROVE\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"972b06ef-3a2e-495a-b4f6-d725947cce41\",\n      \"details\": {\n        \"to\": \"APPROVED\",\n        \"from\": \"PENDING\",\n        \"reason\": null\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T03:36:35.565Z\"\n    },\n    {\n      \"id\": 155,\n      \"action\": \"WORKSHOP_SUSPEND\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"306f7825-bd84-4339-b6f6-a67f9c5fcbb8\",\n      \"details\": {\n        \"to\": \"SUSPENDED\",\n        \"from\": \"APPROVED\",\n        \"reason\": \"Data uji E2E otomatis\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T03:35:53.300Z\"\n    },\n    {\n      \"id\": 154,\n      \"action\": \"QRIS_REPLACED\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"306f7825-bd84-4339-b6f6-a67f9c5fcbb8\",\n      \"details\": {},\n      \"actor_id\": \"73ced518-133c-4fd9-8edc-140ca46afc67\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik E2E\",\n      \"created_at\": \"2026-10-21T03:35:50.440Z\"\n    },\n    {\n      \"id\": 153,\n      \"action\": \"ORDER_CANCELLED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"cc1df101-2454-4c1b-b464-05e13806c67b\",\n      \"details\": {\n        \"from\": \"ACCEPTED\",\n        \"reason\": null\n      },\n      \"actor_id\": \"73ced518-133c-4fd9-8edc-140ca46afc67\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik E2E\",\n      \"created_at\": \"2026-10-21T03:35:41.815Z\"\n    },\n    {\n      \"id\": 152,\n      \"action\": \"PAYMENT_REFUNDED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"cc1df101-2454-4c1b-b464-05e13806c67b\",\n      \"details\": {\n        \"note\": \"Transfer balik ke DANA pelanggan\",\n        \"amount\": 80000\n      },\n      \"actor_id\": \"73ced518-133c-4fd9-8edc-140ca46afc67\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik E2E\",\n      \"created_at\": \"2026-10-21T03:35:41.815Z\"\n    },\n    {\n      \"id\": 151,\n      \"action\": \"PAYMENT_VERIFIED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"cc1df101-2454-4c1b-b464-05e13806c67b\",\n      \"details\": {\n        \"amount\": 80000,\n        \"reason\": null,\n        \"invoice_number\": \"INV-20261021-000030\",\n        \"payer_reference\": null\n      },\n      \"actor_id\": \"73ced518-133c-4fd9-8edc-140ca46afc67\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik E2E\",\n      \"created_at\": \"2026-10-21T03:35:41.053Z\"\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 243,\n      \"action\": \"PAYMENT_VERIFIED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n      \"details\": {\n        \"amount\": 65000,\n        \"reason\": null,\n        \"invoice_number\": \"INV-20261021-000043\",\n        \"payer_reference\": \"123456789012\"\n      },\n      \"actor_id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T04:57:39.831Z\"\n    },\n    {\n      \"id\": 242,\n      \"action\": \"USER_EMAIL_VERIFIED\",\n      \"entity\": \"user\",\n      \"entity_id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n      \"details\": {\n        \"email\": \"budi+mvhn4yt8@example.com\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:57:38.538Z\"\n    },\n    {\n      \"id\": 241,\n      \"action\": \"EMERGENCY_PRICE_CHANGED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"8c92c5b6-606a-4e40-a4b6-306318c41f51\",\n      \"details\": {\n        \"to\": 60000,\n        \"from\": 50000\n      },\n      \"actor_id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T04:57:38.338Z\"\n    },\n    {\n      \"id\": 240,\n      \"action\": \"SERVICE_DELETED\",\n      \"entity\": \"service\",\n      \"entity_id\": \"8e51b4fb-803b-4b78-9ac3-c86cff354a32\",\n      \"details\": {},\n      \"actor_id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T04:57:35.282Z\"\n    },\n    {\n      \"id\": 239,\n      \"action\": \"QRIS_UPLOADED\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"details\": {},\n      \"actor_id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pak Joko\",\n      \"created_at\": \"2026-10-21T04:57:34.777Z\"\n    },\n    {\n      \"id\": 238,\n      \"action\": \"WORKSHOP_APPROVE\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"details\": {\n        \"to\": \"APPROVED\",\n        \"from\": \"PENDING\",\n        \"reason\": null\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:57:34.419Z\"\n    },\n    {\n      \"id\": 237,\n      \"action\": \"WORKSHOP_SUSPEND\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"8babdc7c-7b29-4959-83ec-44680a725296\",\n      \"details\": {\n        \"to\": \"SUSPENDED\",\n        \"from\": \"APPROVED\",\n        \"reason\": \"Data uji E2E otomatis\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:56:12.910Z\"\n    },\n    {\n      \"id\": 236,\n      \"action\": \"USER_EMAIL_VERIFIED\",\n      \"entity\": \"user\",\n      \"entity_id\": \"7d363ac6-9815-4029-bd0b-6dd7e677feb3\",\n      \"details\": {\n        \"email\": \"cust.verify.1792558569561@example.test\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:56:11.743Z\"\n    },\n    {\n      \"id\": 235,\n      \"action\": \"USER_ACTIVATED\",\n      \"entity\": \"user\",\n      \"entity_id\": \"da20253f-3291-4edb-9f8a-b6748f48bb44\",\n      \"details\": {\n        \"name\": \"Sinta Fitur\",\n        \"role\": \"CUSTOMER\",\n        \"reason\": null\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:56:08.837Z\"\n    },\n    {\n      \"id\": 234,\n      \"action\": \"USER_DEACTIVATED\",\n      \"entity\": \"user\",\n      \"entity_id\": \"da20253f-3291-4edb-9f8a-b6748f48bb44\",\n      \"details\": {\n        \"name\": \"Sinta Fitur\",\n        \"role\": \"CUSTOMER\",\n        \"reason\": null\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:56:07.878Z\"\n    },\n    {\n      \"id\": 233,\n      \"action\": \"SERVICE_DELETED\",\n      \"entity\": \"service\",\n      \"entity_id\": \"a3e079cf-7f63-4cb9-8449-669c514a0954\",\n      \"details\": {},\n      \"actor_id\": \"0b1598b4-df33-4598-a9db-6c31345761b0\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik Fitur\",\n      \"created_at\": \"2026-10-21T04:56:01.610Z\"\n    },\n    {\n      \"id\": 232,\n      \"action\": \"PAYMENT_VERIFIED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"7cd3cc6f-d1e5-40ed-bbeb-2abdd372dde9\",\n      \"details\": {\n        \"amount\": 140000,\n        \"reason\": null,\n        \"invoice_number\": \"INV-20261021-000042\",\n        \"payer_reference\": \"RRN998877\"\n      },\n      \"actor_id\": \"0b1598b4-df33-4598-a9db-6c31345761b0\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik Fitur\",\n      \"created_at\": \"2026-10-21T04:55:53.717Z\"\n    },\n    {\n      \"id\": 231,\n      \"action\": \"EMERGENCY_PRICE_CHANGED\",\n      \"entity\": \"order\",\n      \"entity_id\": \"7cd3cc6f-d1e5-40ed-bbeb-2abdd372dde9\",\n      \"details\": {\n        \"to\": 140000,\n        \"from\": 120000\n      },\n      \"actor_id\": \"0b1598b4-df33-4598-a9db-6c31345761b0\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik Fitur\",\n      \"created_at\": \"2026-10-21T04:55:50.886Z\"\n    },\n    {\n      \"id\": 230,\n      \"action\": \"USER_EMAIL_VERIFIED\",\n      \"entity\": \"user\",\n      \"entity_id\": \"da20253f-3291-4edb-9f8a-b6748f48bb44\",\n      \"details\": {\n        \"email\": \"cust.f.mvhn2kks@example.test\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:55:40.321Z\"\n    },\n    {\n      \"id\": 229,\n      \"action\": \"QRIS_UPLOADED\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"8babdc7c-7b29-4959-83ec-44680a725296\",\n      \"details\": {},\n      \"actor_id\": \"0b1598b4-df33-4598-a9db-6c31345761b0\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik Fitur\",\n      \"created_at\": \"2026-10-21T04:55:39.995Z\"\n    },\n    {\n      \"id\": 228,\n      \"action\": \"WORKSHOP_APPROVE\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"8babdc7c-7b29-4959-83ec-44680a725296\",\n      \"details\": {\n        \"to\": \"APPROVED\",\n        \"from\": \"PENDING\",\n        \"reason\": null\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:55:39.899Z\"\n    },\n    {\n      \"id\": 227,\n      \"action\": \"WORKSHOP_REJECT\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"df8d0a9d-9f30-4c91-8d71-0b6399241810\",\n      \"details\": {\n        \"to\": \"REJECTED\",\n        \"from\": \"PENDING\",\n        \"reason\": \"Data uji E2E otomatis\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:54:55.465Z\"\n    },\n    {\n      \"id\": 226,\n      \"action\": \"WORKSHOP_REJECT\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"1df1ddf2-cba2-4261-af0b-8d29c4db6cb6\",\n      \"details\": {\n        \"to\": \"REJECTED\",\n        \"from\": \"PENDING\",\n        \"reason\": \"Data uji E2E otomatis\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:54:02.355Z\"\n    },\n    {\n      \"id\": 225,\n      \"action\": \"WORKSHOP_SUSPEND\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"dbdd5b66-2d4b-4ec7-8505-783a9a1ab94d\",\n      \"details\": {\n        \"to\": \"SUSPENDED\",\n        \"from\": \"APPROVED\",\n        \"reason\": \"Data uji E2E otomatis\"\n      },\n      \"actor_id\": \"f49d81f7-5a17-4b3b-b007-3a5f7a1ebcf8\",\n      \"actor_role\": \"ADMIN\",\n      \"actor_name\": \"Platform Admin\",\n      \"created_at\": \"2026-10-21T04:52:30.873Z\"\n    },\n    {\n      \"id\": 224,\n      \"action\": \"QRIS_REPLACED\",\n      \"entity\": \"workshop\",\n      \"entity_id\": \"dbdd5b66-2d4b-4ec7-8505-783a9a1ab94d\",\n      \"details\": {},\n      \"actor_id\": \"8614fb8b-4683-4c3e-98bf-6f4fda8a8565\",\n      \"actor_role\": \"WORKSHOP_OWNER\",\n      \"actor_name\": \"Pemilik E2E\",\n      \"created_at\": \"2026-10-21T04:52:27.180Z\"\n    }\n  ]\n}"
             }
           ]
         },
@@ -7798,7 +8074,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"status\": \"ok\",\n    \"version\": \"1.0.0\",\n    \"node\": \"v22.23.3\",\n    \"uptime_seconds\": 172,\n    \"database\": {\n      \"ok\": true,\n      \"latency_ms\": 1\n    },\n    \"postgis\": {\n      \"ok\": true,\n      \"latency_ms\": 1,\n      \"version\": \"3.4.3\"\n    },\n    \"migrations\": [\n      \"001_init.sql\",\n      \"002_payment_refund.sql\",\n      \"003_backlog_paket_a.sql\",\n      \"004_backlog_paket_b.sql\",\n      \"005_reminder_2h.sql\"\n    ],\n    \"redis\": {\n      \"ok\": true,\n      \"latency_ms\": 0,\n      \"detail\": \"PONG\"\n    },\n    \"scheduler\": {\n      \"enabled\": true,\n      \"reminder_cron\": \"0 8-20 * * *\",\n      \"timezone\": \"Asia/Jakarta\",\n      \"next_reminder_run\": \"2026-10-21T04:00:00.000Z\"\n    },\n    \"client_ip\": \"172.18.0.1\",\n    \"proxy_headers\": {\n      \"x-forwarded-for\": \"172.18.0.1\",\n      \"x-real-ip\": \"172.18.0.1\",\n      \"cf-connecting-ip\": null,\n      \"true-client-ip\": null,\n      \"x-vercel-forwarded-for\": null,\n      \"remote_address\": \"::ffff:172.18.0.6\"\n    }\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"status\": \"ok\",\n    \"version\": \"1.0.0\",\n    \"node\": \"v22.23.3\",\n    \"uptime_seconds\": 378,\n    \"database\": {\n      \"ok\": true,\n      \"latency_ms\": 1\n    },\n    \"postgis\": {\n      \"ok\": true,\n      \"latency_ms\": 14,\n      \"version\": \"3.4.3\"\n    },\n    \"migrations\": [\n      \"001_init.sql\",\n      \"002_payment_refund.sql\",\n      \"003_backlog_paket_a.sql\",\n      \"004_backlog_paket_b.sql\",\n      \"005_reminder_2h.sql\",\n      \"006_email_outbox.sql\",\n      \"007_email_verification.sql\"\n    ],\n    \"redis\": {\n      \"ok\": true,\n      \"latency_ms\": 1,\n      \"detail\": \"PONG\"\n    },\n    \"scheduler\": {\n      \"enabled\": true,\n      \"reminder_cron\": \"0 8-20 * * *\",\n      \"timezone\": \"Asia/Jakarta\",\n      \"next_reminder_run\": \"2026-10-21T05:00:00.000Z\"\n    },\n    \"email_queue\": {\n      \"pending\": 0,\n      \"retrying\": 0,\n      \"failed_7d\": 0\n    },\n    \"client_ip\": \"172.18.0.1\",\n    \"proxy_headers\": {\n      \"x-forwarded-for\": \"172.18.0.1\",\n      \"x-real-ip\": \"172.18.0.1\",\n      \"cf-connecting-ip\": null,\n      \"true-client-ip\": null,\n      \"x-vercel-forwarded-for\": null,\n      \"remote_address\": \"::ffff:172.18.0.6\"\n    }\n  }\n}"
             }
           ]
         },
@@ -7918,7 +8194,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"1a69c6ae-543a-45eb-9f29-d61854546dbe\",\n      \"name\": \"Andi (Tamu)\",\n      \"email\": null,\n      \"phone\": \"081311112222\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:56:45.622Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"4a5d7867-35f2-48b8-bb6a-d42cd68f608f\",\n      \"name\": \"Pak Joko\",\n      \"email\": \"joko+mvhkyswd@example.com\",\n      \"phone\": \"081298765432\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:56:45.078Z\",\n      \"workshop_id\": \"b2c5ef84-499d-492e-bebb-5346ed09cb69\",\n      \"workshop_name\": \"Bengkel Jaya Motor\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"938b5c91-3c37-4996-897f-98eef36a1e7d\",\n      \"name\": \"Budi Santoso\",\n      \"email\": \"budi+mvhkyswd@example.com\",\n      \"phone\": \"081234567890\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:56:44.079Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 2\n    },\n    {\n      \"id\": \"81638bc9-2828-4c83-a3d9-81f7a3b98b07\",\n      \"name\": \"Pemilik Mobile E2E\",\n      \"email\": \"owner.m.mvhkcptp@example.test\",\n      \"phone\": \"081297310898\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:39:41.198Z\",\n      \"workshop_id\": \"51815b43-1d14-4585-a2b7-616e6e71b951\",\n      \"workshop_name\": \"Bengkel Mobile E2E mvhkcptp\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"bc74217d-9797-4d01-9e05-1c75056dd6a4\",\n      \"name\": \"Pelanggan Mobile E2E\",\n      \"email\": \"cust.m.mvhkcptp@example.test\",\n      \"phone\": \"081687806997\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:39:33.568Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 0\n    },\n    {\n      \"id\": \"40cf1efd-d18b-4471-bee7-301a4e29a42e\",\n      \"name\": \"Pemilik A11y\",\n      \"email\": \"owner.a11y.mvhkas70@example.test\",\n      \"phone\": \"081218002097\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:38:12.014Z\",\n      \"workshop_id\": \"ae6ffa7e-0a12-4775-a2f1-c6bb3ee5a760\",\n      \"workshop_name\": \"Bengkel A11y mvhkas70\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"d72b0227-e38e-4629-ad83-cd5fc157bb6e\",\n      \"name\": \"Pelanggan A11y\",\n      \"email\": \"cust.a11y.mvhkas70@example.test\",\n      \"phone\": \"081625169516\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:38:03.770Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 0\n    },\n    {\n      \"id\": \"0df9afe0-d29e-4521-a325-88c027077e28\",\n      \"name\": \"Sinta Fitur\",\n      \"email\": \"cust.f.mvhk8vvf@example.test\",\n      \"phone\": \"081687159739\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:36:35.948Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 2\n    },\n    {\n      \"id\": \"74b966e3-9162-487a-8c58-75db66f3bcde\",\n      \"name\": \"Pemilik Fitur\",\n      \"email\": \"owner.f.mvhk8vvf@example.test\",\n      \"phone\": \"081285750980\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:36:34.918Z\",\n      \"workshop_id\": \"972b06ef-3a2e-495a-b4f6-d725947cce41\",\n      \"workshop_name\": \"Bengkel Fitur E2E mvhk8vvf\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"38b743e1-3fbe-4807-88c7-fdf0baee6948\",\n      \"name\": \"Tamu Refund E2E\",\n      \"email\": null,\n      \"phone\": \"081525213752\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:35:37.576Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"6cae56d4-ec20-4e99-9881-420f3b20591f\",\n      \"name\": \"Tamu E2E\",\n      \"email\": null,\n      \"phone\": \"081533465023\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:35:25.302Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"73ced518-133c-4fd9-8edc-140ca46afc67\",\n      \"name\": \"Pemilik E2E\",\n      \"email\": \"owner.e2e.mvhk779q@example.test\",\n      \"phone\": \"081286995627\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-21T03:35:17.731Z\",\n      \"workshop_id\": \"306f7825-bd84-4339-b6f6-a67f9c5fcbb8\",\n      \"workshop_name\": \"Bengkel E2E mvhk779q\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"637a91d7-207b-45f7-893b-e2a0ed167ea9\",\n      \"name\": \"Sinta Fitur\",\n      \"email\": \"cust.f.mvgs1s7p@example.test\",\n      \"phone\": \"081693923792\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-20T14:27:15.897Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 2\n    },\n    {\n      \"id\": \"f4db6346-f1fc-499b-88ba-7af216153b50\",\n      \"name\": \"Pemilik Fitur\",\n      \"email\": \"owner.f.mvgs1s7p@example.test\",\n      \"phone\": \"081210377143\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-20T14:27:15.005Z\",\n      \"workshop_id\": \"37c94a1b-2317-4faa-9083-348b743c4b04\",\n      \"workshop_name\": \"Bengkel Fitur E2E mvgs1s7p\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"a279fb14-dbe5-49b1-a038-6114c2277805\",\n      \"name\": \"Tamu Refund E2E\",\n      \"email\": null,\n      \"phone\": \"081546908526\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-20T14:26:54.408Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"0a23e75a-b0ef-4155-a9d0-e28caecafe36\",\n      \"name\": \"Tamu E2E\",\n      \"email\": null,\n      \"phone\": \"081512881938\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-20T14:26:46.168Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"ae8e99af-18a3-46dd-9612-53e74b2f858a\",\n      \"name\": \"Pemilik E2E\",\n      \"email\": \"owner.e2e.mvgs0zx6@example.test\",\n      \"phone\": \"081266099015\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-20T14:26:39.695Z\",\n      \"workshop_id\": \"9b326234-d556-4cda-a3df-e12b272e7080\",\n      \"workshop_name\": \"Bengkel E2E mvgs0zx6\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"b23b6ae6-d7b1-4fa7-902b-8479eeeb02a1\",\n      \"name\": \"Tamu Refund E2E\",\n      \"email\": null,\n      \"phone\": \"081589479238\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-20T14:15:11.429Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"a967d341-5724-4275-9ce8-0b0dbc8d7c56\",\n      \"name\": \"Tamu E2E\",\n      \"email\": null,\n      \"phone\": \"081526826991\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-20T14:15:03.415Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"c7b48076-415a-41d0-8ed0-3ffd958fb8d6\",\n      \"name\": \"Pemilik E2E\",\n      \"email\": \"owner.e2e.mvgrlxku@example.test\",\n      \"phone\": \"081214248990\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"created_at\": \"2026-10-20T14:14:56.010Z\",\n      \"workshop_id\": \"30e1e68a-6ebb-4c80-a4e9-5d97014e8946\",\n      \"workshop_name\": \"Bengkel E2E mvgrlxku\",\n      \"orders\": 0\n    }\n  ]\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"94da6ec6-4ad9-4589-94dc-220fadf31216\",\n      \"name\": \"Andi (Tamu)\",\n      \"email\": null,\n      \"phone\": \"081311112222\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:57:33.379Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"43bd3a64-6e6d-4a25-bde8-4fa1d92c9cf7\",\n      \"name\": \"Pak Joko\",\n      \"email\": \"joko+mvhn4yt8@example.com\",\n      \"phone\": \"081298765432\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:57:32.680Z\",\n      \"workshop_id\": \"56a292f9-8df8-4c8b-81a9-074c48657c44\",\n      \"workshop_name\": \"Bengkel Jaya Motor\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"113e13e8-5eff-411d-bb3b-d6762e73d2df\",\n      \"name\": \"Budi Santoso\",\n      \"email\": \"budi+mvhn4yt8@example.com\",\n      \"phone\": \"081234567890\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"email_verified_at\": \"2026-10-21T04:57:38.538Z\",\n      \"created_at\": \"2026-10-21T04:57:31.076Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 2\n    },\n    {\n      \"id\": \"7d363ac6-9815-4029-bd0b-6dd7e677feb3\",\n      \"name\": \"Pelanggan Verifikasi\",\n      \"email\": \"cust.verify.1792558569561@example.test\",\n      \"phone\": \"081758570589\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"email_verified_at\": \"2026-10-21T04:56:11.743Z\",\n      \"created_at\": \"2026-10-21T04:56:11.025Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 0\n    },\n    {\n      \"id\": \"da20253f-3291-4edb-9f8a-b6748f48bb44\",\n      \"name\": \"Sinta Fitur\",\n      \"email\": \"cust.f.mvhn2kks@example.test\",\n      \"phone\": \"081699021787\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"email_verified_at\": \"2026-10-21T04:55:40.321Z\",\n      \"created_at\": \"2026-10-21T04:55:40.292Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 2\n    },\n    {\n      \"id\": \"0b1598b4-df33-4598-a9db-6c31345761b0\",\n      \"name\": \"Pemilik Fitur\",\n      \"email\": \"owner.f.mvhn2kks@example.test\",\n      \"phone\": \"081224265592\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:55:39.180Z\",\n      \"workshop_id\": \"8babdc7c-7b29-4959-83ec-44680a725296\",\n      \"workshop_name\": \"Bengkel Fitur E2E mvhn2kks\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"6536ee52-1460-483f-bfe9-94274a8e0152\",\n      \"name\": \"Pemilik Mobile E2E\",\n      \"email\": \"owner.m.mvhn100e@example.test\",\n      \"phone\": \"081265995785\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:54:33.482Z\",\n      \"workshop_id\": \"df8d0a9d-9f30-4c91-8d71-0b6399241810\",\n      \"workshop_name\": \"Bengkel Mobile E2E mvhn100e\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"9a6b0616-6e00-46f8-a3d4-45075e36b2b2\",\n      \"name\": \"Pelanggan Mobile E2E\",\n      \"email\": \"cust.m.mvhn100e@example.test\",\n      \"phone\": \"081675433825\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:54:25.751Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 0\n    },\n    {\n      \"id\": \"7fcb6679-de88-43ce-b07e-c8e763c5dc50\",\n      \"name\": \"Pemilik A11y\",\n      \"email\": \"owner.a11y.mvhmz4it@example.test\",\n      \"phone\": \"081233076592\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:53:07.110Z\",\n      \"workshop_id\": \"1df1ddf2-cba2-4261-af0b-8d29c4db6cb6\",\n      \"workshop_name\": \"Bengkel A11y mvhmz4it\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"e3e1f669-c012-4a1a-8d5a-88c647b7a42b\",\n      \"name\": \"Pelanggan A11y\",\n      \"email\": \"cust.a11y.mvhmz4it@example.test\",\n      \"phone\": \"081644135259\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:52:58.731Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 0\n    },\n    {\n      \"id\": \"cfc7ce47-b48c-409c-b13f-3468e76ce129\",\n      \"name\": \"Tamu Refund E2E\",\n      \"email\": null,\n      \"phone\": \"081561868322\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:52:14.607Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"53fcd0fa-37f8-4cfd-adc3-fc68528cad6c\",\n      \"name\": \"Tamu E2E\",\n      \"email\": null,\n      \"phone\": \"081530700161\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:52:02.551Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    },\n    {\n      \"id\": \"8614fb8b-4683-4c3e-98bf-6f4fda8a8565\",\n      \"name\": \"Pemilik E2E\",\n      \"email\": \"owner.e2e.mvhmxplk@example.test\",\n      \"phone\": \"081269543907\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:51:53.760Z\",\n      \"workshop_id\": \"dbdd5b66-2d4b-4ec7-8505-783a9a1ab94d\",\n      \"workshop_name\": \"Bengkel E2E mvhmxplk\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"232474b5-675f-4fc3-b01a-7b7d19685e20\",\n      \"name\": \"Pemilik Mobile E2E\",\n      \"email\": \"owner.m.mvhm95vv@example.test\",\n      \"phone\": \"081294943836\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"email_verified_at\": \"2026-10-21T04:32:54.874Z\",\n      \"created_at\": \"2026-10-21T04:32:54.874Z\",\n      \"workshop_id\": \"4876b081-5e53-40b3-8e88-630f7cecd978\",\n      \"workshop_name\": \"Bengkel Mobile E2E mvhm95vv\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"d54a1a23-7e25-4cc4-a295-e79b21e4f65a\",\n      \"name\": \"Pelanggan Mobile E2E\",\n      \"email\": \"cust.m.mvhm95vv@example.test\",\n      \"phone\": \"081666842708\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"email_verified_at\": \"2026-10-21T04:32:47.005Z\",\n      \"created_at\": \"2026-10-21T04:32:47.005Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 0\n    },\n    {\n      \"id\": \"a653979c-a00e-4793-9b83-f9394a7b174c\",\n      \"name\": \"Pemilik A11y\",\n      \"email\": \"owner.a11y.mvhm79u1@example.test\",\n      \"phone\": \"081271129282\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"email_verified_at\": \"2026-10-21T04:31:27.428Z\",\n      \"created_at\": \"2026-10-21T04:31:27.428Z\",\n      \"workshop_id\": \"c1243d07-d223-4137-b792-1a01fd8dabab\",\n      \"workshop_name\": \"Bengkel A11y mvhm79u1\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"c06f6aa1-3144-4cf5-83f6-c00a14a6427e\",\n      \"name\": \"Pelanggan A11y\",\n      \"email\": \"cust.a11y.mvhm79u1@example.test\",\n      \"phone\": \"081621702664\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"email_verified_at\": \"2026-10-21T04:31:19.013Z\",\n      \"created_at\": \"2026-10-21T04:31:19.013Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 0\n    },\n    {\n      \"id\": \"ad902336-a7cf-410f-acec-860154762efa\",\n      \"name\": \"Sinta Fitur\",\n      \"email\": \"cust.f.mvhm5wqw@example.test\",\n      \"phone\": \"081695277303\",\n      \"role\": \"CUSTOMER\",\n      \"is_active\": true,\n      \"email_verified_at\": \"2026-10-21T04:30:16.372Z\",\n      \"created_at\": \"2026-10-21T04:30:16.372Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 2\n    },\n    {\n      \"id\": \"a31f6cce-4e75-4e5d-a818-fd7914e11058\",\n      \"name\": \"Pemilik Fitur\",\n      \"email\": \"owner.f.mvhm5wqw@example.test\",\n      \"phone\": \"081228949697\",\n      \"role\": \"WORKSHOP_OWNER\",\n      \"is_active\": true,\n      \"email_verified_at\": \"2026-10-21T04:30:15.316Z\",\n      \"created_at\": \"2026-10-21T04:30:15.316Z\",\n      \"workshop_id\": \"747b3c6d-4f74-432d-a68f-41d2d260ad45\",\n      \"workshop_name\": \"Bengkel Fitur E2E mvhm5wqw\",\n      \"orders\": 0\n    },\n    {\n      \"id\": \"fc649d77-b8e4-433c-9d38-ac2499733af9\",\n      \"name\": \"Tamu Refund E2E\",\n      \"email\": null,\n      \"phone\": \"081531864764\",\n      \"role\": \"GUEST\",\n      \"is_active\": true,\n      \"email_verified_at\": null,\n      \"created_at\": \"2026-10-21T04:29:20.816Z\",\n      \"workshop_id\": null,\n      \"workshop_name\": null,\n      \"orders\": 1\n    }\n  ]\n}"
             }
           ]
         },
@@ -8029,7 +8305,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"2d9a8764-f453-4ace-a93c-06fae78e7213\",\n    \"name\": \"Admin Kedua\",\n    \"email\": \"admin2+mvhkyswd@example.com\",\n    \"role\": \"ADMIN\",\n    \"is_active\": true,\n    \"created_at\": \"2026-10-21T03:56:58.755Z\"\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"1289029b-9844-41be-9b8e-bfbc64205a74\",\n    \"name\": \"Admin Kedua\",\n    \"email\": \"admin2+mvhn4yt8@example.com\",\n    \"role\": \"ADMIN\",\n    \"is_active\": true,\n    \"created_at\": \"2026-10-21T04:57:43.648Z\"\n  }\n}"
             }
           ]
         },
@@ -8141,7 +8417,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"2d9a8764-f453-4ace-a93c-06fae78e7213\",\n    \"is_active\": false\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"1289029b-9844-41be-9b8e-bfbc64205a74\",\n    \"is_active\": false\n  }\n}"
             }
           ]
         },
@@ -8221,7 +8497,7 @@
                   "value": "application/json; charset=utf-8"
                 }
               ],
-              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"d19875f5-0d67-4840-aacc-285729bdaf9f\",\n    \"deleted\": true\n  }\n}"
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"083e62bf-02f3-4fd5-953d-b35edfd8c26a\",\n    \"deleted\": true\n  }\n}"
             }
           ]
         }

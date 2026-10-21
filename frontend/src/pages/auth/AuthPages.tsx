@@ -198,10 +198,15 @@ function issueOf(value: string, label: string, valid: (v: string) => boolean, wr
 const PASSWORD_HINT ='Min. 8 karakter, ada huruf besar, huruf kecil, dan angka';
 
 export function RegisterPage() {
-  const { done } = useAfterAuth();
+  const { target } = useAfterAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const [f, setF] = useState({ name: '', email: '', phone: '', password: '' });
-  const register = useMutation({ mutationFn: () => authApi.registerCustomer(f), onSuccess: done });
+  // Next stop: enter the code from the email, then on to where the user was going.
+  const register = useMutation({
+    mutationFn: () => authApi.registerCustomer(f),
+    onSuccess: (s) => navigate('/verifikasi-email', { replace: true, state: { from: target(s.user.role), justSent: true } }),
+  });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
   const [tried, setTried] = useState(false);
   const issues = [
@@ -360,5 +365,93 @@ export function RegisterWorkshopPage() {
         </Button>
       </form>
     </div>
+  );
+}
+
+/** Enter the 6-digit code mailed at sign-up. Booking needs a confirmed email; everything else works without. */
+export function VerifyEmailPage() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state = (location.state as { from?: string; justSent?: boolean } | null) ?? {};
+  const next = user && state.from && canReturnTo(user.role, state.from) ? state.from : homeFor(user?.role);
+  const [code, setCode] = useState('');
+  const [wait, setWait] = useState(state.justSent ? 60 : 0);
+  const [resent, setResent] = useState(false);
+
+  useEffect(() => {
+    if (wait <= 0) return;
+    const t = setTimeout(() => setWait((w) => w - 1), 1000);
+    return () => clearTimeout(t);
+  }, [wait]);
+
+  const verify = useMutation({ mutationFn: () => authApi.verifyEmail(code), onSuccess: () => navigate(next, { replace: true }) });
+  const resend = useMutation({
+    mutationFn: authApi.resendVerification,
+    onSuccess: () => {
+      setResent(true);
+      setWait(60);
+    },
+  });
+
+  if (loading) return <Loading />;
+  if (!user) return <Navigate to="/login" replace state={{ from: '/verifikasi-email' }} />;
+
+  return (
+    <AuthShell
+      title={user.email_verified ? 'Email sudah terverifikasi' : 'Cek email Anda'}
+      subtitle={user.email_verified ? 'Anda bisa langsung booking servis.' : `Kami mengirim kode 6 angka ke ${user.email ?? 'email Anda'}.`}
+      footer={
+        !user.email_verified && (
+          <Link to={next} replace className="font-semibold text-primary hover:underline" data-testid="verify-later">
+            Nanti saja
+          </Link>
+        )
+      }
+    >
+      {user.email_verified ? (
+        <Button size="lg" onClick={() => navigate(next, { replace: true })}>
+          Lanjutkan
+        </Button>
+      ) : (
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (code.length === 6) verify.mutate();
+          }}
+        >
+          <Input
+            id="verify-code"
+            label="Kode verifikasi"
+            icon="pin"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="6 angka"
+            className="tracking-[0.3em]"
+            hint="Tidak ada di kotak masuk? Cek juga folder Spam atau Promosi."
+            data-testid="verify-code"
+          />
+          {verify.error && <Alert tone="danger">{errorMessage(verify.error)}</Alert>}
+          {resend.error && <Alert tone="danger">{errorMessage(resend.error)}</Alert>}
+          {resent && !resend.error && <Alert tone="success">Kode baru sudah dikirim ke email Anda.</Alert>}
+          <Button type="submit" size="lg" loading={verify.isPending} disabled={code.length !== 6} data-testid="verify-submit">
+            Verifikasi
+          </Button>
+          <button
+            type="button"
+            onClick={() => resend.mutate()}
+            disabled={wait > 0 || resend.isPending}
+            className="font-label text-sm font-semibold text-primary hover:underline disabled:text-ink-3 disabled:no-underline"
+            data-testid="verify-resend"
+          >
+            {wait > 0 ? `Kirim ulang kode dalam ${wait} detik` : 'Kirim ulang kode'}
+          </button>
+        </form>
+      )}
+    </AuthShell>
   );
 }

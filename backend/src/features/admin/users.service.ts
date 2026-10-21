@@ -38,6 +38,18 @@ export const usersService = {
     });
   },
 
+  /** Support action: confirm a user's email by hand (e.g. the code email never arrived). Audited. */
+  async verifyEmail(adminId: string, userId: string) {
+    return withTransaction(async (tx) => {
+      const u = await usersRepository.markEmailVerified(tx, userId);
+      if (!u) throw AppError.notFound('User not found or has no email address');
+      if (!u.was_verified) {
+        await audit(tx, { id: adminId, role: 'ADMIN' }, { action: 'USER_EMAIL_VERIFIED', entity: 'user', entityId: userId, details: { email: u.email } });
+      }
+      return { id: u.id, email_verified: true };
+    });
+  },
+
   async createAdmin(adminId: string, input: { name: string; email: string; phone?: string; password: string }) {
     const passwordHash = await hashPassword(input.password);
     return withTransaction(async (tx) => {

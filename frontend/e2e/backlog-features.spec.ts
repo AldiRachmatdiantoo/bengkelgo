@@ -63,7 +63,9 @@ test.beforeAll(async ({ browser }: { browser: Browser }) => {
   await data(await o.request.post(`${API}/workshops/mechanics`, { headers: auth, data: { name: 'Teknisi Dua', specializations: ['injeksi'] } }));
   await o.request.put(`${API}/workshops/qris`, { headers: auth, multipart: { qris: { name: 'q.png', mimeType: 'image/png', buffer: (await import('node:fs')).readFileSync(PHOTO) } } });
 
-  await data(await c.request.post(`${API}/auth/register/customer`, { data: customer }));
+  const signup = await data(await c.request.post(`${API}/auth/register/customer`, { data: customer }));
+  // The code email can't be read here; confirm the address the way support would (admin, audited).
+  await data(await c.request.patch(`${API}/admin/users/${signup.user.id}/verify-email`, { headers: { Authorization: `Bearer ${adminToken}` } }));
 });
 
 test.afterAll(async ({ playwright, baseURL }) => {
@@ -237,5 +239,35 @@ test('admin: live stats, search, audit log and system health', async ({ browser 
   await row.getByTestId('user-toggle').click();
   await a.getByTestId('user-toggle-confirm').click();
   await expect(row).toContainText('Aktif');
+  await ctx.close();
+});
+
+test('new customer: code page after sign-up, booking waits for a confirmed email, admin can confirm by hand', async ({ browser }) => {
+  const ctx = await browser.newContext();
+  const p = await ctx.newPage();
+  const email = `cust.verify.${Date.now()}@example.test`;
+  await p.goto('/register');
+  await p.locator('#reg-name').fill('Pelanggan Verifikasi');
+  await p.locator('#reg-email').fill(email);
+  await p.locator('#reg-phone').fill(`0817${String(Date.now()).slice(-8)}`);
+  await p.locator('#reg-password').fill('Verifikasi123');
+  await p.getByRole('button', { name: 'Daftar' }).click();
+
+  await expect(p).toHaveURL(/\/verifikasi-email$/);
+  await expect(p.getByText(`Kami mengirim kode 6 angka ke ${email}`)).toBeVisible();
+  await expect(p.getByTestId('verify-resend')).toBeDisabled(); // just sent: wait before asking again
+  await p.getByTestId('verify-code').fill('000000');
+  await p.getByTestId('verify-submit').click();
+  await expect(p.getByRole('alert').filter({ hasText: 'Kode belum tepat' })).toBeVisible();
+
+  // Skip for now: the reminder strip follows, and booking leads back to the code page.
+  await p.getByTestId('verify-later').click();
+  await expect(p.getByTestId('verify-email-strip')).toBeVisible();
+
+  // Support confirms the address (the strip disappears after the next sign-in refresh).
+  const users = await data(await p.request.get(`${API}/admin/users`, { headers: { Authorization: `Bearer ${adminToken}` }, params: { q: email } }));
+  await data(await p.request.patch(`${API}/admin/users/${users[0].id}/verify-email`, { headers: { Authorization: `Bearer ${adminToken}` } }));
+  await p.reload();
+  await expect(p.getByTestId('verify-email-strip')).toBeHidden();
   await ctx.close();
 });

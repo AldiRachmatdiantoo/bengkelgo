@@ -5,7 +5,7 @@ export const usersRepository = {
   /** Accounts with their workshop (owners) and order count; `like` is an already-escaped ILIKE pattern. */
   async list(q: Queryable, f: { role: UserRole | null; like: string | null; active: boolean | null; limit: number; offset: number }) {
     const { rows } = await q.query(
-      `SELECT u.id, u.name, u.email, u.phone, u.role, u.is_active, u.created_at,
+      `SELECT u.id, u.name, u.email, u.phone, u.role, u.is_active, u.email_verified_at, u.created_at,
               w.id AS workshop_id, w.name AS workshop_name,
               (SELECT COUNT(*)::int FROM orders o WHERE o.customer_id = u.id) AS orders
        FROM users u LEFT JOIN workshops w ON w.owner_id = u.id
@@ -45,6 +45,19 @@ export const usersRepository = {
     await q.query('UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL', [userId]);
   },
 
+  /** Marks the address confirmed; null when the account doesn't exist or has no email. Returns the earlier value. */
+  async markEmailVerified(q: Queryable, userId: string) {
+    const { rows } = await q.query<{ id: string; email: string; was_verified: boolean }>(
+      `UPDATE users u SET email_verified_at = COALESCE(u.email_verified_at, NOW()), updated_at = NOW()
+       FROM (SELECT id, email_verified_at IS NOT NULL AS was_verified FROM users WHERE id = $1 FOR UPDATE) old
+       WHERE u.id = old.id AND u.email IS NOT NULL
+       RETURNING u.id, u.email, old.was_verified`,
+      [userId],
+    );
+    if (rows[0]) await q.query('DELETE FROM email_verifications WHERE user_id = $1', [userId]);
+    return rows[0] ?? null;
+  },
+
   async emailTaken(q: Queryable, email: string) {
     const { rows } = await q.query('SELECT 1 FROM users WHERE email = $1', [email]);
     return rows.length > 0;
@@ -52,7 +65,7 @@ export const usersRepository = {
 
   async insertAdmin(q: Queryable, a: { name: string; email: string; phone: string | null; passwordHash: string }) {
     const { rows } = await q.query<{ id: string; name: string; email: string; role: UserRole; is_active: boolean; created_at: string }>(
-      `INSERT INTO users (name, email, phone, password_hash, role) VALUES ($1, $2, $3, $4, 'ADMIN')
+      `INSERT INTO users (name, email, phone, password_hash, role, email_verified_at) VALUES ($1, $2, $3, $4, 'ADMIN', NOW())
        RETURNING id, name, email, role, is_active, created_at`,
       [a.name, a.email, a.phone, a.passwordHash],
     );

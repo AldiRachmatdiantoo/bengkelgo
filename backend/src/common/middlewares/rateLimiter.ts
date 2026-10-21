@@ -134,6 +134,13 @@ export const loginAccountLimiter = rateLimit({
     return email ? crypto.createHash('sha256').update(email).digest('hex').slice(0, 32) : req.ip ?? 'unknown';
   },
 });
+/** Email verification: code checks plus resend requests per account (resends are also spaced by the service). */
+export const verificationLimiter = rateLimit({
+  name: 'email-verify',
+  windowMs: 60 * 60_000,
+  limit: 20,
+  keyGenerator: (req) => req.user?.id ?? req.ip ?? 'unknown',
+});
 /** Booking attempts per customer account (not per IP: shared networks must not block each other). */
 export const bookingLimiter = rateLimit({
   name: 'booking',

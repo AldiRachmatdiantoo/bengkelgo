@@ -20,6 +20,7 @@ r.get('/health', c.health);
 // BE-15: access management
 r.get('/users', validate({ query: usersQuery }), c.listUsers);
 r.patch('/users/:id/active', validate({ ...idParam, body: activeSchema }), c.setUserActive);
+r.patch('/users/:id/verify-email', validate(idParam), c.verifyUserEmail);
 r.post('/users/admins', validate({ body: adminSchema }), c.createAdmin);
 
 export default r;

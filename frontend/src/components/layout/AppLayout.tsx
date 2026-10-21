@@ -342,6 +342,7 @@ function PublicShell() {
         )}
       </header>
 
+      <VerifyEmailStrip />
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 sm:py-12 lg:px-20">
         <PageFade key={pathname}>
           <Outlet />
@@ -428,6 +429,24 @@ function PublicShell() {
           <span className="text-[9px] leading-none font-extrabold tracking-[0.06em] sm:text-[10px]">SOS</span>
         </Link>
       )}
+    </div>
+  );
+}
+
+/** Thin reminder under the header (scrolls away, never pinned) until the sign-up email is confirmed. */
+function VerifyEmailStrip({ wide }: { wide?: boolean }) {
+  const { user } = useAuth();
+  const { pathname } = useLocation();
+  if (!user?.email || user.email_verified !== false || pathname === '/verifikasi-email') return null;
+  return (
+    <div className="border-b border-warning/30 bg-warning-soft" data-testid="verify-email-strip">
+      <div className={cx('mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 font-label text-xs text-warning-ink sm:px-8', wide ? 'lg:px-12' : 'lg:px-20')}>
+        <Icon name="mark_email_unread" className="text-[18px]" />
+        <span className="min-w-0 flex-1">Email Anda belum diverifikasi. Verifikasi dulu untuk bisa booking.</span>
+        <Link to="/verifikasi-email" state={{ from: pathname }} className="shrink-0 font-bold underline">
+          Verifikasi
+        </Link>
+      </div>
     </div>
   );
 }
@@ -595,6 +614,7 @@ function OwnerShell({ user }: { user: User }) {
           </div>
         </header>
         {open && <div className="sticky top-14 z-[999] border-b border-line bg-white p-4 shadow-lift sm:top-16 lg:hidden">{nav}</div>}
+        <VerifyEmailStrip wide />
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
           <PageFade key={pathname}>
             <Outlet />
@@ -703,6 +723,7 @@ function AdminShell({ user }: { user: User }) {
           </div>
         </header>
         {open && <div className="sticky top-14 z-[999] border-b border-line bg-white p-4 shadow-lift sm:top-16 lg:hidden">{nav}</div>}
+        <VerifyEmailStrip wide />
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
           <PageFade key={pathname}>
             <Outlet />
