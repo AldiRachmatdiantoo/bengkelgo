@@ -145,7 +145,7 @@ export default function HomePage() {
               <h3 className="text-headline-sm text-navy">{s.title}</h3>
               <p className="flex-1 text-sm leading-relaxed text-ink-2">{s.text}</p>
               {s.sos ? (
-                <span data-a11y-exception="sos-brand-orange" className="inline-flex h-10 items-center gap-1.5 self-start rounded-lg bg-emergency px-5 font-label text-sm font-bold text-white shadow-sm transition group-hover:bg-emergency-dark">
+                <span className="inline-flex h-10 items-center gap-1.5 self-start rounded-lg bg-emergency px-5 font-label text-sm font-bold text-white shadow-sm transition group-hover:bg-emergency-dark">
                   <Icon name="e911_emergency" filled className="text-[18px]" /> {s.cta}
                 </span>
               ) : (

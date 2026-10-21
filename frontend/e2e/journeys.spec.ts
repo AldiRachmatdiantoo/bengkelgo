@@ -217,7 +217,7 @@ test('owner settings keep untouched fields: service duration and technician skil
 
   // Deactivate + reactivate: before the fix the API reset the duration to 60 on every partial update.
   await row.getByRole('button', { name: 'Nonaktifkan' }).click();
-  await expect(row).toContainText('Nonaktif');
+  await expect(row.getByText('Nonaktif', { exact: true })).toBeVisible(); // the status badge, not the "Nonaktifkan" button
   await row.getByRole('button', { name: 'Aktifkan' }).click();
   await expect(row.getByText('Aktif', { exact: true })).toBeVisible();
   await expect(row).toContainText('90 mnt');

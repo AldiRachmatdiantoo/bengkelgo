@@ -61,6 +61,9 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 - ⏳ **Database produksi belum dikosongkan** (dicek 21 Okt lewat `/stats/public`: 2 bengkel, 5 pelanggan, 2 pesanan selesai). Kredensial Supabase hanya ada di Render, jadi dijalankan pemilik akun dari laptop:
   `DATABASE_URL="<pooler URI>" DATABASE_SSL=true STORAGE_DRIVER=supabase SUPABASE_URL="<url>" SUPABASE_SERVICE_ROLE_KEY="<key>" npm run db:reset` (cek), lalu tambahkan `-- --confirm=<host> [--only-admin=<email>]`. Tidak bisa dibatalkan (Supabase Free tanpa backup yang bisa dipulihkan).
 
+- ✅ **Performa (PageSpeed 21 Okt: HP 70, desktop 86; LCP HP 15,1 dtk):** penyebab utama font ikon Material Symbols 2,3 MB (73% unduhan beranda, `display=block` menahan tampilan). Kini hanya ikon yang dipakai dan dua ketebalan yang dipakai: **±40 KB**; daftar ikon diisi otomatis saat build (`vite.config.ts`), dijaga `e2e/icons.spec.ts` (33 halaman, semua ikon tampil sebagai ikon). Juga: meta description, `robots.txt` (sebelumnya ikut dijawab dengan halaman web = 21 error), urutan judul footer.
+- ✅ **Warna SOS** diganti `#CC4410` (hover `#B33B0E`) atas persetujuan tim: tulisan putih 4,8:1 (lolos WCAG AA, sebelumnya 3,4:1); pengecualian aksesibilitas dihapus. Badge tab aktif di Cari Bengkel kini putih bertulisan biru.
+
 **Yang tersisa tanpa tim:** tidak ada pekerjaan kode yang tertunda. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).

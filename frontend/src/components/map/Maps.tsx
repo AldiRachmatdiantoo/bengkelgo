@@ -87,7 +87,7 @@ export function PointsMap({
   labels?: boolean;
 }) {
   const target = points.find((p) => p.highlight);
-  const originColor = originTone === 'emergency' ? '#F05A28' : '#4361EE';
+  const originColor = originTone === 'emergency' ? '#CC4410' : '#4361EE';
   return (
     <div className={cx(frame, className)} style={{ height }}>
       <MapContainer center={[origin.lat, origin.lng]} zoom={zoom ?? (radiusMeters ? 12 : 14)} className="h-full w-full">

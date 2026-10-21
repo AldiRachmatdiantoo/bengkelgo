@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+# Private portals and account pages are not useful in search results.
+Disallow: /owner
+Disallow: /admin
+Disallow: /orders
+Disallow: /notifications
+Disallow: /vehicles
+Disallow: /verifikasi-email
+Disallow: /auth/

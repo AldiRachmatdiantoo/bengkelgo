@@ -115,7 +115,7 @@ export default function WorkshopSearchPage() {
                     <Icon name={t.icon} className={cx(!active && t.key === 'sos' && 'text-emergency')} />
                     {t.label}
                     {t.badge && (
-                      <span className={cx('rounded-md px-1.5 py-0.5 text-[10px] font-bold', active ? 'bg-white/20 text-white' : t.key === 'sos' ? 'bg-emergency text-white' : 'bg-primary text-white')}>
+                      <span className={cx('rounded-md px-1.5 py-0.5 text-[10px] font-bold', active ? 'bg-white text-primary' : t.key === 'sos' ? 'bg-emergency text-white' : 'bg-primary text-white')}>
                         {t.badge}
                       </span>
                     )}

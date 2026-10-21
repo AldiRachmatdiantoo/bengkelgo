@@ -418,8 +418,6 @@ function PublicShell() {
           to="/emergency"
           data-testid="nav-sos"
           data-print-hide
-          // White on #F05A28 is 3.4:1: the colour was chosen by the team, so the a11y test lists this as an accepted exception.
-          data-a11y-exception="sos-brand-orange"
           aria-label="Bantuan Darurat 24 Jam"
           title="Bantuan Darurat 24 Jam"
           // Small on phones so it never covers much of the page; full size from tablet up.
@@ -495,7 +493,7 @@ function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }
 function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
   return (
     <div>
-      <h4 className="mb-4 font-label text-sm font-bold text-navy uppercase">{title}</h4>
+      <h3 className="mb-4 font-label text-sm font-bold text-navy uppercase">{title}</h3>
       <ul className="space-y-2.5 text-sm text-ink-2">
         {links.map(([label, to]) => (
           <li key={label}>

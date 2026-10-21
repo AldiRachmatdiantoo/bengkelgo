@@ -3,7 +3,7 @@
 
 /*
  * Brand palette: primary #4361EE (hsl 229 84% 60%), with tints/shades and navy text derived from the same hue.
- * SOS accent: #F05A28 (hover #EA580C), white bold text on top.
+ * SOS accent: #CC4410 (hover #B33B0E), white bold text on top (4.8:1, WCAG AA; the earlier #F05A28 was only 3.4:1).
  * Layout tokens follow the Stitch "Azure Fleet & Roadside System" (radius, shadows, type scale).
  * White text on primary = 5.0:1 (WCAG AA). Usage: bg-primary, text-navy, bg-sky, bg-canvas, bg-surface-low, text-emergency, border-line, text-ink-2 …
  */
@@ -23,8 +23,8 @@
   --color-surface: #eaebf0;
   --color-surface-high: #e2e3e9;
   /* SOS / emergency: Warm Safety Orange (no red). -ink is the readable text shade on white & soft fills. */
-  --color-emergency: #f05a28;
-  --color-emergency-dark: #ea580c;
+  --color-emergency: #cc4410;
+  --color-emergency-dark: #b33b0e;
   --color-emergency-soft: #fff1eb;
   --color-emergency-ink: #c2410c;
   /* PRD #00A651 only reaches 3.2:1; this darker green keeps text and white-on-green at 5.4:1 (WCAG AA). */

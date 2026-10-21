@@ -65,7 +65,7 @@ src/
 
 ## Catatan
 
-- **Font & ikon** dimuat dari Google Fonts di `index.html` (Plus Jakarta Sans, Inter, Material Symbols Outlined). Pakai `<Icon name="…" />` dari `components/ui`.
+- **Font & ikon** dimuat dari Google Fonts di `index.html` (Plus Jakarta Sans, Inter, Material Symbols Outlined). Pakai `<Icon name="…" />` dari `components/ui`. Font ikon hanya berisi ikon yang dipakai (±40 KB, bukan 2,3 MB): plugin di `vite.config.ts` mengisi `icon_names` dari semua nama ikon di `src` saat build, jadi ikon baru otomatis ikut. `e2e/icons.spec.ts` memastikan tidak ada ikon yang tampil sebagai teks.
 - **`data-testid`** sudah dipasang pada elemen kunci alur E2E (SOS, booking, upload bukti, verifikasi, approval admin) untuk Playwright (PBI-407).
 - **Layout dipilih per halaman** (`components/layout/AppLayout.tsx`): portal owner dan admin = **sidebar + top bar**, halaman lain = situs publik (owner/admin melihat tombol "Ke Portal").
 - **Komponen baru** di `components/ui`: `Modal`, `toast()`/`Toaster`, `QrCode` (library `qrcode`, QR dari nomor pesanan), `CopyButton`, `ProgressBar`, `SectionHeading`.
@@ -78,7 +78,7 @@ src/
 - **Bentuk tombol**: kotak dengan sudut 8px (`rounded-lg`), toggle/segmen `rounded-md`. Bentuk pil (`rounded-full`) hanya untuk badge/chip status, avatar, dan titik indikator.
 - **Warna latar**: halaman = `bg-canvas` (`#F8F9FC`), kartu = putih cerah (`bg-card` = `#FFFFFF`).
 - **Ukuran teks**: teks isi (paragraf, tombol, input, label) = 11px, sama dengan label "Bengkel diverifikasi admin" di landing. Judul memakai `text-headline-*`/`text-display`, subjudul memakai `text-subtitle` (13px). Diatur di `src/theme/index.css`.
-- **Warna SOS/darurat** = `#F05A28` (hover `#EA580C`, teks putih tebal); teks oranye kecil memakai `text-emergency-ink` (`#C2410C`) agar terbaca. Tidak ada lagi merah.
+- **Warna SOS/darurat** = `#CC4410` (hover `#B33B0E`, teks putih tebal, 4,8:1 lolos WCAG AA; sebelumnya `#F05A28` hanya 3,4:1); teks oranye kecil memakai `text-emergency-ink` (`#C2410C`). Tidak ada lagi merah.
 - **Kisaran biaya SOS**: pelanggan memilih kisaran (default "Bisa dibicarakan"). Karena API belum punya kolomnya, kisaran dikirim sebagai baris terakhir `problem_description` (`Kisaran biaya: …`) dan dipisah lagi saat ditampilkan (`utils/priceRange.ts`). Pesanan SOS tanpa harga tampil "Bisa dibicarakan", bukan Rp0/gratis.
 - **Pesanan dibatalkan** disembunyikan dari daftar utama; lihat lewat tab "Riwayat dibatalkan" (pelanggan) atau status "Dibatalkan" (owner).
 
@@ -101,7 +101,7 @@ src/
 - **Test otomatis (PRD 8.2)**:
   - `npm test`: Vitest + React Testing Library (40 test: komponen UI, kartu pesanan, kisaran biaya SOS, pengalihan setelah login, cek/kompres foto, terjemahan error, PKCE Google).
   - `npm run test:e2e`: Playwright, project `desktop` + `mobile`. Butuh backend hidup (`docker compose up -d`). Berisi:
-    - `e2e/a11y.spec.ts`: axe-core WCAG 2.1 AA di 7 halaman publik, desktop + mobile. Pengecualian yang disengaja hanya tombol SOS solid (`data-a11y-exception`, putih di atas `#F05A28` = 3,4:1, warna pilihan tim).
+    - `e2e/a11y.spec.ts`: axe-core WCAG 2.1 AA di 7 halaman publik, desktop + mobile, tanpa pengecualian (warna SOS sudah lolos kontras sejak 21 Okt).
     - `e2e/journeys.spec.ts`: dua user journey PRD (daftar bengkel → approval admin → kuota/teknisi/QRIS; tamu SOS + kisaran biaya → bengkel terima → bayar → verifikasi → selesai), termasuk notifikasi. Data uji dibuat sendiri, lalu bengkel uji dinonaktifkan otomatis. Ditambah: edit layanan/teknisi tidak mereset durasi/keahlian, unggah video ditolak & foto besar diperkecil, owner kembali ke tautan pesanan setelah login.
     - `e2e/smoke-mobile.spec.ts`: semua halaman portal pelanggan, owner, dan admin tidak boleh bergeser ke samping di layar 375px.
     - `e2e/cross-browser.spec.ts`: halaman publik + fitur khusus browser (kompres foto di canvas, Web Crypto untuk PKCE).
