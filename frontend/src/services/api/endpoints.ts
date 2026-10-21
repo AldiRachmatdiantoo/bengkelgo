@@ -243,6 +243,8 @@ export const statsApi = {
 export const geocodeApi = {
   search: (q: string, near?: { lat: number; lng: number }) =>
     call<Place[]>(http.get('/geocode/search', { params: { q, limit: 6, ...(near ? { lat: near.lat, lng: near.lng } : {}) } })),
+  /** Approximate address of a map point; null when it has none (sea, outside Indonesia). */
+  reverse: (p: { lat: number; lng: number }) => call<Place | null>(http.get('/geocode/reverse', { params: { lat: p.lat, lng: p.lng } })),
 };
 
 /** Absolute URL for a public image path returned by the API (photos are served by the API, not the web app). */

@@ -59,7 +59,7 @@ src/
 
 Database diagram: [../docs/erd.md](../docs/erd.md) (regenerate with `scripts/erd/build-erd.py`).
 
-Full Postman documentation (83 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
+Full Postman documentation (85 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
 
 | Endpoint | Method | Access |
 | --- | --- | --- |
@@ -91,6 +91,7 @@ Full Postman documentation (83 requests, runnable end-to-end, with real response
 | `/vehicles` (GET/POST, PATCH/DELETE `/:id`) | | Customer / Guest |
 | `/workshops/holidays` · `/workshops/photos` · `/workshops/mechanics/:id/photo` · `/workshops/me/stats` | | Workshop owner |
 | `/workshops/:id/next-slot` · `/workshops/:id/photos/:photoId` · `/stats/public` | GET | Public |
+| `/geocode/search?q=` · `/geocode/reverse?lat=&lng=` (OpenStreetMap place search / address of a point, rate limited) | GET | Public |
 
 Responses follow `{ success, data }` or `{ success: false, error: { code, message, details? } }`.
 

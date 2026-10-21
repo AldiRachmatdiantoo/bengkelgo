@@ -37,6 +37,30 @@ test('location search: searches on Enter only, picking a place moves the search 
   await expect(page.getByTestId('search-around')).toBeHidden();
 });
 
+test('workshop sign-up: the pin shows its approximate address, which can fill the address field', async ({ page }) => {
+  await fakeGeocode(page, { status: 200, body: { success: true, data: PLACES } });
+  const reverseCalls: string[] = [];
+  await page.route('**/api/v1/geocode/reverse**', (route) => {
+    reverseCalls.push(route.request().url());
+    return route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: { name: 'Stasiun Bogor', detail: 'Jalan Nyi Raja Permas, Bogor Tengah, Bogor', lat: -6.5954, lng: 106.7905, source: 'nominatim' } }),
+    });
+  });
+  await page.goto('/register/workshop');
+
+  const input = page.getByTestId('place-search-input');
+  await input.fill('Stasiun Bogor');
+  await input.press('Enter');
+  await page.getByTestId('place-search-results').getByRole('option').first().click();
+
+  const hint = page.getByTestId('address-hint');
+  await expect(hint).toContainText('Perkiraan alamat: Stasiun Bogor, Jalan Nyi Raja Permas');
+  await hint.getByTestId('address-hint-use').click();
+  await expect(page.locator('#ws-address')).toHaveValue('Stasiun Bogor, Jalan Nyi Raja Permas, Bogor Tengah, Bogor');
+  expect(reverseCalls).toHaveLength(1);
+});
+
 test('location search on the SOS form: Enter never submits the form, an outage says so', async ({ page }) => {
   await fakeGeocode(page, {
     status: 503,

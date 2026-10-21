@@ -7,6 +7,7 @@ import type { VehicleType, Workshop } from '@/services/api/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { DEFAULT_CENTER, PointsMap } from '@/components/map/Maps';
 import { PlaceSearch } from '@/components/map/PlaceSearch';
+import { useReverseAddress } from '@/components/map/AddressHint';
 import { WorkshopCard, friendlyDay, regionOf } from '@/components/workshop/WorkshopComponents';
 import { Alert, Button, EmptyState, Icon, Loading, SectionHeading, cx } from '@/components/ui';
 import { distance, jakartaDate } from '@/utils/format';
@@ -55,6 +56,7 @@ export default function WorkshopSearchPage() {
   const geo = useGeolocation();
   // Name of the place picked in the location search (null when the point came from GPS).
   const [placeLabel, setPlaceLabel] = useState<string | null>(null);
+  const gpsAddress = useReverseAddress(placeLabel ? null : geo.position);
 
   // Wait until typing pauses before hitting the API.
   useEffect(() => {
@@ -150,7 +152,7 @@ export default function WorkshopSearchPage() {
                 {geo.position && (
                   <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-label text-xs text-ink-2" data-testid="search-around">
                     <Icon name="near_me" className="text-[16px] text-primary" />
-                    Menampilkan bengkel di sekitar <b className="text-navy">{placeLabel ?? 'lokasi GPS Anda'}</b>
+                    Menampilkan bengkel di sekitar <b className="text-navy">{placeLabel ?? (gpsAddress.data ? `${gpsAddress.data.name} (lokasi GPS Anda)` : 'lokasi GPS Anda')}</b>
                     <button
                       type="button"
                       onClick={() => {

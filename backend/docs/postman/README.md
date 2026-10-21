@@ -2,7 +2,7 @@
 
 | File | Isi |
 | --- | --- |
-| `Bengkel-API.postman_collection.json` | 83 request dalam 13 folder. Setiap request punya deskripsi, aturan field, kode error, dan contoh respons asli. |
+| `Bengkel-API.postman_collection.json` | 85 request dalam 13 folder. Setiap request punya deskripsi, aturan field, kode error, dan contoh respons asli. |
 | `Bengkel-API.local.postman_environment.json` | Variabel `server_url`, `base_url`, `admin_email`, `admin_password`. Tidak masuk Git (berisi password); salin dari `Bengkel-API.local.postman_environment.example.json` lalu isi `admin_password`. |
 | `sample-image.png` | Gambar contoh untuk request upload QRIS dan bukti bayar. |
 

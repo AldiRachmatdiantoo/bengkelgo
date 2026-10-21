@@ -10,3 +10,11 @@ export const placeSearchQuery = z.object({
 });
 
 export type PlaceSearchQuery = z.infer<typeof placeSearchQuery>;
+
+/** Reverse geocoding: the approximate address of a map point. */
+export const reverseQuery = z.object({
+  lat: latitude,
+  lng: longitude,
+});
+
+export type ReverseQuery = z.infer<typeof reverseQuery>;

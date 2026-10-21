@@ -455,6 +455,34 @@ Parameter \`sort\` (opsional):
       query: [{ key: 'page', value: '1' }, { key: 'limit', value: '20' }],
       desc: 'Review terbaru: `rating`, `comment`, `customer_name`, `mechanic_name`.',
     }),
+    req({
+      name: 'Search Place (geocoding)',
+      method: 'GET',
+      path: '/geocode/search',
+      query: [
+        { key: 'q', value: 'Stasiun Bogor', description: 'daerah, jalan, atau patokan; min. 3 karakter, maks. 100' },
+        { key: 'limit', value: '6', description: '1–8, default 6' },
+        { key: 'lat', value: '{{ws_lat}}', description: 'opsional, bersama lng: utamakan hasil di dekat titik ini', disabled: true },
+        { key: 'lng', value: '{{ws_lng}}', disabled: true },
+      ],
+      desc: `Cari lokasi di Indonesia dari data OpenStreetMap (Nominatim, cadangan Photon). Respons: daftar \`{ name, detail, lat, lng, source }\`; daftar kosong bila tidak ditemukan.
+
+- Panggil saat pengguna menekan Enter / tombol Cari, **bukan per ketikan** (kebijakan Nominatim).
+- Hasil di-cache 15 menit. Pembatas \`geocode\`: 40 request/menit per IP (**429** \`RATE_LIMITED\`).
+- Kedua layanan peta mati → **503** \`GEOCODE_UNAVAILABLE\`.`,
+    }),
+    req({
+      name: 'Address of a Point (reverse geocoding)',
+      method: 'GET',
+      path: '/geocode/reverse',
+      query: [
+        { key: 'lat', value: '{{ws_lat}}' },
+        { key: 'lng', value: '{{ws_lng}}' },
+      ],
+      desc: `Perkiraan alamat sebuah titik peta (titik SOS, lokasi bengkel): \`{ name, detail, lat, lng, source }\`, atau \`null\` bila titik tidak punya alamat di Indonesia (laut, luar negeri).
+
+Titik yang berjarak ±10 m memakai cache yang sama (15 menit). Pembatas dan error sama dengan Search Place.`,
+    }),
   ]),
 
   folder(

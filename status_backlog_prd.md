@@ -62,7 +62,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 
 ## Pencarian lokasi (geocoding) — ✅ selesai 21 Okt 2026
 
-Kotak "cari lokasi" seperti Google Maps (mis. "Margonda Depok", "Stasiun Bogor") untuk memudahkan mencari bengkel, **gratis** (item 9 integrasi pihak ketiga, bagian geocoding). Sudah di-commit; **belum di-push** (menunggu persetujuan, lalu Render deploy backend + Vercel deploy frontend).
+Kotak "cari lokasi" seperti Google Maps (mis. "Margonda Depok", "Stasiun Bogor") untuk memudahkan mencari bengkel, **gratis** (item 9 integrasi pihak ketiga, bagian geocoding). Di-commit dan di-push 21 Okt (Render deploy backend + Vercel deploy frontend otomatis).
 
 **Keputusan:**
 - Sumber data OpenStreetMap, gratis tanpa akun/kartu: **Nominatim utama** (±0,5 detik dari Indonesia), **Photon cadangan** (±5,5 detik, server di Jerman). Google Places tidak dipakai (berbayar, butuh billing/kartu).
@@ -75,7 +75,11 @@ Kotak "cari lokasi" seperti Google Maps (mis. "Margonda Depok", "Stasiun Bogor")
 
 **Diuji 21 Okt:** typecheck frontend & backend; backend unit 56/56 (5 tes geocode) dan integration 50/50; Vitest 42/42; E2E journeys + geolocation 8/8, fitur backlog + a11y 18/18, a11y login + 375px + lintas browser 16 lolos (6 dilewati sengaja), E2E baru `e2e/place-search.spec.ts` 2/2 (respons API tiruan: cari hanya saat Enter, pilih hasil memindah titik, Enter di form SOS tidak mengirim permintaan, pesan saat layanan mati); visual regression 12/12 stabil 2× (baseline SOS & Daftar Bengkel desktop/HP diperbarui karena ada kotak baru). Dicoba di browser terhadap Docker lokal: "Margonda Depok" (Cari Bengkel) dan "Stasiun Bogor" (SOS) menghasilkan lokasi yang benar.
 
-**Belum (opsional):** request geocode di koleksi Postman (`scripts/postman/build-collection.js`); reverse geocoding (koordinat → alamat).
+**Tambahan 21 Okt (lanjutan):**
+- **Alamat dari titik (reverse geocoding):** `GET /api/v1/geocode/reverse?lat=&lng=` (publik, pembatas & cache sama; titik ±10 m berbagi cache; `null` bila titik di laut/luar Indonesia). Nama OSM yang berisi alamat lengkap dipendekkan ke bagian pertama agar alamat tidak dobel.
+- Frontend `components/map/AddressHint.tsx`: "Perkiraan alamat: …" di bawah peta. **Daftar Bengkel** & **Profil Bengkel**: tombol "Pakai sebagai alamat" mengisi kolom Alamat. **SOS**: tombol "Salin ke patokan" (maks. 300 karakter). **Cari Bengkel**: label lokasi GPS menyebut nama tempatnya.
+- **Postman:** request "Search Place (geocoding)" dan "Address of a Point (reverse geocoding)" di folder 4; koleksi kini 85 request, Newman 85/85 lolos dengan contoh respons asli.
+- Diuji: backend unit 61/61 (10 tes geocode), integration 50/50; Vitest 42/42; E2E journeys + geolocation + pencarian lokasi 11/11 (tes baru: alamat titik mengisi kolom alamat, dengan respons tiruan), fitur backlog + a11y 18/18, a11y login + 375px + lintas browser 16 lolos (6 dilewati sengaja), visual 12/12; dicoba di browser (desktop & HP 375px, tanpa geser ke samping).
 
 ## Cek database & relasi lewat DBeaver (dicatat 20 Okt 2026)
 

@@ -8,6 +8,7 @@ import { useAuth } from '@/services/auth/AuthProvider';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { MapPicker, PointsMap, type LatLng } from '@/components/map/Maps';
 import { PlaceSearch } from '@/components/map/PlaceSearch';
+import { AddressHint } from '@/components/map/AddressHint';
 import { SafetyBanner } from '@/components/orders/OrderComponents';
 import { Alert, Badge, Button, Card, EmptyState, Icon, Input, MissingFields, Segmented, Select, Stars, TextArea, cx } from '@/components/ui';
 import { isIdPhone } from '@/utils/formChecks';
@@ -136,6 +137,11 @@ export default function EmergencyPage() {
               />
               <MapPicker value={geo.position} onChange={geo.setPosition} height={300} />
               <p className="-mt-2 font-label text-xs text-ink-3">Hasil pencarian menandai titik perkiraan. Klik peta untuk menggeser ke posisi kendaraan yang tepat.</p>
+              <AddressHint
+                point={geo.position}
+                useLabel="Salin ke patokan"
+                onUse={(a) => setAddressNote((prev) => (prev.trim() && !prev.includes(a) ? `${prev.trim()} (${a})` : a).slice(0, 300))}
+              />
               <Input label="Patokan lokasi (opsional)" icon="pin_drop" value={addressNote} onChange={(e) => setAddressNote(e.target.value)} placeholder="mis. Depan minimarket, sebelah SPBU" />
             </div>
           </Card>
