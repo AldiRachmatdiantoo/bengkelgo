@@ -57,9 +57,9 @@ test('journey 2: owner registers, admin approves, owner configures quota, techni
   await page.getByLabel('Telepon bengkel').fill(`0813${digits()}`);
   await page.getByLabel('Alamat').fill('Jl. Uji Otomatis No. 1');
   await page.locator('.leaflet-container').click();
-  const coords = await page.getByText(/^Koordinat: /).textContent();
-  const [lat, lng] = coords!.replace('Koordinat: ', '').split(',').map(Number);
-  location = { lat, lng };
+  const pin = page.getByTestId('ws-point');
+  await expect(pin).toHaveText('Lokasi sudah ditandai di peta.');
+  location = { lat: Number(await pin.getAttribute('data-lat')), lng: Number(await pin.getAttribute('data-lng')) };
   await page.getByRole('button', { name: 'Daftarkan bengkel' }).click();
   await expect(page).toHaveURL(/\/owner$/);
   await expect(page.getByText('Menunggu verifikasi').first()).toBeVisible();

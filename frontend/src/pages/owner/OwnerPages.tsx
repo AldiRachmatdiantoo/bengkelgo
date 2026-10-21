@@ -112,12 +112,12 @@ export function OwnerDashboardPage() {
           progress={sos.length ? (sosDone / sos.length) * 100 : 0}
         />
         <StatCard
-          label="Utilisasi kuota slot"
+          label="Keterisian jadwal hari ini"
           icon="precision_manufacturing"
           tone={util >= 90 ? 'warning' : 'info'}
           value={`${util}%`}
-          aside={approved ? `${cap.booked}/${cap.max} slot` : undefined}
-          hint={!approved ? 'Aktif setelah diverifikasi admin' : cap.max ? `Sisa ${cap.max - cap.booked} slot bebas hari ini` : 'Tidak ada slot tersisa hari ini'}
+          aside={approved ? `${cap.booked}/${cap.max} terisi` : undefined}
+          hint={!approved ? 'Aktif setelah diverifikasi admin' : cap.max ? `Sisa ${cap.max - cap.booked} tempat kosong hari ini` : 'Hari ini sudah penuh'}
           progress={util}
         />
         <StatCard
@@ -145,16 +145,16 @@ export function OwnerDashboardPage() {
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="flex items-center gap-2 text-headline-sm text-navy">
-                  <Icon name="alt_route" className="text-primary" /> Manajemen Kuota Slot &amp; Antrean
+                  <Icon name="alt_route" className="text-primary" /> Kapasitas &amp; Antrean Hari Ini
                 </h2>
-                <p className="text-sm text-ink-2">Kapasitas per jam dikunci di database (anti-overbooking). Tambah kapasitas untuk menaikkan daftar tunggu.</p>
+                <p className="text-sm text-ink-2">Booking tidak akan melebihi kapasitas per jam. Tambah kapasitas agar pelanggan di daftar tunggu ikut terlayani.</p>
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-low px-3 py-2 font-label text-xs font-bold text-navy">
                 <Icon name="calendar_today" className="text-[16px] text-primary" /> Hari ini: {longDate(today)}
               </span>
             </div>
             {!approved ? (
-              <EmptyState icon="pending_actions">Kuota slot aktif setelah bengkel diverifikasi admin.</EmptyState>
+              <EmptyState icon="pending_actions">Jadwal booking aktif setelah bengkel diverifikasi admin.</EmptyState>
             ) : quotas.isLoading ? (
               <Loading />
             ) : (
@@ -167,7 +167,7 @@ export function OwnerDashboardPage() {
                 <Legend className="bg-success" label="Terkonfirmasi / selesai" />
               </span>
               <Link to="/owner/quotas" className="font-label text-sm font-bold text-primary hover:underline">
-                Kalender &amp; kuota lengkap →
+                Kalender &amp; kapasitas lengkap →
               </Link>
             </div>
           </section>
@@ -225,7 +225,7 @@ export function OwnerDashboardPage() {
               <Icon name="satellite_alt" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="font-bold text-navy">Radar SOS (5 KM)</p>
+              <p className="font-bold text-navy">Siaga SOS (radius 5 km)</p>
               <p className="text-xs text-ink-2">{w.accepts_emergency ? 'Menerima panggilan darurat otomatis dari radius 5 km.' : 'Nonaktif. Aktifkan lewat tombol status di header.'}</p>
             </div>
             <span className={cx('inline-flex items-center gap-1.5 font-label text-xs font-bold', w.accepts_emergency ? 'text-success' : 'text-ink-3')}>
@@ -310,7 +310,7 @@ function SlotBoard({ date, slots, bookings, highlightHour }: { date: string; slo
                 ))
               ) : (
                 <span className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-line-strong px-3 py-2 font-label text-xs text-ink-3">
-                  <Icon name="add_circle" className="text-[16px] text-success" /> Tersedia {s.remaining} slot
+                  <Icon name="add_circle" className="text-[16px] text-success" /> Tersedia {s.remaining} tempat
                 </span>
               )}
             </div>
@@ -331,7 +331,7 @@ function SlotBoard({ date, slots, bookings, highlightHour }: { date: string; slo
                 onClick={() => save.mutate({ time_slot: s.time_slot, max: s.max_slot_per_hour + 1 })}
                 aria-label={`Tambah kapasitas ${s.time_slot}`}
               >
-                <Icon name="add" className="text-[16px]" /> Slot
+                <Icon name="add" className="text-[16px]" /> Kapasitas
               </button>
             </div>
           </div>
@@ -349,7 +349,7 @@ function ThroughputChart({ slots }: { slots: SlotAvailability[] }) {
     <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-headline-sm text-navy">Utilisasi Kuota Per Jam</h3>
+          <h3 className="text-headline-sm text-navy">Keterisian per Jam</h3>
           <p className="text-sm text-ink-2">Booking terisi dibanding kapasitas di setiap jam operasional hari ini.</p>
         </div>
         {peak && peak.current_booked > 0 && (
@@ -495,7 +495,7 @@ export function OwnerEmergencyPage() {
   const history = (all.data ?? []).filter((o) => !['PENDING', 'ACCEPTED', 'IN_PROGRESS'].includes(o.status));
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader eyebrow="Radar SOS 5 KM" title="Panggilan Darurat" subtitle="Panggilan baru harus direspons dalam 2 menit; jika tidak, sistem mengalihkan ke bengkel lain. Halaman ini memeriksa otomatis setiap 5 detik." />
+      <PageHeader eyebrow="Siaga SOS 5 km" title="Panggilan Darurat" subtitle="Panggilan baru harus direspons dalam 2 menit; jika tidak, panggilan dialihkan otomatis ke bengkel lain. Halaman ini diperbarui otomatis setiap 5 detik." />
       {pending.data && pending.data.length > 0 ? (
         <div className="flex flex-col gap-4">
           {pending.data.map((o) => (
@@ -508,7 +508,7 @@ export function OwnerEmergencyPage() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-60" />
             <span className="relative inline-flex h-3 w-3 rounded-full bg-success" />
           </span>
-          Tidak ada panggilan darurat baru. Radar aktif memeriksa setiap 5 detik.
+          Tidak ada panggilan darurat baru. Halaman ini diperbarui otomatis setiap 5 detik.
         </div>
       )}
       <Card title="Sedang ditangani" icon="two_wheeler" actions={<Badge tone="info">{active.length}</Badge>}>
@@ -1169,7 +1169,7 @@ export function OwnerQuotasPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Kalender & kuota" title="Kalender & Kuota Slot" subtitle="Ubah kapasitas jam tertentu (mis. ada mekanik tambahan). Antrean otomatis naik saat kapasitas ditambah." />
+      <PageHeader eyebrow="Kalender & kapasitas" title="Kalender & Kapasitas" subtitle="Ubah kapasitas jam tertentu (mis. ada mekanik tambahan). Antrean otomatis naik saat kapasitas ditambah." />
       <div className="mb-6 flex flex-col gap-4 rounded-xl border border-line bg-card p-4 shadow-sm sm:p-5">
         <DateStrip value={date} onChange={setDate} days={14} />
         <div className="flex flex-wrap items-end gap-4">
@@ -1189,7 +1189,7 @@ export function OwnerQuotasPage() {
       </div>
       {ws.data && !approved ? (
         <EmptyState icon="pending_actions">
-          Kuota slot bisa diatur setelah bengkel diverifikasi admin. Status saat ini: <b>{WORKSHOP_STATUS[ws.data.status].label}</b>.
+          Kapasitas bisa diatur setelah bengkel diverifikasi admin. Status saat ini: <b>{WORKSHOP_STATUS[ws.data.status].label}</b>.
         </EmptyState>
       ) : ws.isLoading || slots.isLoading ? (
         <Loading />
@@ -1269,7 +1269,7 @@ export function OwnerProfilePage() {
     !isIdPhone(f.phone ?? '') && { label: (f.phone ?? '').trim() ? 'Telepon belum benar (mis. 0812…)' : 'Telepon', target: 'prof-phone' },
     (f.address ?? '').trim().length < 5 && { label: 'Alamat (min. 5 karakter)', target: 'prof-address' },
     (!f.open_time || !f.close_time || f.open_time >= f.close_time) && { label: 'Jam tutup harus setelah jam buka', target: 'prof-close' },
-    !(Number.isInteger(quota) && quota >= 1 && quota <= 100) && { label: 'Kuota per jam 1–100', target: 'prof-quota' },
+    !(Number.isInteger(quota) && quota >= 1 && quota <= 100) && { label: 'Kapasitas per jam 1–100', target: 'prof-quota' },
   ];
 
   return (
@@ -1388,13 +1388,13 @@ export function OwnerProfilePage() {
                 </div>
                 <Input
                   id="prof-quota"
-                  label="Kuota default per jam"
+                  label="Kapasitas per jam (biasa)"
                   type="number"
                   min={1}
                   max={100}
                   value={f.max_slot_per_hour ?? 1}
                   onChange={(e) => setF({ ...f, max_slot_per_hour: Number(e.target.value) })}
-                  hint="Berlaku untuk slot yang belum pernah dibooking"
+                  hint="Berlaku untuk semua jam, kecuali jam yang Anda ubah khusus di Kalender"
                 />
                 <Toggle checked={!!f.is_open} onChange={(v) => setF({ ...f, is_open: v })} icon="door_open" label="Bengkel buka" hint="Menerima booking dari pelanggan" />
                 <Toggle checked={!!f.accepts_emergency} onChange={(v) => setF({ ...f, accepts_emergency: v })} icon="e911_emergency" label="Siaga darurat SOS" hint="Masuk radar panggilan radius 5 km" />
@@ -1551,7 +1551,7 @@ function OwnerScheduleSection({ w }: { w: OwnWorkshop }) {
     mutationFn: () => ownerApi.setSchedule({ closed_weekdays: closed, break_start: hasBreak ? brk.start : null, break_end: hasBreak ? brk.end : null }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['my-workshop'] });
-      toast('Jadwal tersimpan', { text: 'Slot booking pada hari tutup dan jam istirahat otomatis tidak bisa dipilih.' });
+      toast('Jadwal tersimpan', { text: 'Pelanggan tidak bisa booking pada hari tutup dan jam istirahat.' });
     },
   });
   const addHoliday = useMutation({
@@ -1610,7 +1610,7 @@ function OwnerScheduleSection({ w }: { w: OwnWorkshop }) {
                 <Input label="Selesai" type="time" step={900} value={brk.end} onChange={(e) => setBrk({ ...brk, end: e.target.value })} error={badBreak ? 'Harus setelah jam mulai' : undefined} />
               </div>
             )}
-            <p className="text-xs text-ink-3">Slot per jam yang bersinggungan dengan jam istirahat tidak bisa dibooking.</p>
+            <p className="text-xs text-ink-3">Jam yang bertepatan dengan jam istirahat tidak bisa dibooking.</p>
           </div>
           {save.error && <Alert tone="danger">{errorMessage(save.error)}</Alert>}
           <Button type="submit" icon="save" className="self-start" disabled={badBreak} loading={save.isPending} data-testid="schedule-save">
@@ -1811,7 +1811,7 @@ function OwnerTodayStrip() {
     { icon: 'payments', label: 'Pendapatan terverifikasi hari ini', value: rupiah(s.verified_revenue) },
     { icon: 'receipt_long', label: 'Bukti bayar menunggu', value: String(s.payments_to_verify) },
     { icon: 'event_available', label: 'Booking hari ini', value: `${s.bookings}${s.waitlisted ? ` (+${s.waitlisted} antre)` : ''}` },
-    { icon: 'percent', label: 'Utilisasi kuota', value: s.quota_utilization == null ? '–' : `${Math.round(s.quota_utilization * 100)}%` },
+    { icon: 'percent', label: 'Keterisian jadwal', value: s.quota_utilization == null ? '–' : `${Math.round(s.quota_utilization * 100)}%` },
   ];
   return (
     <ul className="flex flex-wrap gap-x-6 gap-y-2 rounded-xl border border-line bg-card px-5 py-3 text-sm shadow-sm" data-testid="owner-today">

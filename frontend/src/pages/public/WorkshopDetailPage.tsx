@@ -31,7 +31,7 @@ function metersBetween(a: LatLng, b: LatLng) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-const STEPS = ['Bengkel & Paket', 'Pilih Jadwal & Slot Jam', 'Kendaraan & Catatan', 'Bayar & QRIS'];
+const STEPS = ['Bengkel & Paket', 'Pilih Jadwal', 'Kendaraan & Catatan', 'Bayar & QRIS'];
 
 /** Unfinished booking choices survive the detour through /login (per tab, cleared after booking). */
 type Draft = { serviceId: string; date: string; slot: string; plate: string; notes: string };
@@ -144,10 +144,10 @@ export default function WorkshopDetailPage() {
       <div className="-mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-primary/15 bg-sky px-4 py-3 sm:px-6">
         <Icon name="lock_clock" className="text-primary" />
         <p className="text-sm text-navy">
-          <b>Kuota anti-overbooking aktif:</b> slot jam yang Anda pilih dikunci di database saat Anda menekan konfirmasi, sehingga tidak bisa terisi melebihi kapasitas bengkel.
+          <b>Jadwal Anda aman:</b> jam yang Anda pilih langsung jadi milik Anda begitu Anda menekan konfirmasi, jadi tidak akan bentrok dengan pelanggan lain.
         </p>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2.5 py-1 font-label text-[11px] font-bold text-success">
-          <span className="h-1.5 w-1.5 rounded-full bg-success" /> Kuota diperbarui langsung
+          <span className="h-1.5 w-1.5 rounded-full bg-success" /> Ketersediaan selalu terbaru
         </span>
       </div>
 
@@ -271,7 +271,7 @@ export default function WorkshopDetailPage() {
           <Section
             n={1}
             title="Pilih Tanggal Servis"
-            subtitle="Pilih tanggal yang tersedia untuk pemesanan kuota servis langsung."
+            subtitle="Pilih tanggal kedatangan Anda."
             action={
               <label className="relative inline-flex cursor-pointer items-center gap-1.5 font-label text-xs font-bold text-primary hover:underline">
                 <Icon name="event" /> Pilih di Kalender
@@ -298,8 +298,8 @@ export default function WorkshopDetailPage() {
           <Section
             n={2}
             id="booking-slot"
-            title="Pilih Jam Kedatangan & Slot"
-            subtitle="Nomor antrean dibuat otomatis saat booking dikonfirmasi. Slot penuh tetap bisa dipilih untuk masuk daftar tunggu."
+            title="Pilih Jam Kedatangan"
+            subtitle="Nomor antrean dibuat otomatis saat booking dikonfirmasi. Jam yang penuh tetap bisa dipilih untuk masuk daftar tunggu."
             action={
               <span className="flex flex-wrap gap-3 font-label text-xs text-ink-2">
                 <span className="inline-flex items-center gap-1.5">
@@ -406,11 +406,11 @@ export default function WorkshopDetailPage() {
                 <dd className="font-semibold text-navy">{service ? rupiah(service.price) : '-'}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="flex items-center gap-1 text-ink-2">Biaya platform &amp; layanan sistem</dt>
+                <dt className="flex items-center gap-1 text-ink-2">Biaya layanan aplikasi</dt>
                 <dd className="font-bold text-success">GRATIS</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-ink-2">Biaya reservasi slot</dt>
+                <dt className="text-ink-2">Biaya pesan jadwal</dt>
                 <dd className="font-semibold text-navy">Rp0</dd>
               </div>
             </dl>
@@ -423,8 +423,8 @@ export default function WorkshopDetailPage() {
             </div>
             <ul className="mt-4 space-y-2 border-t border-line pt-4 text-xs text-ink-2">
               {[
-                ['lock', 'Kuota per jam anti-overbooking'],
-                ['hourglass_top', 'Masuk daftar tunggu otomatis bila slot penuh'],
+                ['lock', 'Jadwal per jam, tidak bentrok'],
+                ['hourglass_top', 'Masuk daftar tunggu otomatis bila jam penuh'],
                 ['qr_code_2', 'Bayar langsung ke QRIS bengkel'],
               ].map(([icon, text]) => (
                 <li key={text} className="flex items-center gap-2">
@@ -450,7 +450,7 @@ export default function WorkshopDetailPage() {
               {user ? 'Konfirmasi & Lanjut ke QRIS' : 'Masuk untuk Booking'} <Icon name="arrow_forward" />
             </Button>
             <p className="mt-3 text-center font-label text-[11px] text-ink-3">
-              {user ? 'Booking langsung tercatat di sistem bengkel setelah tombol ditekan.' : 'Anda akan kembali ke halaman ini setelah masuk; pilihan Anda tersimpan.'}
+              {user ? 'Booking langsung diterima bengkel setelah tombol ditekan.' : 'Anda akan kembali ke halaman ini setelah masuk; pilihan Anda tersimpan.'}
             </p>
           </div>
           <div className="flex items-center gap-3 rounded-xl border border-line bg-card p-4 shadow-sm">

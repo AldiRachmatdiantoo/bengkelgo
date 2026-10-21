@@ -124,7 +124,7 @@ export function PaymentPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-xl border border-line bg-card px-4 py-4 shadow-sm sm:px-6">
-        <Stepper steps={['Bengkel & Paket', 'Jadwal & Slot', 'Kendaraan & Data', 'Bayar & QRIS']} current={3} />
+        <Stepper steps={['Bengkel & Paket', 'Jadwal', 'Kendaraan & Data', 'Bayar & QRIS']} current={3} />
       </div>
 
       <section className="flex flex-col gap-4 overflow-hidden rounded-xl border border-warning/30 bg-[linear-gradient(90deg,#fef3c7_0%,#fffbeb_60%,#ffffff_100%)] p-5 shadow-sm sm:flex-row sm:items-center">
@@ -201,7 +201,7 @@ export function PaymentPage() {
             <ul className="space-y-3 text-sm">
               {[
                 ['verified', 'Bengkel terverifikasi', 'Mitra diverifikasi admin sebelum tampil ke pelanggan.'],
-                ['receipt_long', 'Tercatat di sistem', 'Bukti bayar dan status pembayaran tersimpan di pesanan Anda.'],
+                ['receipt_long', 'Tersimpan di pesanan', 'Bukti bayar dan status pembayaran tersimpan di pesanan Anda.'],
                 ['cancel', 'Bisa dibatalkan', 'Selama belum dikerjakan dan pembayaran belum diverifikasi.'],
               ].map(([icon, t, d]) => (
                 <li key={t} className="flex gap-3">

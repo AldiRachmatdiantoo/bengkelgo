@@ -511,7 +511,7 @@ function WorkshopApprovalCard({
             </span>
             <span className="block text-sm font-normal text-ink-2">{w.accepts_emergency ? 'Siaga panggilan darurat' : 'Tidak menerima SOS'}</span>
           </InfoRow>
-          <InfoRow icon="satellite_alt" label="Koordinat spasial">
+          <InfoRow icon="satellite_alt" label="Titik lokasi">
             <span className="font-mono text-sm">
               {w.latitude.toFixed(4)}, {w.longitude.toFixed(4)}
             </span>

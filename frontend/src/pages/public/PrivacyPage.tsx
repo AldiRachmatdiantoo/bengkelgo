@@ -62,7 +62,7 @@ export default function PrivacyPage() {
               melayani.
             </li>
             <li>
-              <b>Penyedia layanan teknis</b> yang memproses data atas nama kami: Supabase (database dan penyimpanan file, Singapura), Render (server aplikasi,
+              <b>Penyedia layanan teknis</b> yang memproses data atas nama kami: Supabase (penyimpanan data dan file, Singapura), Render (tempat aplikasi berjalan,
               Singapura), Vercel (situs web), dan Google (pengiriman email dan masuk dengan Google).
             </li>
             <li>Pihak berwenang, bila diwajibkan oleh hukum.</li>

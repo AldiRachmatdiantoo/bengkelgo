@@ -91,10 +91,10 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
             <Icon name="event_available" className="text-[16px]" />
             {workshop.is_open ? `Buka ${workshop.open_time}–${workshop.close_time}` : 'Sedang tutup'}
           </span>
-          <span className="text-[11px] text-ink-3">{workshop.max_slot_per_hour} slot/jam</span>
+          <span className="text-[11px] text-ink-3">{workshop.max_slot_per_hour} booking/jam</span>
         </div>
         <div className="mt-auto flex items-end justify-between gap-3 pt-1">
-          <span className="font-label text-xs text-ink-3">Kuota per jam dijaga anti-overbooking</span>
+          <span className="font-label text-xs text-ink-3">Jadwal per jam, tidak bentrok</span>
           <span className="inline-flex h-10 shrink-0 items-center rounded-lg bg-primary px-5 font-label text-sm font-semibold text-white transition group-hover:bg-primary-dark">
             Pilih Jadwal
           </span>
@@ -204,7 +204,7 @@ export function SlotPicker({ slots, value, onChange, durationMinutes }: { slots:
                 <div key={s.time_slot} className="relative">
                   {selected && (
                     <span className="absolute -top-2.5 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-primary px-2 py-0.5 font-label text-[10px] font-bold whitespace-nowrap text-white">
-                      <Icon name="check_circle" className="text-[12px]" /> Slot Terpilih
+                      <Icon name="check_circle" className="text-[12px]" /> Jam Terpilih
                     </span>
                   )}
                   <button
@@ -227,7 +227,7 @@ export function SlotPicker({ slots, value, onChange, durationMinutes }: { slots:
                           !s.bookable ? 'bg-surface text-ink-3' : full ? 'bg-emergency-soft text-emergency-ink' : s.remaining <= 1 ? 'bg-warning-soft text-warning-ink' : 'bg-success-soft text-success',
                         )}
                       >
-                        {!s.bookable ? 'Tutup' : full ? 'Penuh' : s.remaining <= 1 ? `Sisa ${s.remaining} Slot` : `${s.remaining} Slot`}
+                        {!s.bookable ? 'Tutup' : full ? 'Penuh' : s.remaining <= 1 ? `Sisa ${s.remaining} tempat` : `${s.remaining} tempat`}
                       </span>
                     </span>
                     <span className="font-label text-[11px] text-ink-3">

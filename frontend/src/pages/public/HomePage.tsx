@@ -10,7 +10,7 @@ import { m } from 'framer-motion';
 import heroWorkshop from '@/assets/hero-workshop.webp';
 
 const ADVANTAGES = [
-  { icon: 'hourglass_disabled', tone: 'bg-primary', title: 'Sistem Kuota Anti-Antre', text: 'Kapasitas tiap jam dijaga di database. Saat Anda konfirmasi, slot dikunci sehingga tidak bentrok dengan pelanggan lain.', foot: 'Zero overbooking (uji 100 request bersamaan)', footIcon: 'check_circle', footTone: 'text-primary' },
+  { icon: 'hourglass_disabled', tone: 'bg-primary', title: 'Jadwal Anti-Bentrok', text: 'Setiap jam punya batas jumlah pelanggan. Begitu Anda konfirmasi, jam itu langsung jadi milik Anda dan tidak bisa diambil orang lain.', foot: 'Diuji 100 pemesan sekaligus, tidak ada yang bentrok', footIcon: 'check_circle', footTone: 'text-primary' },
   { icon: 'location_on', tone: 'bg-emergency', title: 'Pencarian Darurat 5 KM', text: 'Bengkel aktif terdekat dengan mekanik terbaik dihubungi lebih dulu. Jika tidak merespons dalam 2 menit, dialihkan otomatis.', foot: 'Pengalihan otomatis 2 menit', footIcon: 'bolt', footTone: 'text-emergency-ink' },
   { icon: 'qr_code_2', tone: 'bg-success', title: 'Pembayaran QRIS Bengkel', text: 'Bayar langsung ke QRIS milik bengkel, lalu unggah bukti. Bengkel memverifikasi dan status langsung terlihat di aplikasi.', foot: 'Transparan & tercatat', footIcon: 'check_circle', footTone: 'text-success' },
   { icon: 'shield', tone: 'bg-navy', title: 'Rating Mekanik Dinamis', text: 'Setiap ulasan pelanggan memperbarui rating mekanik. Rating ini ikut menentukan prioritas penugasan panggilan darurat.', foot: 'Berdasarkan ulasan asli', footIcon: 'verified', footTone: 'text-navy' },
@@ -19,15 +19,15 @@ const ADVANTAGES = [
 const FAQ = [
   {
     q: 'Bagaimana cara memesan mekanik darurat saat kendaraan mogok di jalan?',
-    a: 'Tekan tombol Bantuan Darurat, tentukan lokasi lewat GPS atau klik peta, lalu ceritakan kendalanya. Tanpa akun pun bisa: cukup isi nama dan nomor WhatsApp. Sistem menghubungi bengkel aktif dalam radius 5 km; jika bengkel tidak merespons dalam 2 menit, permintaan dialihkan otomatis ke bengkel berikutnya.',
+    a: 'Tekan tombol Bantuan Darurat, tentukan lokasi lewat GPS atau klik peta, lalu ceritakan kendalanya. Tanpa akun pun bisa: cukup isi nama dan nomor WhatsApp. Kami menghubungi bengkel aktif dalam radius 5 km; jika bengkel tidak merespons dalam 2 menit, permintaan dialihkan otomatis ke bengkel berikutnya.',
   },
   {
-    q: 'Bagaimana kuota per jam dan daftar tunggu bekerja?',
-    a: 'Setiap bengkel menetapkan kapasitas booking per jam. Saat Anda menekan konfirmasi, slot dikunci di database sehingga tidak bisa terisi melebihi kapasitas. Jika slot penuh, Anda masuk daftar tunggu dan otomatis terkonfirmasi begitu ada slot kosong atau bengkel menambah kapasitas.',
+    q: 'Bagaimana jika jam yang saya pilih sudah penuh?',
+    a: 'Setiap bengkel menentukan berapa pelanggan yang bisa dilayani per jam, jadi jadwal tidak akan bentrok. Jika jam pilihan Anda penuh, Anda masuk daftar tunggu dan otomatis terkonfirmasi begitu ada tempat kosong.',
   },
   {
-    q: 'Bagaimana sistem pembayaran servis?',
-    a: 'Setelah pesanan dikonfirmasi dan harga ditetapkan, scan QRIS milik bengkel dari aplikasi m-banking atau e-wallet, lalu unggah bukti bayar (JPG/PNG/WEBP, maks. 2 MB). Bengkel memverifikasi bukti tersebut dan status pembayaran berubah menjadi Lunas.',
+    q: 'Bagaimana cara membayar servis?',
+    a: 'Setelah pesanan dikonfirmasi dan harga ditetapkan, scan QRIS milik bengkel dari aplikasi m-banking atau e-wallet, lalu unggah foto atau screenshot bukti bayar. Bengkel memverifikasi bukti tersebut dan status pembayaran berubah menjadi Lunas.',
   },
   {
     q: 'Apakah pesanan bisa dibatalkan?',
@@ -45,7 +45,7 @@ const SERVICES: { icon: string; tone: string; title: string; text: string; cta: 
     icon: 'calendar_month',
     tone: 'bg-primary',
     title: 'Booking Servis Terjadwal',
-    text: 'Pilih bengkel, paket servis, dan jam kedatangan. Kuota per jam dijaga sehingga Anda tidak perlu antre lama.',
+    text: 'Pilih bengkel, paket servis, dan jam kedatangan. Jumlah pelanggan tiap jam dibatasi sehingga Anda tidak perlu antre lama.',
     cta: 'Booking servis',
     to: '/workshops?tab=booking',
   },
@@ -115,7 +115,7 @@ export default function HomePage() {
             <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 font-label text-xs font-semibold text-ink-2">
               {[
                 ['verified', 'Bengkel diverifikasi admin'],
-                ['lock', 'Kuota per jam anti-overbooking'],
+                ['lock', 'Jadwal per jam, tidak bentrok'],
                 ['qr_code_2', 'Bayar via QRIS bengkel'],
               ].map(([icon, t]) => (
                 <li key={t} className="inline-flex items-center gap-1.5">
@@ -195,9 +195,9 @@ export default function HomePage() {
           <div>
             <span className="inline-flex rounded-full bg-white/15 px-3 py-1 font-label text-[11px] font-bold tracking-[0.04em] uppercase">Portal Pemilik Bengkel UMKM</span>
             <h2 className="mt-4 text-[20px] leading-tight font-bold tracking-[-0.015em] sm:text-headline-lg">Kelola Antrean Bengkel Anda Lebih Rapi bersama BengkelGo</h2>
-            <p className="mt-3 max-w-xl text-subtitle text-white/80">Tinggalkan catatan antrean kertas. Atur kuota per jam, mekanik, panggilan darurat dalam radius 5 km, dan verifikasi pembayaran QRIS dari satu dashboard.</p>
+            <p className="mt-3 max-w-xl text-subtitle text-white/80">Tinggalkan catatan antrean kertas. Atur kapasitas per jam, mekanik, panggilan darurat dalam radius 5 km, dan verifikasi pembayaran QRIS dari satu dashboard.</p>
             <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2 font-label text-xs font-semibold">
-              {['Pendaftaran online', 'Dashboard antrean & kuota per jam', 'Terima panggilan darurat sekitar'].map((t) => (
+              {['Pendaftaran online', 'Kelola antrean & kapasitas per jam', 'Terima panggilan darurat sekitar'].map((t) => (
                 <li key={t} className="inline-flex items-center gap-1.5">
                   <Icon name="check_circle" className="text-[16px] text-success" /> {t}
                 </li>
@@ -217,7 +217,7 @@ export default function HomePage() {
 
       {/* ------------------------------------------------ FAQ */}
       <Reveal as="section">
-        <SectionHeading eyebrow="Pusat informasi & panduan" title="Pertanyaan yang Sering Diajukan (FAQ)" subtitle="Cara kerja pemesanan darurat, kuota antrean, dan pembayaran." />
+        <SectionHeading eyebrow="Pusat informasi & panduan" title="Pertanyaan yang Sering Diajukan (FAQ)" subtitle="Cara kerja bantuan darurat, antrean, dan pembayaran." />
         <div className="flex max-w-3xl flex-col gap-3">
           {FAQ.map((f) => (
             <details key={f.q} className="group rounded-xl bg-surface-low px-5 py-4 open:bg-white open:shadow-sm open:ring-1 open:ring-line">
@@ -237,7 +237,7 @@ export default function HomePage() {
 /** Hero illustration (isometric workshop, from the Stitch project) with the three feature labels floating around it. */
 function HeroVisual() {
   const chips = [
-    { icon: 'event_available', text: 'Slot jam terkunci', tone: 'text-primary', pos: '-left-6 top-[38%]' },
+    { icon: 'event_available', text: 'Jadwal terjamin', tone: 'text-primary', pos: '-left-6 top-[38%]' },
     { icon: 'two_wheeler', text: 'Mekanik menuju lokasi', tone: 'text-emergency-ink', pos: '-right-4 top-[60%]' },
     { icon: 'qr_code_2', text: 'Bayar via QRIS', tone: 'text-success', pos: 'left-[14%] bottom-[20%]' },
   ];
@@ -281,7 +281,7 @@ const GUIDES: Record<Guide, { label: string; icon: string; tone: string; intro: 
     intro: 'Untuk servis rutin tanpa antre lama. Pilih jam kedatangan, datang sesuai jadwal.',
     steps: [
       { icon: 'storefront', title: 'Cari bengkel', text: 'Cari nama bengkel atau tekan “Deteksi lokasi GPS” untuk melihat bengkel terdekat. Bandingkan rating, jam buka, dan jenis kendaraan yang dilayani.', note: 'Halaman Cari & Booking Bengkel' },
-      { icon: 'event_available', title: 'Pilih paket & jadwal', text: 'Pilih paket servis, tanggal, lalu jam kedatangan. Sisa kuota tampil di setiap jam; jika penuh, Anda masuk daftar tunggu otomatis.', note: 'Halaman detail bengkel' },
+      { icon: 'event_available', title: 'Pilih paket & jadwal', text: 'Pilih paket servis, tanggal, lalu jam kedatangan. Sisa tempat tampil di setiap jam; jika penuh, Anda masuk daftar tunggu otomatis.', note: 'Halaman detail bengkel' },
       { icon: 'qr_code_2', title: 'Konfirmasi & bayar QRIS', text: 'Masuk atau daftar akun, tekan konfirmasi untuk mendapat nomor antrean. Lalu scan QRIS bengkel dan unggah bukti bayar.', note: 'Langkah 3–4 booking' },
       { icon: 'confirmation_number', title: 'Datang & servis', text: 'Tunjukkan Digital Pass (QR / nomor pesanan) ke petugas bengkel. Setelah selesai, beri ulasan untuk mekanik.', note: 'Menu “Pesanan saya”' },
     ],
@@ -295,7 +295,7 @@ const GUIDES: Record<Guide, { label: string; icon: string; tone: string; intro: 
     steps: [
       { icon: 'e911_emergency', title: 'Tekan SOS', text: 'Tekan tombol bulat oranye “SOS” di kanan bawah layar. Belum punya akun? Cukup isi nama dan nomor WhatsApp, Anda masuk sebagai tamu.', note: 'Tombol SOS di kanan bawah' },
       { icon: 'my_location', title: 'Tentukan lokasi & kendala', text: 'Gunakan GPS atau klik titik di peta, lalu pilih masalahnya: aki, ban, mesin mogok, atau kehabisan bensin.', note: 'Halaman Bantuan Darurat' },
-      { icon: 'radar', title: 'Bengkel terdekat dihubungi', text: 'Sistem mencari bengkel aktif dalam radius 5 km. Bengkel punya 2 menit untuk merespons; jika tidak, otomatis dialihkan ke bengkel berikutnya.', note: 'Otomatis, tanpa perlu menelepon' },
+      { icon: 'radar', title: 'Bengkel terdekat dihubungi', text: 'Kami mencari bengkel aktif dalam radius 5 km. Bengkel punya 2 menit untuk merespons; jika tidak, otomatis dialihkan ke bengkel berikutnya.', note: 'Otomatis, tanpa perlu menelepon' },
       { icon: 'engineering', title: 'Mekanik datang', text: 'Pantau status secara langsung, hubungi mekanik lewat telepon atau WhatsApp. Setelah selesai, bayar via QRIS dan beri ulasan.', note: 'Halaman tracking SOS' },
     ],
     cta: { label: 'Minta Bantuan Darurat', to: '/emergency', icon: 'e911_emergency' },
@@ -306,9 +306,9 @@ const GUIDES: Record<Guide, { label: string; icon: string; tone: string; intro: 
     tone: 'bg-navy',
     intro: 'Untuk UMKM bengkel yang ingin antrean lebih rapi dan dijangkau pelanggan baru.',
     steps: [
-      { icon: 'app_registration', title: 'Daftarkan bengkel', text: 'Isi data pemilik dan bengkel, jam buka, kuota booking per jam, lalu tandai lokasi bengkel di peta.', note: 'Menu “Gabung Mitra”' },
-      { icon: 'verified', title: 'Diverifikasi admin', text: 'Admin memeriksa data bengkel. Setelah disetujui, bengkel tampil di pencarian dan radar darurat.', note: 'Status tampil di portal mitra' },
-      { icon: 'tune', title: 'Atur layanan & tim', text: 'Tambahkan layanan dan harga, daftarkan mekanik beserta keahliannya, atur kuota per jam, dan unggah QRIS bengkel.', note: 'Tab Pengaturan & Kelola Mekanik' },
+      { icon: 'app_registration', title: 'Daftarkan bengkel', text: 'Isi data pemilik dan bengkel, jam buka, kapasitas booking per jam, lalu tandai lokasi bengkel di peta.', note: 'Menu “Gabung Mitra”' },
+      { icon: 'verified', title: 'Diverifikasi admin', text: 'Admin memeriksa data bengkel. Setelah disetujui, bengkel tampil di pencarian dan bisa menerima panggilan darurat.', note: 'Status tampil di portal mitra' },
+      { icon: 'tune', title: 'Atur layanan & tim', text: 'Tambahkan layanan dan harga, daftarkan mekanik beserta keahliannya, atur kapasitas per jam, dan unggah QRIS bengkel.', note: 'Tab Pengaturan & Kelola Mekanik' },
       { icon: 'space_dashboard', title: 'Terima pesanan & SOS', text: 'Pantau antrean hari ini, terima panggilan darurat dalam 2 menit, kerjakan pesanan, dan verifikasi bukti bayar pelanggan.', note: 'Dashboard Portal Mitra' },
     ],
     cta: { label: 'Daftarkan Bengkel', to: '/register/workshop', icon: 'app_registration' },

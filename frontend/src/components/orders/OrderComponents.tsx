@@ -62,8 +62,8 @@ export function OrderCard({ order, to }: { order: Order; to: string }) {
 
 // ================================================================ booking: status page (Stitch "Status Booking & E-Receipt")
 const BOOKING_HERO: Partial<Record<OrderStatus, { icon: string; title: string; text: string; tone: 'success' | 'warning' | 'info' | 'neutral' }>> = {
-  CONFIRMED: { icon: 'check_circle', title: 'Booking Berhasil Dikonfirmasi!', text: 'Slot servis dan antrean Anda resmi tercatat di sistem bengkel. Tunjukkan kode QR atau nomor pesanan saat tiba di bengkel.', tone: 'success' },
-  IN_QUEUE: { icon: 'hourglass_top', title: 'Anda Masuk Daftar Tunggu', text: 'Slot jam ini penuh. Booking otomatis terkonfirmasi begitu ada slot kosong. Halaman ini diperbarui otomatis.', tone: 'warning' },
+  CONFIRMED: { icon: 'check_circle', title: 'Booking Berhasil Dikonfirmasi!', text: 'Jadwal servis dan nomor antrean Anda sudah diterima bengkel. Tunjukkan kode QR atau nomor pesanan saat tiba di bengkel.', tone: 'success' },
+  IN_QUEUE: { icon: 'hourglass_top', title: 'Anda Masuk Daftar Tunggu', text: 'Jam ini sedang penuh. Booking Anda otomatis terkonfirmasi begitu ada tempat kosong. Halaman ini diperbarui otomatis.', tone: 'warning' },
   IN_PROGRESS: { icon: 'build', title: 'Kendaraan Sedang Dikerjakan', text: 'Mekanik sedang menangani kendaraan Anda di bengkel.', tone: 'info' },
   COMPLETED: { icon: 'task_alt', title: 'Servis Selesai', text: 'Terima kasih telah menggunakan BengkelGo. Bagikan pengalaman Anda lewat ulasan di bawah.', tone: 'success' },
   CANCELLED: { icon: 'cancel', title: 'Booking Dibatalkan', text: 'Pesanan ini sudah tidak aktif.', tone: 'neutral' },
@@ -219,7 +219,7 @@ export function BookingPass({ order }: { order: Order }) {
               <Icon name="engineering" className="text-primary" />
               <div>
                 <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Mekanik ditugaskan</p>
-                <p className="text-sm font-bold text-navy">{order.mechanic ? order.mechanic.name : 'Ditugaskan saat slot terkonfirmasi'}</p>
+                <p className="text-sm font-bold text-navy">{order.mechanic ? order.mechanic.name : 'Ditugaskan saat jadwal terkonfirmasi'}</p>
               </div>
             </div>
           </div>
@@ -379,7 +379,7 @@ export function CalendarSyncCard({ order }: { order: Order }) {
         <Icon name="calendar_add_on" />
       </span>
       <div className="min-w-0 flex-1">
-        <h4 className="font-bold text-navy">Sinkronkan ke Kalender Pribadi</h4>
+        <h4 className="font-bold text-navy">Simpan ke Kalender</h4>
         <p className="text-sm text-ink-2">Dapatkan pengingat 2 jam sebelum jadwal servis langsung di ponsel Anda.</p>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -493,8 +493,8 @@ export function EmergencyMapCard({ order }: { order: Order }) {
             <Icon name="near_me" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Radius perlindungan GPS</p>
-            <p className="truncate text-sm font-bold text-navy">{e.address_note || `${e.latitude.toFixed(5)}, ${e.longitude.toFixed(5)}`}</p>
+            <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Lokasi Anda</p>
+            <p className="truncate text-sm font-bold text-navy">{e.address_note || 'Titik di peta (buka di Google Maps)'}</p>
           </div>
           <a href={`https://www.google.com/maps?q=${e.latitude},${e.longitude}`} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1 rounded-lg bg-surface-low px-3 font-label text-xs font-bold text-navy hover:bg-surface">
             <Icon name="open_in_new" className="text-[14px]" /> G-Maps
@@ -528,7 +528,7 @@ function MapStat({ icon, label, value }: { icon: string; label: string; value: s
 }
 
 const TIMELINE: { key: string; title: string; text: (o: Order) => string; at?: (o: Order) => string | null }[] = [
-  { key: 'sent', title: 'Panggilan darurat diterima sistem', text: (o) => `Lokasi Anda tercatat dengan koordinat ${o.emergency!.latitude.toFixed(4)}, ${o.emergency!.longitude.toFixed(4)}.`, at: (o) => o.created_at },
+  { key: 'sent', title: 'Permintaan bantuan terkirim', text: () => 'Lokasi Anda sudah kami terima. Bengkel terdekat sedang dihubungi.', at: (o) => o.created_at },
   {
     key: 'routed',
     title: 'Pencarian bengkel radius 5 KM',
@@ -554,11 +554,11 @@ export function EmergencyTimeline({ order }: { order: Order }) {
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-headline-sm text-navy">Status Penanganan Darurat</h3>
-          <p className="text-sm text-ink-2">Pembaruan otomatis dari sistem dan bengkel yang menangani.</p>
+          <p className="text-sm text-ink-2">Status diperbarui otomatis oleh bengkel yang menangani.</p>
         </div>
         {live ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2.5 py-1 font-label text-[11px] font-bold text-success">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" /> Live Sync
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-success" /> Diperbarui otomatis
           </span>
         ) : (
           <OrderStatusBadge order={order} />
@@ -826,7 +826,7 @@ export function CancelOrderModal({
             ? mechanicName
               ? `${mechanicName} mungkin sudah dalam perjalanan ke lokasi Anda. Batalkan hanya jika bantuan sudah tidak diperlukan.`
               : 'Permintaan bantuan akan dihentikan dan bengkel tidak akan dihubungi lagi.'
-            : 'Slot dan nomor antrean Anda akan dilepas untuk pelanggan lain.'}
+            : 'Jadwal dan nomor antrean Anda akan diberikan ke pelanggan lain.'}
         </p>
         <TextArea label={reasonLabel} maxLength={300} rows={2} value={reason} onChange={(e) => setReason(e.target.value)} data-testid="cancel-reason" />
       </div>
@@ -1023,7 +1023,7 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
           <Input
             id="proof-ref"
             label="No. referensi transfer (opsional)"
-            hint="Ada di struk QRIS / riwayat transaksi, mis. RRN"
+            hint="Nomor referensi yang tertera di struk atau riwayat transfer Anda"
             maxLength={64}
             value={payer.payer_reference}
             onChange={(e) => setPayer({ ...payer, payer_reference: e.target.value })}
@@ -1522,7 +1522,7 @@ const PAYMENT_HISTORY_LABEL: Record<string, string> = {
   REFUNDED: 'Dana dikembalikan',
   UNPAID: 'Menunggu pembayaran',
 };
-const ACTOR_LABEL: Record<string, string> = { CUSTOMER: 'Pelanggan', GUEST: 'Tamu', WORKSHOP_OWNER: 'Bengkel', ADMIN: 'Admin', SYSTEM: 'Sistem' };
+const ACTOR_LABEL: Record<string, string> = { CUSTOMER: 'Pelanggan', GUEST: 'Tamu', WORKSHOP_OWNER: 'Bengkel', ADMIN: 'Admin', SYSTEM: 'Otomatis' };
 
 /** Every status change of the order and its payment, with who did it (recorded by the database). */
 export function StatusHistoryCard({ order }: { order: Order }) {

@@ -21,7 +21,7 @@ function useAfterAuth() {
 }
 
 const PERKS = [
-  { icon: 'event_available', text: 'Booking slot servis per jam, tanpa antre panjang' },
+  { icon: 'event_available', text: 'Pesan jam servis, tanpa antre panjang' },
   { icon: 'e911_emergency', text: 'Bantuan darurat dari bengkel dalam radius 5 km' },
   { icon: 'qr_code_2', text: 'Bayar mudah via QRIS bengkel' },
   { icon: 'verified', text: 'Bengkel mitra diverifikasi admin' },
@@ -319,7 +319,7 @@ export function RegisterWorkshopPage() {
             <Input label="Jam buka" icon="schedule" type="time" step={3600} value={ws.open_time} onChange={(e) => setWs({ ...ws, open_time: e.target.value })} />
             <Input id="ws-close" label="Jam tutup" icon="schedule" type="time" step={3600} value={ws.close_time} onChange={(e) => setWs({ ...ws, close_time: e.target.value })} />
             <Input
-              label="Kuota booking per jam"
+              label="Kapasitas booking per jam"
               icon="event_seat"
               type="number"
               min={1}
@@ -351,7 +351,9 @@ export function RegisterWorkshopPage() {
             onPick={(p) => setPoint({ lat: p.lat, lng: p.lng })}
           />
           <MapPicker value={point} onChange={setPoint} height={320} />
-          <p className="mt-2 font-label text-xs text-ink-3">{point ? `Koordinat: ${point.lat.toFixed(6)}, ${point.lng.toFixed(6)}` : 'Lokasi belum dipilih'}</p>
+          <p className="mt-2 font-label text-xs text-ink-3" data-testid="ws-point" data-lat={point?.lat} data-lng={point?.lng}>
+            {point ? 'Lokasi sudah ditandai di peta.' : 'Lokasi belum dipilih'}
+          </p>
           <AddressHint className="mt-1" point={point} useLabel="Pakai sebagai alamat" onUse={(a) => setWs((w) => ({ ...w, address: a }))} />
         </Card>
 

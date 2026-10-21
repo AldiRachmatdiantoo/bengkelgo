@@ -239,7 +239,7 @@ export default function WorkshopSearchPage() {
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="flex items-center gap-2 font-label text-xs font-semibold text-ink-2">
-                    <Icon name="lock" className="text-success" /> Slot jam dikunci saat konfirmasi sehingga tidak bentrok dengan pelanggan lain
+                    <Icon name="lock" className="text-success" /> Jam pilihan Anda langsung jadi milik Anda saat konfirmasi, tidak bentrok dengan pelanggan lain
                   </p>
                   <Button icon="search" onClick={showResults} className="bg-navy hover:bg-navy/90">
                     Cari Bengkel ({data?.length ?? 0})
@@ -255,7 +255,7 @@ export default function WorkshopSearchPage() {
                     <Icon name="my_location" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-label text-xs font-bold tracking-[0.04em] text-emergency-ink uppercase">Deteksi koordinat GPS (radius 5 km)</p>
+                    <p className="font-label text-xs font-bold tracking-[0.04em] text-emergency-ink uppercase">Lokasi Anda (radius 5 km)</p>
                     <p className="font-semibold text-navy">{geo.position ? `${geo.position.lat.toFixed(5)}, ${geo.position.lng.toFixed(5)}` : (geo.error ?? 'Lokasi belum terdeteksi')}</p>
                     <p className="font-label text-xs text-ink-2">Bengkel aktif dalam 5 km dari titik ini akan dihubungi otomatis.</p>
                   </div>
@@ -412,7 +412,7 @@ function RadarSection({ workshops, origin }: { workshops: Workshop[]; origin: { 
   return (
     <section>
       <SectionHeading
-        eyebrow={<span className="text-emergency-ink">Radar bengkel realtime</span>}
+        eyebrow={<span className="text-emergency-ink">Peta bengkel terdekat</span>}
         title="Pantau Bengkel Aktif di Sekitar Anda"
         subtitle="Lokasi bengkel mitra dari data terbaru. Panggilan darurat menjangkau bengkel dalam radius 5 km."
         action={

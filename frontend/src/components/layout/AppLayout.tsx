@@ -473,7 +473,7 @@ const OWNER_NAV: NavItem[] = [
   { to: '/owner', label: 'Ringkasan', icon: 'space_dashboard', end: true },
   { to: '/owner/emergency', label: 'Panggilan Darurat', icon: 'e911_emergency' },
   { to: '/owner/orders', label: 'Semua Pesanan', icon: 'receipt_long' },
-  { to: '/owner/quotas', label: 'Kalender & Kuota Slot', icon: 'calendar_month' },
+  { to: '/owner/quotas', label: 'Kalender & Kapasitas', icon: 'calendar_month' },
   { to: '/owner/mechanics', label: 'Kelola Teknisi', icon: 'engineering' },
   { to: '/owner/payments', label: 'Verifikasi Pembayaran', icon: 'qr_code_scanner' },
   { to: '/owner/reviews', label: 'Ulasan', icon: 'reviews' },
@@ -549,7 +549,7 @@ function OwnerShell({ user }: { user: User }) {
             )}
             <p className="mt-1.5 truncate text-sm font-bold text-navy">{w.name}</p>
             <p className="mt-0.5 flex items-center gap-1 font-label text-xs text-ink-2">
-              <Icon name="radar" className="text-[16px] text-primary" /> Radar 5 KM {w.accepts_emergency ? 'aktif' : 'nonaktif'}
+              <Icon name="radar" className="text-[16px] text-primary" /> Siaga SOS 5 km {w.accepts_emergency ? 'aktif' : 'nonaktif'}
             </p>
           </div>
         )}
@@ -557,7 +557,7 @@ function OwnerShell({ user }: { user: User }) {
         <div className="mt-auto rounded-lg bg-surface-low p-3 font-label text-xs text-ink-2">
           <p className="flex items-center gap-1.5 font-semibold text-navy">
             <span className={cx('h-2 w-2 rounded-full', sos.isError ? 'bg-emergency' : 'bg-success')} />
-            {sos.isError ? 'Koneksi ke server terputus' : 'Terhubung ke server'}
+            {sos.isError ? 'Koneksi terputus, mencoba lagi…' : 'Terhubung'}
           </p>
           <p className="mt-1">Panggilan darurat dicek setiap 5 detik.</p>
         </div>
@@ -683,7 +683,7 @@ function AdminShell({ user }: { user: User }) {
           <p className="flex items-center gap-1.5 font-semibold text-navy">
             <Icon name="shield" className="text-[16px] text-primary" /> Akses admin
           </p>
-          <p className="mt-1">Semua aksi persetujuan tercatat di sisi server.</p>
+          <p className="mt-1">Semua persetujuan tercatat otomatis.</p>
         </div>
       </aside>
 
@@ -697,7 +697,7 @@ function AdminShell({ user }: { user: User }) {
           </Link>
           <span className="hidden items-center gap-2 rounded-full bg-success-soft px-3 py-1.5 font-label text-xs font-semibold text-success md:inline-flex">
             <span className={cx('h-2 w-2 rounded-full', pending.isError ? 'bg-emergency' : 'bg-success')} />
-            {pending.isError ? 'Koneksi API terputus' : 'API terhubung'}
+            {pending.isError ? 'Koneksi terputus, mencoba lagi…' : 'Terhubung'}
           </span>
           <AdminSearchBox />
           <div className="ml-auto flex items-center gap-3">
