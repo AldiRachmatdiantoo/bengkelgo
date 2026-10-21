@@ -2,6 +2,8 @@
 
 Dibuat otomatis dari skema database yang berjalan (`backend/scripts/erd/build-erd.py`). 17 tabel, 27 relasi. Migrasi: `001_init` s/d `005_reminder_2h`.
 
+Versi teks untuk **QuickDBD** (app.quickdatabasediagrams.com): [erd-quickdbd.txt](erd-quickdbd.txt), dibuat dengan `backend/scripts/erd/build-quickdbd.py` dari ekspor kolom (dengan `column_default`), relasi, dan enum database lokal.
+
 Cara baca garis: `||` tepat satu, `|o` nol atau satu, `o{` nol atau banyak. Label garis = kolom foreign key.
 
 ## Gambaran relasi

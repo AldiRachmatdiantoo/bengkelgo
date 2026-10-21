@@ -1,0 +1,245 @@
+# BengkelGo database (PostgreSQL + PostGIS), generated from migrations 001-005
+# Paste into https://app.quickdatabasediagrams.com
+#
+# Enum types:
+#   order_status: PENDING, CONFIRMED, IN_QUEUE, ACCEPTED, IN_PROGRESS, COMPLETED, CANCELLED, UNASSIGNED
+#   order_type: EMERGENCY, BOOKING
+#   payment_status: UNPAID, PENDING_VERIFICATION, VERIFIED, REJECTED, REFUNDED
+#   user_role: CUSTOMER, GUEST, WORKSHOP_OWNER, ADMIN
+#   vehicle_type: MOTOR, MOBIL
+#   workshop_status: PENDING, APPROVED, REJECTED, SUSPENDED
+
+users
+-
+id uuid PK default=gen_random_uuid()
+name varchar
+email varchar NULL UNIQUE
+phone varchar NULL
+password_hash text NULL
+role user_role default='CUSTOMER'
+google_sub varchar NULL UNIQUE
+last_location geography(Point,4326) NULL
+is_active boolean default=true
+created_at timestamptz default=now()
+updated_at timestamptz default=now()
+
+refresh_tokens
+-
+id uuid PK default=gen_random_uuid()
+user_id uuid FK >- users.id
+token_hash bpchar UNIQUE
+family_id uuid
+expires_at timestamptz
+revoked_at timestamptz NULL
+replaced_by uuid FK >- refresh_tokens.id NULL
+user_agent varchar NULL
+created_at timestamptz default=now()
+
+workshops
+-
+id uuid PK default=gen_random_uuid()
+owner_id uuid FK >- users.id UNIQUE
+name varchar
+description text NULL
+address text
+phone varchar
+location geography(Point,4326)
+vehicle_types vehicle_type[]
+status workshop_status default='PENDING'
+status_reason text NULL
+is_open boolean default=true
+accepts_emergency boolean default=true
+open_time time default='08:00:00'
+close_time time default='17:00:00'
+max_slot_per_hour smallint default=3
+qris_image_path text NULL
+avg_rating numeric default=0
+total_reviews int default=0
+approved_at timestamptz NULL
+created_at timestamptz default=now()
+updated_at timestamptz default=now()
+closed_weekdays int2[] default='{}'
+break_start time NULL
+break_end time NULL
+
+services
+-
+id uuid PK default=gen_random_uuid()
+workshop_id uuid FK >- workshops.id
+name varchar
+description text NULL
+price numeric
+duration_minutes smallint default=60
+vehicle_type vehicle_type
+is_active boolean default=true
+created_at timestamptz default=now()
+updated_at timestamptz default=now()
+deleted_at timestamptz NULL
+
+mechanics
+-
+id uuid PK default=gen_random_uuid()
+workshop_id uuid FK >- workshops.id
+name varchar
+phone varchar NULL
+specializations text[] default='{}'
+is_active boolean default=true
+avg_rating numeric default=0
+total_reviews int default=0
+created_at timestamptz default=now()
+updated_at timestamptz default=now()
+photo_path text NULL
+
+workshop_quotas
+-
+id uuid PK default=gen_random_uuid()
+workshop_id uuid FK >- workshops.id
+slot_date date
+slot_time time
+max_slot_per_hour smallint
+current_booked smallint default=0
+updated_at timestamptz default=now()
+
+workshop_holidays
+-
+id uuid PK default=gen_random_uuid()
+workshop_id uuid FK >- workshops.id
+holiday_date date
+note varchar NULL
+created_at timestamptz default=now()
+
+workshop_photos
+-
+id uuid PK default=gen_random_uuid()
+workshop_id uuid FK >- workshops.id
+path text
+is_cover boolean default=false
+sort_order smallint default=0
+created_at timestamptz default=now()
+
+vehicles
+-
+id uuid PK default=gen_random_uuid()
+user_id uuid FK >- users.id
+vehicle_type vehicle_type
+brand varchar
+model varchar NULL
+year smallint NULL
+color varchar NULL
+plate varchar NULL
+deleted_at timestamptz NULL
+created_at timestamptz default=now()
+updated_at timestamptz default=now()
+
+orders
+-
+id uuid PK default=gen_random_uuid()
+order_number varchar UNIQUE
+type order_type
+status order_status
+customer_id uuid FK >- users.id
+workshop_id uuid FK >- workshops.id NULL
+mechanic_id uuid FK >- mechanics.id NULL
+vehicle_type vehicle_type
+vehicle_plate varchar NULL
+notes text NULL
+total_amount numeric default=0
+completed_at timestamptz NULL
+cancelled_at timestamptz NULL
+created_at timestamptz default=now()
+updated_at timestamptz default=now()
+cancel_reason text NULL
+cancelled_by varchar NULL
+vehicle_id uuid FK >- vehicles.id NULL
+
+booking_details
+-
+order_id uuid PK FK >- orders.id
+service_id uuid FK >- services.id
+booking_date date
+time_slot time
+queue_number int
+reminder_sent boolean default=false
+reminder_2h_sent boolean default=false
+
+emergency_details
+-
+order_id uuid PK FK >- orders.id
+location geography(Point,4326)
+address_note text NULL
+problem_description text
+distance_meters numeric NULL
+response_deadline timestamptz NULL
+routing_attempts smallint default=1
+attempted_workshop_ids uuid[] default='{}'
+responded_at timestamptz NULL
+price_min numeric NULL
+price_max numeric NULL
+problem_category varchar NULL
+
+transactions
+-
+id uuid PK default=gen_random_uuid()
+order_id uuid FK >- orders.id UNIQUE
+amount numeric default=0
+status payment_status default='UNPAID'
+proof_path text NULL
+proof_mime varchar NULL
+uploaded_at timestamptz NULL
+verified_by uuid FK >- users.id NULL
+verified_at timestamptz NULL
+rejection_reason text NULL
+created_at timestamptz default=now()
+updated_at timestamptz default=now()
+refunded_at timestamptz NULL
+refunded_by uuid FK >- users.id NULL
+refund_note text NULL
+invoice_number varchar NULL UNIQUE
+payer_reference varchar NULL
+payer_name varchar NULL
+
+reviews
+-
+id uuid PK default=gen_random_uuid()
+order_id uuid FK >- orders.id UNIQUE
+customer_id uuid FK >- users.id
+workshop_id uuid FK >- workshops.id
+mechanic_id uuid FK >- mechanics.id NULL
+rating smallint
+comment text NULL
+created_at timestamptz default=now()
+owner_reply text NULL
+replied_at timestamptz NULL
+
+notifications
+-
+id uuid PK default=gen_random_uuid()
+user_id uuid FK >- users.id
+type varchar
+title varchar
+body text NULL
+link varchar NULL
+read_at timestamptz NULL
+created_at timestamptz default=now()
+
+order_status_history
+-
+id bigint PK
+order_id uuid FK >- orders.id
+kind varchar
+from_status varchar NULL
+to_status varchar
+actor_id uuid FK >- users.id NULL
+actor_role varchar NULL
+created_at timestamptz default=clock_timestamp()
+
+audit_logs
+-
+id bigint PK
+actor_id uuid FK >- users.id NULL
+actor_role varchar NULL
+action varchar
+entity varchar
+entity_id uuid NULL
+details jsonb default='{}'
+created_at timestamptz default=now()
