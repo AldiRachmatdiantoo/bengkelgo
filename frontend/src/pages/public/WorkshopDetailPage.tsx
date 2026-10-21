@@ -155,13 +155,15 @@ export default function WorkshopDetailPage() {
         <div className="flex min-w-0 flex-col gap-6">
           {/* Workshop + chosen package */}
           <section className="relative overflow-hidden rounded-xl border border-line bg-card shadow-sm">
-            <span className="absolute inset-x-0 top-0 h-[3px] bg-primary" />
-            {!!w.photos?.length && <PhotoStrip photos={w.photos} name={w.name} />}
+            <span className="absolute inset-x-0 top-0 z-10 h-[3px] bg-primary" />
+            {!!w.photos?.length && <PhotoGallery photos={w.photos} name={w.name} />}
             <div className="p-5 sm:p-6">
               <div className="flex items-start gap-3 sm:gap-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-sky text-primary sm:h-12 sm:w-12">
-                  <Icon name="storefront" />
-                </span>
+                {!w.photos?.length && (
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-sky text-primary sm:h-12 sm:w-12">
+                    <Icon name="storefront" />
+                  </span>
+                )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full bg-sky px-2 py-0.5 font-label text-xs font-bold whitespace-nowrap text-primary">
@@ -489,18 +491,36 @@ export default function WorkshopDetailPage() {
 }
 
 /** Workshop photos uploaded by the owner (cover first); scrolls sideways on small screens. */
-function PhotoStrip({ photos, name }: { photos: { id: string; url: string; is_cover: boolean }[]; name: string }) {
+/** Workshop photos: the cover across the full card, and small thumbnails to switch when there are more. */
+function PhotoGallery({ photos, name }: { photos: { id: string; url: string; is_cover: boolean }[]; name: string }) {
+  const [active, setActive] = useState(0);
+  const current = photos[Math.min(active, photos.length - 1)];
   return (
-    <div className="flex snap-x gap-2 overflow-x-auto p-2 pb-0" data-testid="workshop-photos">
-      {photos.map((p, i) => (
-        <img
-          key={p.id}
-          src={apiAsset(p.url)!}
-          alt={i === 0 ? `Foto ${name}` : `Foto ${name} ${i + 1}`}
-          loading="lazy"
-          className={cx('h-40 shrink-0 snap-start rounded-lg object-cover', i === 0 ? 'w-72 sm:w-96' : 'w-52')}
-        />
-      ))}
+    <div data-testid="workshop-photos">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-surface-low sm:aspect-[21/8]">
+        <img src={apiAsset(current.url)!} alt={`Foto ${name}`} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+        {photos.length > 1 && (
+          <span className="absolute right-3 bottom-3 rounded-full bg-black/60 px-2.5 py-1 font-label text-[11px] font-bold text-white">
+            {active + 1}/{photos.length}
+          </span>
+        )}
+      </div>
+      {photos.length > 1 && (
+        <div className="flex gap-2 overflow-x-auto px-5 pt-3 sm:px-6">
+          {photos.map((p, i) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setActive(i)}
+              aria-label={`Lihat foto ${i + 1}`}
+              aria-pressed={i === active}
+              className={cx('h-14 w-20 shrink-0 overflow-hidden rounded-md ring-2 transition', i === active ? 'ring-primary' : 'ring-transparent opacity-70 hover:opacity-100')}
+            >
+              <img src={apiAsset(p.url)!} alt="" loading="lazy" className="h-full w-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

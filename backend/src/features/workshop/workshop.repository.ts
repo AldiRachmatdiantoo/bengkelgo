@@ -148,9 +148,10 @@ export const workshopRepository = {
           ? `(0.6 * GREATEST(0, 1 - distance_meters / $3::float8) + 0.4 * ${rating} / 5) DESC, distance_meters ASC`
           : `w.avg_rating DESC, w.total_reviews DESC, ${hasPoint ? 'distance_meters ASC' : 'w.name ASC'}`;
     // Subquery so ORDER BY expressions can use the distance_meters alias.
-    const { rows } = await q.query<WorkshopRow & { distance_meters: number | null }>(
+    const { rows } = await q.query<WorkshopRow & { distance_meters: number | null; cover_photo_id: string | null }>(
       `SELECT w.* FROM (
          SELECT ${WORKSHOP_COLS},
+           (SELECT p.id FROM workshop_photos p WHERE p.workshop_id = w.id ORDER BY p.is_cover DESC, p.sort_order, p.created_at LIMIT 1) AS cover_photo_id,
            CASE WHEN $1::float8 IS NULL THEN NULL
                 ELSE ST_Distance(w.location, ST_SetSRID(ST_MakePoint($2::float8, $1::float8), 4326)::geography) END AS distance_meters
          FROM workshops w

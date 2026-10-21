@@ -170,6 +170,9 @@ describeDb('Backlog paket B (integration)', () => {
     await request(app).patch(`${API}/workshops/photos/${second.id}/cover`).set(ws.owner.auth).expect(200);
     const detail = (await request(app).get(`${API}/workshops/${ws.workshopId}`)).body.data;
     expect(detail.photos[0]).toMatchObject({ id: second.id, is_cover: true });
+    // The workshop list carries the cover for the cards.
+    const listed = ((await request(app).get(`${API}/workshops`).query({ limit: 100 })).body.data as { id: string; cover_photo_url: string | null }[]).find((w) => w.id === ws.workshopId);
+    expect(listed?.cover_photo_url).toBe(`/workshops/${ws.workshopId}/photos/${second.id}`);
 
     // Deleting the cover promotes another photo; the file is removed from disk.
     await request(app).delete(`${API}/workshops/photos/${second.id}`).set(ws.owner.auth).expect(200);

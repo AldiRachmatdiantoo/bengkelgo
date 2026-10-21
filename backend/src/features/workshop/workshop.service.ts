@@ -68,7 +68,8 @@ export const workshopService = {
       limit: q.limit,
       offset: (q.page - 1) * q.limit,
     });
-    return rows.map(publicWorkshop);
+    // Cover photo for the workshop cards (null: the card shows its illustration instead).
+    return rows.map(({ cover_photo_id, ...w }) => ({ ...publicWorkshop(w), cover_photo_url: cover_photo_id ? photoUrl(w.id, cover_photo_id) : null }));
   },
 
   async detail(id: string) {

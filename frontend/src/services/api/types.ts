@@ -36,6 +36,8 @@ export interface AuthPayload {
 export interface Workshop {
   id: string;
   name: string;
+  /** Cover photo (workshop list only); null when the workshop has no photos yet. */
+  cover_photo_url?: string | null;
   description: string | null;
   address: string;
   phone: string;

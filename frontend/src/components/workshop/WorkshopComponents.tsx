@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Mechanic, Review, Service, SlotAvailability, VehicleType, Workshop } from '@/services/api/types';
 import { EmptyState, Icon, Stars, cx } from '@/components/ui';
 import { dateTime, distance, jakartaDate, rupiah } from '@/utils/format';
+import { apiAsset } from '@/services/api/endpoints';
 
 export const vehicleLabel = (v: VehicleType) => (v === 'MOTOR' ? 'Motor' : 'Mobil');
 export const vehicleIcon = (v: VehicleType) => (v === 'MOTOR' ? 'two_wheeler' : 'directions_car');
@@ -48,10 +49,26 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
       data-testid="workshop-card"
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-line bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lift"
     >
-      {/* Visual header: stands in for the workshop photo until the API stores photos (BE-2). */}
+      {/* Cover photo when the workshop has one, otherwise an illustration; a dark fade keeps the name readable. */}
       <div className="relative aspect-[16/8] overflow-hidden bg-gradient-to-br from-primary to-navy">
-        <div className="absolute inset-0 opacity-15 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:16px_16px]" />
-        <Icon name="car_repair" className="absolute -right-4 -bottom-6 text-[140px] text-white/15" />
+        {workshop.cover_photo_url ? (
+          <>
+            <img
+              src={apiAsset(workshop.cover_photo_url)!}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+              data-testid="workshop-card-photo"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0 opacity-15 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:16px_16px]" />
+            <Icon name="car_repair" className="absolute -right-4 -bottom-6 text-[140px] text-white/15" />
+          </>
+        )}
         <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 font-label text-[11px] font-bold text-navy shadow-sm">
           <Icon name="verified" filled className="text-[14px] text-primary" /> {featured ? 'Rekomendasi BengkelGo' : 'Mitra Resmi BengkelGo'}
         </span>
