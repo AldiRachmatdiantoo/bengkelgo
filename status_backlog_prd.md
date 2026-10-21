@@ -189,7 +189,7 @@ Keluhan penguji: "lokasi ditolak". Website **tidak bisa** memunculkan lagi pop-u
 | 404 | Cron pengingat email H-1 (+ H-2 jam) | ✅ email asli terkirim via Gmail 20 Okt [catatan](#pbi-404-cron-pengingat-email) |
 | 405 | Approval bengkel oleh admin | ✅ |
 | 406 | Laporan transaksi | ✅ |
-| 407 | E2E Playwright/Cypress + deploy Vercel | ⚠️ E2E ✅, deploy ✅ live 20 Okt, Gmail API ✅ terisi di Render (dicek 21 Okt) (sisa: ping, uji produksi) [lihat catatan](#pbi-407-e2e-testing--deploy-vercel) |
+| 407 | E2E Playwright/Cypress + deploy Vercel | ⚠️ E2E ✅, deploy ✅ live 20 Okt, Gmail API ✅ terisi di Render, ping cron-job.org ✅ (dikonfirmasi tim 21 Okt) (sisa: uji produksi) [lihat catatan](#pbi-407-e2e-testing--deploy-vercel) |
 
 ---
 
@@ -327,7 +327,8 @@ Pengujian ini menemukan 2 bug di frontend, dan keduanya sudah diperbaiki.
 
 **✅ LIVE 20 Okt 2026:** web https://bengkelgo-eight.vercel.app, API https://bengkelgo-api.onrender.com (Render Free, Singapore; kartu debit virtual Jago hanya untuk verifikasi Render), database & Storage Supabase (Singapore). Migrasi 001–005 jalan otomatis, admin dibuat dengan `npm run seed`. `TRUST_PROXY=4` (diukur: Vercel → Cloudflare → Render internal → lokal); halaman admin Kesehatan sistem menampilkan rantai header proxy untuk mengecek ulang.
 - **✅ Gmail API sudah diisi di Render** (`GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`; dicek 21 Okt). Email booking produksi terkirim, tapi pernah **masuk folder spam** penerima (akun Gmail pribadi tanpa domain sendiri; lihat catatan pengiriman di PBI-404). Pastikan juga `APP_URL` = URL Vercel agar tautan di email tidak menunjuk ke `localhost`.
-- **Belum:** ping cron-job.org (langkah 7), uji alur lengkap di produksi (langkah 8).
+- **✅ Ping cron-job.org** ke `/health` sudah dipasang (dikonfirmasi tim 21 Okt).
+- **Belum:** uji alur lengkap di produksi (langkah 8).
 - **Risiko kecil yang dicatat:** request yang langsung ke alamat Render (tanpa Vercel) bisa memalsukan `X-Forwarded-For` dan mengakali pembatas login. ✅ 21 Okt: pembatas login kini juga per email (10 percobaan / 15 menit).
 
 **✅ Disiapkan 20 Okt: jalur deploy gratis tanpa kartu kredit** (keputusan: tidak ada kartu untuk Oracle Cloud). Susunan: Vercel (frontend) → proxy `/api/*` → Render Free (API Docker, `render.yaml`) → Supabase (database + Storage) + Gmail API; cron-job.org mem-ping `/health` tiap 10 menit. Panduan lengkap langkah demi langkah: **[docs/deploy-gratis.md](docs/deploy-gratis.md)**. Perubahan kode (tanpa perubahan database):
