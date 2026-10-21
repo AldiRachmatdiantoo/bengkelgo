@@ -153,50 +153,59 @@ export default function WorkshopDetailPage() {
           <section className="relative overflow-hidden rounded-xl border border-line bg-card shadow-sm">
             <span className="absolute inset-x-0 top-0 h-[3px] bg-primary" />
             {!!w.photos?.length && <PhotoStrip photos={w.photos} name={w.name} />}
-            <div className="flex flex-wrap items-start gap-4 p-5 sm:p-6">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-sky text-primary">
-                <Icon name="storefront" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-label text-xs text-ink-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-sky px-2 py-0.5 font-bold text-primary">
-                    <Icon name="verified" className="text-[14px]" /> Mitra Resmi BengkelGo
-                  </span>
-                  <span>•</span>
-                  <Stars value={w.avg_rating} count={w.total_reviews} />
-                  <span>•</span>
-                  <span className={w.is_open ? 'font-semibold text-success' : 'text-ink-3'}>{w.is_open ? `Buka ${w.open_time}–${w.close_time}` : 'Sedang tutup'}</span>
-                  <span>•</span>
-                  {geo.position ? (
-                    <span className="inline-flex items-center gap-1 font-semibold text-navy" data-testid="workshop-distance">
-                      <Icon name="near_me" className="text-[14px] text-primary" /> {distance(metersBetween(geo.position, { lat: w.latitude, lng: w.longitude }))} dari lokasi Anda
+            <div className="p-5 sm:p-6">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-sky text-primary sm:h-12 sm:w-12">
+                  <Icon name="storefront" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-sky px-2 py-0.5 font-label text-xs font-bold whitespace-nowrap text-primary">
+                      <Icon name="verified" className="text-[14px]" /> Mitra Resmi<span className="hidden sm:inline"> BengkelGo</span>
                     </span>
-                  ) : (
-                    <button type="button" onClick={geo.locate} disabled={geo.locating} className="inline-flex items-center gap-1 font-semibold text-primary hover:underline disabled:opacity-60">
-                      <Icon name="my_location" className="text-[14px]" /> {geo.locating ? 'Mencari lokasi…' : 'Hitung jarak dari lokasi saya'}
-                    </button>
-                  )}
-                </p>
-                {geo.error && <p className="mt-1 font-label text-xs text-warning-ink">{geo.error.replace(' Pilih lokasi di peta.', '')}</p>}
-                <h1 className="mt-1 text-headline-md text-navy">{w.name}</h1>
-                <p className="mt-0.5 text-sm text-ink-2">{w.address}</p>
-                {nextSlot.data && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDate(nextSlot.data!.booking_date);
-                      setSlot(nextSlot.data!.time_slot);
-                    }}
-                    className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-success-soft px-2.5 py-1 font-label text-xs font-semibold text-success hover:brightness-95"
-                    data-testid="next-slot"
-                  >
-                    <Icon name="bolt" className="text-[16px]" /> Slot terdekat: {friendlyDay(nextSlot.data.booking_date)}, {nextSlot.data.time_slot} WIB (pilih)
+                    <Link to="/workshops" className="shrink-0 rounded-lg bg-sky px-3 py-1.5 font-label text-xs font-bold text-primary hover:bg-primary-fixed/60">
+                      Ubah Bengkel
+                    </Link>
+                  </div>
+                  <h1 className="mt-1.5 text-headline-md break-words text-navy">{w.name}</h1>
+                  <p className="mt-0.5 text-sm text-ink-2">{w.address}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-label text-xs text-ink-2">
+                <Stars value={w.avg_rating} count={w.total_reviews} />
+                <span className={cx('inline-flex items-center gap-1', w.is_open ? 'font-semibold text-success' : 'text-ink-3')}>
+                  <Icon name="schedule" className="text-[14px]" /> {w.is_open ? `Buka ${w.open_time}–${w.close_time}` : 'Sedang tutup'}
+                </span>
+                {geo.position ? (
+                  <span className="inline-flex items-center gap-1 font-semibold text-navy" data-testid="workshop-distance">
+                    <Icon name="near_me" className="text-[14px] text-primary" /> {distance(metersBetween(geo.position, { lat: w.latitude, lng: w.longitude }))} dari lokasi Anda
+                  </span>
+                ) : (
+                  <button type="button" onClick={geo.locate} disabled={geo.locating} className="inline-flex items-center gap-1 font-semibold text-primary hover:underline disabled:opacity-60">
+                    <Icon name="my_location" className="text-[14px]" /> {geo.locating ? 'Mencari lokasi…' : 'Hitung jarak dari lokasi saya'}
                   </button>
                 )}
               </div>
-              <Link to="/workshops" className="rounded-lg bg-sky px-3 py-2 font-label text-xs font-bold text-primary hover:bg-primary-fixed/60">
-                Ubah Bengkel
-              </Link>
+              {geo.error && <p className="mt-1 font-label text-xs text-warning-ink">{geo.error.replace(' Pilih lokasi di peta.', '')}</p>}
+
+              {nextSlot.data && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDate(nextSlot.data!.booking_date);
+                    setSlot(nextSlot.data!.time_slot);
+                  }}
+                  className="mt-3 flex w-full items-center gap-2 rounded-lg bg-success-soft px-3 py-2 text-left font-label text-xs text-success hover:brightness-95 sm:inline-flex sm:w-auto"
+                  data-testid="next-slot"
+                >
+                  <Icon name="bolt" className="text-[18px]" />
+                  <span className="min-w-0 flex-1">
+                    Slot terdekat: <b>{friendlyDay(nextSlot.data.booking_date)}, {nextSlot.data.time_slot} WIB</b>
+                  </span>
+                  <span className="shrink-0 rounded-md bg-success px-2 py-0.5 font-bold text-white">Pilih</span>
+                </button>
+              )}
             </div>
 
             <div id="booking-service" className="border-t border-line p-5 sm:p-6">
