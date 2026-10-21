@@ -49,7 +49,7 @@ src/
 | Rate limits 10/min emergency, 15/15 min auth | `rateLimiter.ts`: Redis sliding window in an atomic Lua script, with a memory fallback |
 | Helmet, CORS allow-list, Zod validation, parameterised SQL | `app.ts`, `validate.ts`, all repositories |
 | Refresh rotation + reuse detection | `auth.service.refresh()`: only token hashes are stored, and reusing a token revokes the whole family |
-| QRIS upload < 2 MB, real image type | `upload.ts` checks multer limits and magic bytes, and files get random names. iPhone HEIC (≤ 10 MB) is converted to a JPEG < 2 MB in a short-lived worker (`common/utils/heic.ts`); `HEIC_MAX_MEGAPIXELS=0` turns this off (Render: the web app converts in the browser) |
+| QRIS upload < 2 MB, real image type | `upload.ts` checks multer limits and magic bytes, and files get random names. iPhone HEIC (≤ 10 MB) is converted to a JPEG < 2 MB in a short-lived worker (`common/utils/heic.ts`); off unless `HEIC_MAX_MEGAPIXELS` is set (default 0; the web app converts in the browser) |
 | Reminder ~2 hours before the slot (in-app + email) | `jobs/bookingReminder.job.ts` → `sendSoonReminders()`, every 5 minutes, `reminder_2h_sent` |
 | Daily reminder for `CURRENT_DATE + 1` | `jobs/bookingReminder.job.ts`, which claims rows atomically and sets `reminder_sent = true` |
 | BOLA protection | Every order, payment or workshop lookup is scoped to the caller. When you don't own a resource the API returns 404 instead of 403, so it doesn't reveal that the resource exists. |

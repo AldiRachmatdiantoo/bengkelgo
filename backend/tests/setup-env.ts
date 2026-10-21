@@ -19,3 +19,4 @@ process.env.SMTP_USER = '';
 process.env.SMTP_PASS = '';
 process.env.GMAIL_REFRESH_TOKEN = '';
 process.env.STORAGE_DRIVER = 'local';
+process.env.HEIC_MAX_MEGAPIXELS = '13'; // exercise the server-side HEIC fallback
