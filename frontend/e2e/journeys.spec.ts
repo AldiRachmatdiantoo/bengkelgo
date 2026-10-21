@@ -283,6 +283,15 @@ test('uploads: videos are refused in the browser, oversized photos are shrunk be
   const res = page.waitForResponse((r) => r.url().includes('/workshops/qris'));
   await page.getByTestId('qris-submit').click();
   expect((await res).ok()).toBeTruthy();
+
+  // An iPhone HEIC photo (Chromium can't open HEIC itself) is converted in the browser and sent as JPEG.
+  const heic = (await import('node:fs')).readFileSync(new URL('../../backend/tests/fixtures/photo-12mp.heic', import.meta.url));
+  await page.getByTestId('qris-input').setInputFiles({ name: 'IMG_0001.HEIC', mimeType: 'image/heic', buffer: heic });
+  // "Diperkecil dari" only appears when the browser itself produced the JPEG (the server fallback sends it as-is).
+  await expect(page.getByText(/Diperkecil dari/)).toBeVisible({ timeout: 30_000 });
+  const heicRes = page.waitForResponse((r) => r.url().includes('/workshops/qris'));
+  await page.getByTestId('qris-submit').click();
+  expect((await heicRes).ok()).toBeTruthy();
 });
 
 test('login sends a workshop owner back to the order link they opened', async ({ browser }) => {

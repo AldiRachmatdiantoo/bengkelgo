@@ -34,7 +34,7 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   else if (err instanceof multer.MulterError) {
     appErr =
       err.code === 'LIMIT_FILE_SIZE'
-        ? AppError.badRequest(`File exceeds ${Math.floor(env.MAX_UPLOAD_BYTES / 1024 / 1024)}MB limit`, 'FILE_TOO_LARGE')
+        ? AppError.badRequest(`File exceeds ${Math.floor(Math.max(env.MAX_UPLOAD_BYTES, env.MAX_HEIC_UPLOAD_BYTES) / 1024 / 1024)}MB limit`, 'FILE_TOO_LARGE')
         : AppError.badRequest(err.message, 'UPLOAD_ERROR');
   } else if ((err as any)?.type === 'entity.parse.failed') appErr = AppError.badRequest('Malformed JSON body', 'INVALID_JSON');
   else if ((err as any)?.type === 'entity.too.large') appErr = new AppError(413, 'PAYLOAD_TOO_LARGE', 'Payload too large');

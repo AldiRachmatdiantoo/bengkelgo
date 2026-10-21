@@ -1,8 +1,10 @@
-// Checks and shrinks a photo in the browser before it is uploaded (QRIS image, payment proof).
-// The API only accepts real JPEG/PNG/WEBP images under 2 MB, so we catch the common problems here
-// (videos, PDFs, renamed files, 4 MB phone photos) with a clear Indonesian message instead of a failed upload.
+// Checks and shrinks a photo in the browser before it is uploaded (QRIS image, payment proof, workshop photos).
+// The API stores JPEG/PNG/WEBP images under 2 MB, so we catch the common problems here (videos, PDFs, renamed
+// files, 4 MB phone photos, iPhone HEIC photos) with a clear Indonesian message instead of a failed upload.
 
 export const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
+/** iPhone HEIC photos the browser can't convert are sent as-is up to this size (the server converts them). */
+export const MAX_HEIC_UPLOAD_BYTES = 10 * 1024 * 1024;
 export const ACCEPT_IMAGES = 'image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif';
 
 type RealType = 'image/jpeg' | 'image/png' | 'image/webp' | 'heic' | null;
@@ -53,6 +55,19 @@ function loadBitmap(file: Blob, timeoutMs = 15_000): Promise<ImageBitmap | HTMLI
   });
 }
 
+/**
+ * Opens an iPhone HEIC photo in browsers without built-in HEIC support (Chrome, Android, Windows). The decoder
+ * (WebAssembly, ~2 MB) is downloaded only when someone actually picks a HEIC photo. Null when it can't.
+ */
+async function decodeHeic(file: Blob): Promise<ImageBitmap | null> {
+  try {
+    const { heicTo } = await import('heic-to');
+    return await heicTo({ blob: file, type: 'bitmap' });
+  } catch {
+    return null;
+  }
+}
+
 function toBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
 }
@@ -90,11 +105,17 @@ export async function prepareImage(file: File, opts: { maxSide?: number } = {}):
   try {
     img = await loadBitmap(file);
   } catch {
-    throw new ImageCheckError(
-      real === 'heic'
-        ? 'Foto HEIC dari iPhone belum bisa dibuka di browser ini. Unggah screenshot, atau atur kamera iPhone ke "Most Compatible" (JPG).'
-        : `Foto terlalu besar (${kb(file.size)}) dan tidak bisa diperkecil otomatis. Pilih foto di bawah 2 MB.`,
-    );
+    const heic = real === 'heic' ? await decodeHeic(file) : null;
+    if (heic) img = heic;
+    // Last resort for iPhone photos: let the server convert it.
+    else if (real === 'heic' && file.size <= MAX_HEIC_UPLOAD_BYTES) return { file, changed: false, originalSize: file.size };
+    else {
+      throw new ImageCheckError(
+        real === 'heic'
+          ? 'Foto iPhone ini belum bisa dibuka. Unggah screenshot, atau atur kamera iPhone ke "Paling Kompatibel" (Pengaturan > Kamera > Format).'
+          : `Foto terlalu besar (${kb(file.size)}) dan tidak bisa diperkecil otomatis. Pilih foto di bawah 2 MB.`,
+      );
+    }
   }
 
   let side = maxSide;

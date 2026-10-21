@@ -44,6 +44,10 @@ const schema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional().default(''),
   SUPABASE_BUCKET: z.string().default('uploads'),
   MAX_UPLOAD_BYTES: z.coerce.number().int().positive().default(2 * 1024 * 1024),
+  // iPhone HEIC photos are accepted up to this size, then converted to a JPEG within MAX_UPLOAD_BYTES.
+  MAX_HEIC_UPLOAD_BYTES: z.coerce.number().int().positive().default(10 * 1024 * 1024),
+  // Server-side HEIC conversion is refused above this size (decoding needs ~30 MB per megapixel); 0 = off.
+  HEIC_MAX_MEGAPIXELS: z.coerce.number().positive().default(13),
 
   SMTP_HOST: z.string().optional().default(''),
   SMTP_PORT: z.coerce.number().int().positive().default(587),

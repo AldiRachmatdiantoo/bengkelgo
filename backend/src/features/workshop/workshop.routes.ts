@@ -27,7 +27,7 @@ const idParam = { params: uuidParam('id') };
 // ---------- Owner portal (static paths first so they never match /:id) ----------
 r.get('/me', ...owner, c.myWorkshop);
 r.put('/profile', ...owner, validate({ body: updateProfileSchema }), c.updateProfile);
-r.put('/qris', ...owner, imageUpload('qris'), c.uploadQris);
+r.put('/qris', ...owner, imageUpload('qris', { maxSide: 2000 }), c.uploadQris);
 
 r.get('/services', ...owner, c.listServices);
 r.post('/services', ...owner, validate({ body: serviceSchema }), c.createService);

@@ -43,6 +43,9 @@ services:
         value: "4"
 
       # Uploaded images in a private Supabase Storage bucket (Render Free has no persistent disk)
+      # 512 MB plan: iPhone HEIC photos are converted in the browser; server-side conversion stays off (0).
+      - key: HEIC_MAX_MEGAPIXELS
+        value: "0"
       - key: STORAGE_DRIVER
         value: supabase
       - key: SUPABASE_URL

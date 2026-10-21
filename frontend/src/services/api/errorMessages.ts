@@ -25,6 +25,8 @@ export const ERROR_MESSAGES: Record<string, string> = {
   GEOCODE_UNAVAILABLE: 'Pencarian lokasi sedang tidak tersedia. Tandai lokasi langsung di peta.',
 
   // Uploads
+  HEIC_NOT_SUPPORTED: 'Foto iPhone ini belum bisa diproses. Unggah screenshot, atau atur kamera iPhone ke "Paling Kompatibel" (Pengaturan > Kamera > Format).',
+  HEIC_TOO_LARGE: 'Foto iPhone ini terlalu besar untuk diproses. Unggah screenshot, atau atur kamera iPhone ke "Paling Kompatibel" (Pengaturan > Kamera > Format).',
   INVALID_FILE_TYPE: 'File harus berupa foto JPG, PNG, atau WEBP. Video dan PDF tidak bisa diunggah.',
   FILE_TOO_LARGE: 'Ukuran foto melebihi 2 MB. Pilih foto yang lebih kecil.',
   FILE_REQUIRED: 'Pilih foto terlebih dahulu.',

@@ -52,7 +52,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 
 **Tahap 21 Okt 2026:** ✅ pengaman booking, batas login per email, repository 6 fitur, antrean email di database, verifikasi email, pencarian lokasi + alamat dari titik, bilah bawah HP lebih ringkas, bahasa non-teknis di tampilan. Lihat [Tahap 21 Oktober](#tahap-21-oktober-2026).
 
-**Yang tersisa tanpa tim:** konversi foto HEIC di server (menunggu keputusan, lihat Tahap 21 Oktober). Sisanya butuh akun, izin, keputusan, atau konten (tabel di atas).
+**Yang tersisa tanpa tim:** tidak ada. Sisanya butuh akun, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).
 
@@ -76,7 +76,12 @@ Disetujui tim: nomor 2, 3, 4, 5, 7, 8, 9, 10 (dan 11 setelah penjelasan, lihat d
 
 **Belum di-push** (semua commit 21 Okt setelah pencarian lokasi): menunggu persetujuan. Saat push, Render menjalankan migrasi 006 dan 007 otomatis.
 
-**Nomor 11 (konversi HEIC di server) ditahan, butuh keputusan:** library gambar umum (`sharp`) tidak bisa membaca HEIC, jadi perlu dua library (`heic-convert` untuk membaca HEIC + `sharp` untuk memperkecil) dan konversinya berat untuk RAM Render Free (512 MB). Manfaatnya hanya untuk pengguna iPhone yang mengunggah lewat browser selain Safari (di Safari sudah dikonversi di browser).
+**✅ Nomor 11 (foto HEIC iPhone) selesai 21 Okt, disetujui tim:**
+- **Di browser (utama):** Chrome/Android/Windows yang tidak bisa membuka HEIC memuat decoder `heic-to` (WebAssembly, ±793 KB gzip, file terpisah yang hanya diunduh saat pengguna memilih foto HEIC), lalu foto diperkecil jadi JPEG < 2 MB seperti foto lain. Safari tetap memakai kemampuan bawaannya. Lisensi `heic-to`/libheif: LGPL-3.0 (dimuat apa adanya sebagai file terpisah).
+- **Di server (cadangan):** `heic-decode` + `sharp` 0.35.5 (versi yang sudah menambal celah keamanan libvips/libheif). Diukur: foto 12 MP butuh puncak ±460 MB dan decoder tidak mengembalikan memorinya, jadi decode berjalan di *worker thread* yang dimatikan setelahnya (memori kembali ke ±120 MB), satu per satu, dan ditolak di atas `HEIC_MAX_MEGAPIXELS` (default 13). **Di Render dimatikan** (`HEIC_MAX_MEGAPIXELS=0` di `render.yaml`) karena RAM 512 MB; di sana semua konversi terjadi di browser.
+- Diuji: unit `heic-upload.test.ts` 7/7 (konversi 12 MP → 1600 px < 2 MB, QRIS 2000 px, batas megapiksel, mati/nyala, file rusak, video menyamar), E2E Chromium mengunggah foto iPhone 12 MP lewat Pengaturan Bengkel → dikonversi di browser → diterima API, dicek juga di dalam container Docker.
+
+**Mode gelap portal admin & owner (21 Okt):** tombol bulan/matahari di top bar, default terang, pilihan disimpan per browser, halaman publik selalu terang. Token warna permukaan/garis/teks diganti di mode gelap; warna merek yang juga dipakai sebagai latar tombol hanya diterangkan saat dipakai sebagai teks, sehingga tombol putih-di-biru tetap terbaca. E2E `backlog-features` (saklar tersimpan, publik tetap terang).
 
 ## Perbaikan form & riwayat dibatalkan (20 Okt 2026)
 
