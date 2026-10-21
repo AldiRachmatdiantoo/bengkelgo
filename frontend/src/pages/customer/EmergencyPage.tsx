@@ -88,7 +88,7 @@ export default function EmergencyPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 pb-32 lg:pb-0">
+    <div className="flex flex-col gap-6 pb-20 lg:pb-0">
       {/* Hero */}
       {/* Deep SOS orange (#C2410C) behind long white text: 5.2:1 contrast (WCAG AA). */}
       <section className="relative overflow-hidden rounded-xl bg-emergency-ink p-6 text-white shadow-lift sm:p-8">
@@ -331,23 +331,35 @@ export default function EmergencyPage() {
             </Alert>
           )}
 
-          {/* Sticky on mobile (thumb reach), inline on desktop */}
-          <div className="fixed inset-x-0 bottom-0 z-[900] border-t border-line bg-white/95 p-4 backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0">
-            <Button type="submit" variant="danger" size="lg" icon="e911_emergency" className="w-full" disabled={!canSend} loading={request.isPending} data-testid="sos-submit">
-              Kirim permintaan bantuan
-            </Button>
+          {/* Mobile: one slim bar pinned to the bottom edge (thumb reach, little screen taken). Desktop: inline. */}
+          <div className="fixed inset-x-0 bottom-0 z-[900] border-t border-line bg-white/95 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0">
+            <div className="flex items-center gap-2 lg:block">
+              {missing.some(Boolean) && (
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('sos-missing')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                  aria-label={`Lengkapi ${missing.filter(Boolean).length} isian lagi`}
+                  className="flex h-10 shrink-0 items-center gap-1 rounded-lg bg-warning-soft px-2.5 font-label text-xs font-semibold text-warning-ink lg:hidden"
+                >
+                  <Icon name="checklist" className="text-[16px]" /> {missing.filter(Boolean).length} lagi
+                </button>
+              )}
+              <Button
+                type="submit"
+                variant="danger"
+                size="lg"
+                icon="e911_emergency"
+                className="min-w-0 flex-1 max-lg:h-10 max-lg:px-3 max-lg:text-sm lg:w-full"
+                disabled={!canSend}
+                loading={request.isPending}
+                data-testid="sos-submit"
+              >
+                Kirim permintaan bantuan
+              </Button>
+            </div>
             <div className="hidden lg:block">
               <MissingFields className="mt-2" items={missing} />
             </div>
-            {missing.some(Boolean) && (
-              <button
-                type="button"
-                onClick={() => document.getElementById('sos-missing')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                className="mt-2 flex w-full items-center justify-center gap-1.5 font-label text-xs font-semibold text-warning-ink lg:hidden"
-              >
-                <Icon name="checklist" className="text-[16px]" /> Lengkapi {missing.filter(Boolean).length} isian lagi · lihat
-              </button>
-            )}
           </div>
         </aside>
       </form>

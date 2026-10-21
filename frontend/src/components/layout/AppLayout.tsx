@@ -225,7 +225,7 @@ function PublicShell() {
     // overflow-x-clip: full-bleed landing bands use 100vw; clip (not hidden) keeps the sticky header working.
     <div className="flex min-h-screen flex-col overflow-x-clip">
       <header className="sticky top-0 z-[1000] bg-white/95 shadow-header backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-5 sm:h-20 sm:px-8 lg:px-20">
+        <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:h-20 sm:px-8 lg:px-20">
           <Link to="/" aria-label="BengkelGo beranda" className="shrink-0">
             <Brand />
           </Link>
@@ -421,10 +421,11 @@ function PublicShell() {
           data-a11y-exception="sos-brand-orange"
           aria-label="Bantuan Darurat 24 Jam"
           title="Bantuan Darurat 24 Jam"
-          className="fixed right-4 bottom-4 z-[950] flex h-16 w-16 animate-beacon flex-col items-center justify-center rounded-full bg-emergency font-label text-white shadow-float transition hover:-translate-y-0.5 hover:bg-emergency-dark sm:right-6 sm:bottom-6"
+          // Small on phones so it never covers much of the page; full size from tablet up.
+          className="fixed right-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-[950] flex h-12 w-12 animate-beacon flex-col items-center justify-center rounded-full bg-emergency font-label text-white shadow-float transition hover:-translate-y-0.5 hover:bg-emergency-dark sm:right-6 sm:bottom-6 sm:h-16 sm:w-16"
         >
-          <Icon name="e911_emergency" filled className="text-[24px]" />
-          <span className="text-[10px] leading-none font-extrabold tracking-[0.06em]">SOS</span>
+          <Icon name="e911_emergency" filled className="text-[20px] sm:text-[24px]" />
+          <span className="text-[9px] leading-none font-extrabold tracking-[0.06em] sm:text-[10px]">SOS</span>
         </Link>
       )}
     </div>
@@ -544,7 +545,7 @@ function OwnerShell({ user }: { user: User }) {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-[1000] flex h-16 items-center gap-3 border-b border-line bg-white/95 px-5 backdrop-blur-xl sm:px-8 lg:px-12">
+        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-white/95 px-4 backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
           <button className="grid h-10 w-10 place-items-center rounded-lg hover:bg-sky lg:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}>
             <Icon name={open ? 'close' : 'menu'} />
           </button>
@@ -593,7 +594,7 @@ function OwnerShell({ user }: { user: User }) {
             </Dropdown>
           </div>
         </header>
-        {open && <div className="sticky top-16 z-[999] border-b border-line bg-white p-4 shadow-lift lg:hidden">{nav}</div>}
+        {open && <div className="sticky top-14 z-[999] border-b border-line bg-white p-4 shadow-lift sm:top-16 lg:hidden">{nav}</div>}
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
           <PageFade key={pathname}>
             <Outlet />
@@ -667,7 +668,7 @@ function AdminShell({ user }: { user: User }) {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-[1000] flex h-16 items-center gap-3 border-b border-line bg-white/95 px-5 backdrop-blur-xl sm:px-8 lg:px-12">
+        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-white/95 px-4 backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
           <button className="grid h-10 w-10 place-items-center rounded-lg hover:bg-sky lg:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}>
             <Icon name={open ? 'close' : 'menu'} />
           </button>
@@ -701,7 +702,7 @@ function AdminShell({ user }: { user: User }) {
             </Dropdown>
           </div>
         </header>
-        {open && <div className="sticky top-16 z-[999] border-b border-line bg-white p-4 shadow-lift lg:hidden">{nav}</div>}
+        {open && <div className="sticky top-14 z-[999] border-b border-line bg-white p-4 shadow-lift sm:top-16 lg:hidden">{nav}</div>}
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
           <PageFade key={pathname}>
             <Outlet />
