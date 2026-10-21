@@ -1,4 +1,5 @@
 import { db, withTransaction, type TxClient } from '../../common/db/transaction';
+import { env } from '../../config/env';
 import { setActor, type ActorRole } from '../../common/db/actor';
 import { AppError } from '../../common/errors/AppError';
 import { addDays, hourlySlots, localNow } from '../../common/utils/time';
@@ -60,7 +61,7 @@ async function allocate(tx: TxClient, workshopId: string, date: string, slot: st
 export const bookingService = {
   /**
    * PBI-303/304/305 — create a booking inside ONE transaction:
-   *   advisory day lock -> SELECT quota FOR UPDATE -> INSERT orders + booking_details + transactions
+   *   customer lock + abuse guards -> advisory day lock -> SELECT quota FOR UPDATE -> INSERT orders + booking_details + transactions
    *   -> UPDATE quota (only when a slot unit is consumed) -> COMMIT.
    * Any failure rolls back every insert, so no orphaned order rows or leaked quota.
    */
@@ -78,14 +79,21 @@ export const bookingService = {
     return withTransaction(async (tx) => {
       await setActor(tx, { id: customerId, role });
       const { workshop_id: wid, booking_date: date, time_slot: slot } = input;
+      // Customer lock first, then the day lock (same order everywhere a booking is created: no deadlocks).
+      await bookingRepository.lockCustomer(tx, customerId);
+      if (await bookingRepository.hasActiveBookingInSlot(tx, customerId, wid, date, slot)) {
+        throw AppError.conflict('You already have a booking in this slot', 'DUPLICATE_BOOKING');
+      }
+      if (await bookingRepository.hasActiveBookingOnDay(tx, customerId, wid, date)) {
+        throw AppError.conflict('You already have a booking at this workshop on this date', 'DAILY_WORKSHOP_LIMIT');
+      }
+      if ((await bookingRepository.countActiveBookings(tx, customerId)) >= env.BOOKING_MAX_ACTIVE) {
+        throw AppError.conflict(`You can have at most ${env.BOOKING_MAX_ACTIVE} unfinished bookings`, 'ACTIVE_BOOKING_LIMIT');
+      }
       await bookingRepository.lockWorkshopDay(tx, wid, date);
       await bookingRepository.ensureQuotaRow(tx, wid, date, slot);
       const quota = await bookingRepository.lockQuota(tx, wid, date, slot);
       if (!quota) throw AppError.notFound('Workshop not found');
-
-      if (await bookingRepository.hasActiveBookingInSlot(tx, customerId, wid, date, slot)) {
-        throw AppError.conflict('You already have a booking in this slot', 'DUPLICATE_BOOKING');
-      }
 
       const decision = await allocate(tx, wid, date, slot, quota);
       const order = await orderRepository.insert(tx, {
@@ -157,6 +165,9 @@ export const bookingService = {
 
       if (await bookingRepository.hasActiveBookingInSlot(tx, customerId, wid, next.date, next.slot)) {
         throw AppError.conflict('You already have a booking in this slot', 'DUPLICATE_BOOKING');
+      }
+      if (next.date !== old.booking_date && (await bookingRepository.hasActiveBookingOnDay(tx, customerId, wid, next.date, orderId))) {
+        throw AppError.conflict('You already have a booking at this workshop on this date', 'DAILY_WORKSHOP_LIMIT');
       }
 
       // Take the new slot first (so freeing the old one can't hand our own unit back to us), then release the old one.

@@ -63,10 +63,11 @@ describeDb('Admin access management (BE-15) and booking reminders (integration)'
   it('2-hour reminder: in-app notification once, only for confirmed bookings starting within 2 hours', async () => {
     const ws = await createWorkshop({ lat: ORIGIN.lat, lng: ORIGIN.lng, name: 'Reminder Shop' });
     const c = await createUser('CUSTOMER');
-    const book = (slot: string) =>
-      request(app).post(`${API}/booking`).set(c.auth).send({ workshop_id: ws.workshopId, service_id: ws.serviceId, booking_date: tomorrow(), time_slot: slot });
-    const soon = (await book('10:00')).body.data;
-    const later = (await book('11:00')).body.data;
+    const c2 = await createUser('CUSTOMER'); // one booking per workshop per day, so the second booking is someone else's
+    const book = (auth: Record<string, string>, slot: string) =>
+      request(app).post(`${API}/booking`).set(auth).send({ workshop_id: ws.workshopId, service_id: ws.serviceId, booking_date: tomorrow(), time_slot: slot });
+    const soon = (await book(c.auth, '10:00')).body.data;
+    const later = (await book(c2.auth, '11:00')).body.data;
     // Move them to "in about an hour" and "in about three hours" (WIB), bypassing slot rules on purpose.
     const at = (mins: number) =>
       pool.query(

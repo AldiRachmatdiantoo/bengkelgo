@@ -29,6 +29,9 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional().default(''),
   GOOGLE_REDIRECT_URI: z.string().optional().default(''),
 
+  // Booking abuse guards: unfinished bookings per customer, and booking attempts per customer per hour.
+  BOOKING_MAX_ACTIVE: z.coerce.number().int().positive().default(3),
+  BOOKING_MAX_PER_HOUR: z.coerce.number().int().positive().default(5),
   EMERGENCY_RADIUS_METERS: z.coerce.number().positive().default(5000),
   EMERGENCY_RESPONSE_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(120),
   EMERGENCY_MAX_ROUTING_ATTEMPTS: z.coerce.number().int().positive().default(5),

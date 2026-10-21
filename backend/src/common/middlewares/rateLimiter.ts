@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import type { NextFunction, Request, Response } from 'express';
 import type Redis from 'ioredis';
 import { getRedis } from '../../config/redis';
+import { env } from '../../config/env';
 import { logger } from '../../config/logger';
 import { AppError } from '../errors/AppError';
 
@@ -86,6 +87,8 @@ interface RateLimitOptions {
   /** Defaults to the client IP (honours `trust proxy` behind NGINX). */
   keyGenerator?: (req: Request) => string;
   store?: RateLimitStore;
+  /** Error code sent with the 429 (default RATE_LIMITED). */
+  code?: string;
 }
 
 export function rateLimit(opts: RateLimitOptions) {
@@ -106,7 +109,7 @@ export function rateLimit(opts: RateLimitOptions) {
     res.setHeader('RateLimit-Remaining', String(Math.max(0, opts.limit - result.count)));
     if (!result.allowed) {
       res.setHeader('Retry-After', String(Math.ceil(result.retryAfterMs / 1000)));
-      return next(AppError.tooMany());
+      return next(AppError.tooMany(undefined, opts.code));
     }
     next();
   };
@@ -117,4 +120,12 @@ export const emergencyLimiter = rateLimit({ name: 'emergency', windowMs: 60_000,
 export const authLimiter = rateLimit({ name: 'auth', windowMs: 15 * 60_000, limit: 15 });
 export const globalLimiter = rateLimit({ name: 'global', windowMs: 60_000, limit: 300 });
 /** Place search proxies free OpenStreetMap services; keep one client from exhausting their fair use. */
+/** Booking attempts per customer account (not per IP: shared networks must not block each other). */
+export const bookingLimiter = rateLimit({
+  name: 'booking',
+  windowMs: 60 * 60_000,
+  limit: env.BOOKING_MAX_PER_HOUR,
+  keyGenerator: (req) => req.user?.id ?? req.ip ?? 'unknown',
+  code: 'BOOKING_RATE_LIMITED',
+});
 export const geocodeLimiter = rateLimit({ name: 'geocode', windowMs: 60_000, limit: 40 });

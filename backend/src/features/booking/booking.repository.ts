@@ -65,6 +65,32 @@ export const bookingRepository = {
     return rows.length > 0;
   },
 
+  /** Serialises one customer's booking writes, so the active-booking limit can't be raced past. */
+  async lockCustomer(q: Queryable, customerId: string) {
+    await q.query(`SELECT pg_advisory_xact_lock(hashtextextended('booking-customer:' || $1::text, 0))`, [customerId]);
+  },
+
+  /** Unfinished bookings (confirmed, waitlisted or being serviced) of a customer, at any workshop. */
+  async countActiveBookings(q: Queryable, customerId: string) {
+    const { rows } = await q.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM orders
+       WHERE customer_id = $1 AND type = 'BOOKING' AND status IN ('CONFIRMED', 'IN_QUEUE', 'IN_PROGRESS')`,
+      [customerId],
+    );
+    return rows[0].n;
+  },
+
+  /** True when the customer already has an unfinished booking at this workshop on this date (optionally ignoring one order). */
+  async hasActiveBookingOnDay(q: Queryable, customerId: string, workshopId: string, date: string, exceptOrderId?: string) {
+    const { rows } = await q.query(
+      `SELECT 1 FROM booking_details bd JOIN orders o ON o.id = bd.order_id
+       WHERE o.customer_id = $1 AND o.workshop_id = $2 AND bd.booking_date = $3
+         AND o.status IN ('CONFIRMED', 'IN_QUEUE', 'IN_PROGRESS') AND ($4::uuid IS NULL OR o.id <> $4::uuid) LIMIT 1`,
+      [customerId, workshopId, date, exceptOrderId ?? null],
+    );
+    return rows.length > 0;
+  },
+
   async insertDetails(q: Queryable, d: { orderId: string; serviceId: string; date: string; slot: string; queueNumber: number }) {
     await q.query(
       `INSERT INTO booking_details (order_id, service_id, booking_date, time_slot, queue_number) VALUES ($1, $2, $3, $4, $5)`,

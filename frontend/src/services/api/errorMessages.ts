@@ -28,6 +28,9 @@ export const ERROR_MESSAGES: Record<string, string> = {
   // Booking & slots
   WORKSHOP_CLOSED: 'Bengkel sedang tutup dan belum menerima booking.',
   DUPLICATE_BOOKING: 'Anda sudah punya booking di jam ini.',
+  DAILY_WORKSHOP_LIMIT: 'Anda sudah punya booking di bengkel ini pada tanggal tersebut. Pilih tanggal lain atau ganti jadwal booking yang ada.',
+  ACTIVE_BOOKING_LIMIT: 'Anda sudah mencapai batas booking yang belum selesai. Selesaikan atau batalkan salah satu booking dulu untuk booking lagi.',
+  BOOKING_RATE_LIMITED: 'Anda sudah beberapa kali membuat booking dalam satu jam terakhir. Coba lagi nanti.',
   INVALID_DATE: 'Tanggal booking tidak valid.',
   DATE_IN_PAST: 'Tanggal booking sudah lewat.',
   DATE_TOO_FAR: 'Booking hanya bisa dibuat maksimal 30 hari ke depan.',

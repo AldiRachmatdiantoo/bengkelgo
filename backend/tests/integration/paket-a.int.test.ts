@@ -138,12 +138,12 @@ describeDb('Backlog paket A (integration)', () => {
   it('6. cancellation reason and who cancelled; old clients without a body still work', async () => {
     const ws = await createWorkshop({ lat: ORIGIN.lat, lng: ORIGIN.lng, name: 'Cancel Shop' });
     const c = await createUser('CUSTOMER');
+    // One unfinished booking per workshop per day: each is cancelled before the next is made.
     const a = (await book(c.auth, ws, '15:00')).body.data;
-    const b = (await book(c.auth, ws, '16:00')).body.data;
-    const d = (await book(c.auth, ws, '17:00')).body.data;
-
     await request(app).patch(`${API}/orders/${a.id}/cancel`).set(c.auth).send({ reason: 'Ada urusan mendadak' }).expect(200);
+    const b = (await book(c.auth, ws, '16:00')).body.data;
     await request(app).patch(`${API}/orders/${b.id}/cancel`).set(c.auth).expect(200); // no body, like the current web app
+    const d = (await book(c.auth, ws, '17:00')).body.data;
     await request(app).patch(`${API}/orders/${d.id}/status`).set(ws.owner.auth).send({ status: 'CANCELLED', cancel_reason: 'Mekanik sakit' }).expect(200);
 
     const get = async (id: string) => (await request(app).get(`${API}/orders/${id}`).set(c.auth)).body.data;
