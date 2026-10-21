@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "migrate": "ts-node src/db/migrate.ts",
     "seed": "ts-node src/db/seed.ts",
+    "db:reset": "ts-node src/db/reset.ts",
     "test": "jest --runInBand",
     "test:unit": "jest --runInBand tests/unit",
     "test:integration": "jest --runInBand tests/integration",
