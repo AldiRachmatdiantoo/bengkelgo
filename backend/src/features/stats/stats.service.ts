@@ -80,7 +80,7 @@ export const statsService = {
         return { ok: false as const, latency_ms: Number((process.hrtime.bigint() - t) / 1_000_000n), error: (err as Error).message };
       }
     };
-    const [database, postgis, migrations, redis] = await Promise.all([
+    const [database, postgis, migrations, redis, emailQueue] = await Promise.all([
       timed(() => statsRepository.ping(db)),
       timed(() => statsRepository.postgisVersion(db)),
       timed(() => statsRepository.appliedMigrations(db)),
@@ -89,6 +89,7 @@ export const statsService = {
         if (!client) return 'not configured (in-memory rate limiter)';
         return client.ping();
       }),
+      timed(() => statsRepository.emailQueue(db)),
     ]);
     const strip = <T extends { value?: unknown }>({ value: _v, ...rest }: T) => rest;
     return {
@@ -101,6 +102,7 @@ export const statsService = {
       migrations: migrations.ok ? migrations.value : [],
       redis: { ...strip(redis), detail: redis.ok ? redis.value : null },
       scheduler: schedulerInfo(),
+      email_queue: emailQueue.ok ? emailQueue.value : null,
     };
   },
 };

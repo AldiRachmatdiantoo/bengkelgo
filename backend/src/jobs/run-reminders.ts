@@ -13,8 +13,8 @@ async function main() {
   console.log(describeMailTransport());
   const tomorrow = await sendBookingReminders();
   const soon = await sendSoonReminders();
-  console.log(`Day-before reminders: ${tomorrow.sent} sent, ${tomorrow.failed} failed`);
-  console.log(`2-hour reminders: ${soon.sent} sent, ${soon.failed} failed`);
+  console.log(`Day-before reminders: ${tomorrow.sent} sent, ${tomorrow.failed} failed (failed ones stay queued and are retried)`);
+  console.log(`2-hour reminders: ${soon.sent} sent, ${soon.failed} failed (failed ones stay queued and are retried)`);
   if (tomorrow.failed || soon.failed) process.exitCode = 1;
 }
 

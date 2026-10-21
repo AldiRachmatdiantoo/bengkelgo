@@ -260,6 +260,12 @@ export function AdminHealthPage() {
                   <HealthRow label="Penjadwal (cron)" ok={h.scheduler.enabled}>
                     {h.scheduler.enabled ? `Pengingat berikutnya ${h.scheduler.next_reminder_run ? dateTime(h.scheduler.next_reminder_run) : '–'}` : 'Nonaktif di server ini'}
                   </HealthRow>
+                  {h.email_queue && (
+                    <HealthRow label="Antrean email" ok={h.email_queue.failed_7d === 0}>
+                      {h.email_queue.pending ? `${h.email_queue.pending} menunggu dikirim${h.email_queue.retrying ? ` (${h.email_queue.retrying} sedang dicoba ulang)` : ''}` : 'Tidak ada yang menunggu'}
+                      {h.email_queue.failed_7d > 0 && ` · ${h.email_queue.failed_7d} gagal dikirim dalam 7 hari terakhir (cek log server)`}
+                    </HealthRow>
+                  )}
                 </ul>
               </Card>
               <Card title="Versi" icon="info">

@@ -224,6 +224,8 @@ export interface SystemHealth {
   migrations: string[];
   redis: { ok: boolean; latency_ms: number; detail: string | null; error?: string };
   scheduler: { enabled: boolean; reminder_cron: string; timezone: string; next_reminder_run: string | null };
+  /** Emails waiting to be sent (incl. retries) and those given up on in the last 7 days. */
+  email_queue?: { pending: number; retrying: number; failed_7d: number } | null;
   /** The caller's IP as the API sees it (rate limits use it); behind proxies it must match the admin's real IP. */
   client_ip?: string;
   /** Raw proxy headers seen by the API (diagnostic for TRUST_PROXY). */

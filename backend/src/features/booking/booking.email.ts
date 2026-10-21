@@ -4,9 +4,8 @@
  * table-based with inline styles; every dynamic value is escaped.
  */
 import { env } from '../../config/env';
-import { sendMail, type Mail } from '../../config/mailer';
-import { logger } from '../../config/logger';
-import { afterCommit, type Queryable } from '../../common/db/transaction';
+import type { Queryable } from '../../common/db/transaction';
+import { queueEmailAfterCommit } from '../../common/mail/outbox';
 
 export interface BookingEmailData {
   order_id: string;
@@ -253,9 +252,10 @@ export function renderBookingEmail(kind: BookingEmailKind, r: BookingEmailData, 
 }
 
 /**
- * Emails the customer about a booking once the caller's transaction commits (nothing is sent on rollback,
- * and the request isn't slowed down by SMTP). The data is read inside the transaction so it matches what
- * was committed. Accounts without an email (guests) are skipped.
+ * Emails the customer about a booking: queued in the caller's transaction (nothing is sent on rollback) and
+ * delivered right after the commit, without slowing the request down; failed sends are retried from the
+ * email outbox. The data is read inside the transaction so it matches what was committed. Accounts without
+ * an email (guests) are skipped.
  */
 export async function emailBookingAfterCommit(
   tx: Queryable,
@@ -276,23 +276,5 @@ export async function emailBookingAfterCommit(
   const r = rows[0];
   if (!r?.customer_email) return;
   const mail = { to: r.customer_email, ...renderBookingEmail(kind, r, extra) };
-  afterCommit(tx, () => sendWithRetry(mail, orderId));
-}
-
-/** Waits before each retry: transient failures (DNS hiccup, SMTP busy) usually clear within minutes. */
-export const RETRY_DELAYS_MS = [15_000, 60_000, 5 * 60_000];
-
-/** Sends now, retrying a few times in the background; gives up (logged) only after the last attempt. */
-async function sendWithRetry(mail: Mail, orderId: string, attempt = 0): Promise<void> {
-  try {
-    await sendMail(mail);
-  } catch (err) {
-    const delay = RETRY_DELAYS_MS[attempt];
-    if (delay === undefined) {
-      logger.error({ err, orderId, subject: mail.subject }, 'Booking email failed after all retries');
-      return;
-    }
-    logger.warn({ err, orderId, attempt: attempt + 1, retryInMs: delay }, 'Booking email failed; will retry');
-    setTimeout(() => void sendWithRetry(mail, orderId, attempt + 1), delay).unref();
-  }
+  await queueEmailAfterCommit(tx, mail, { order_id: orderId, kind });
 }

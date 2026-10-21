@@ -2,6 +2,7 @@ import cron, { type ScheduledTask } from 'node-cron';
 import { env } from '../config/env';
 import { logger } from '../config/logger';
 import { emergencyService } from '../features/emergency/emergency.service';
+import { deliverDue } from '../common/mail/outbox';
 import { sendBookingReminders, sendSoonReminders } from './bookingReminder.job';
 
 const tasks: ScheduledTask[] = [];
@@ -46,6 +47,17 @@ export function startScheduler() {
         if (r.sent || r.failed) logger.info(r, '2-hour booking reminders processed');
       }),
       { timezone: env.CRON_TIMEZONE },
+    ),
+  );
+
+  // Email outbox: retries emails whose first attempt failed (and purges old sent/failed rows), every minute
+  tasks.push(
+    cron.schedule(
+      '* * * * *',
+      guarded('email-outbox', async () => {
+        const r = await deliverDue();
+        if (r.sent || r.failed) logger.info(r, 'Queued emails processed');
+      }),
     ),
   );
 

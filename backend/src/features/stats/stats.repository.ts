@@ -109,6 +109,17 @@ export const statsRepository = {
     return (await q.query<{ v: string }>('SELECT postgis_lib_version() AS v')).rows[0].v;
   },
 
+  /** Email outbox backlog: still waiting (incl. retries) and given up in the last 7 days. */
+  async emailQueue(q: Queryable) {
+    const { rows } = await q.query<{ pending: number; retrying: number; failed_7d: number }>(
+      `SELECT COUNT(*) FILTER (WHERE status = 'PENDING')::int AS pending,
+              COUNT(*) FILTER (WHERE status = 'PENDING' AND attempts > 0)::int AS retrying,
+              COUNT(*) FILTER (WHERE status = 'FAILED' AND created_at > NOW() - interval '7 days')::int AS failed_7d
+       FROM email_outbox`,
+    );
+    return rows[0];
+  },
+
   async appliedMigrations(q: Queryable) {
     return (await q.query<{ name: string }>('SELECT name FROM schema_migrations ORDER BY name')).rows.map((r) => r.name);
   },

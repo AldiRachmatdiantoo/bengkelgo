@@ -4,7 +4,7 @@ import { pool } from '../../src/config/database';
 import * as mailer from '../../src/config/mailer';
 import { memoryStore } from '../../src/common/middlewares/rateLimiter';
 import { afterCommit, withTransaction } from '../../src/common/db/transaction';
-import { RETRY_DELAYS_MS } from '../../src/features/booking/booking.email';
+import { deliverDue, RETRY_DELAYS_SECONDS } from '../../src/common/mail/outbox';
 import { API, createUser, createWorkshop, describeDb, ORIGIN, resetDb, tomorrow } from './helpers';
 
 const app = createApp();
@@ -67,21 +67,45 @@ describeDb('Booking emails (integration)', () => {
     expect(send.mock.calls[0][0].subject).toMatch(/^Jadwal booking diubah: .* pukul 14:00 WIB$/);
   });
 
-  it('retries a failed send and stops once it goes through', async () => {
-    jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
-    try {
-      send.mockRejectedValueOnce(Object.assign(new Error('getaddrinfo EAI_AGAIN smtp.gmail.com'), { code: 'EDNS' }));
-      const c = await createUser('CUSTOMER');
-      await book(c.auth, '16:00').expect(201);
-      for (let i = 0; i < 20 && send.mock.calls.length < 1; i++) await Promise.resolve();
-      expect(send).toHaveBeenCalledTimes(1);
-      await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0]);
-      expect(send).toHaveBeenCalledTimes(2);
-      await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[1] + RETRY_DELAYS_MS[2]);
-      expect(send).toHaveBeenCalledTimes(2);
-    } finally {
-      jest.useRealTimers();
+  const outboxOf = async (orderId: string) =>
+    (await pool.query<{ status: string; attempts: number; last_error: string | null }>(`SELECT status, attempts, last_error FROM email_outbox WHERE context->>'order_id' = $1`, [orderId])).rows;
+  /** Pretends the retry delay has passed (the queue lives in the database, not in timers). */
+  const makeDue = () => pool.query(`UPDATE email_outbox SET next_attempt_at = NOW() WHERE status = 'PENDING'`);
+
+  it('a failed send stays queued in the database and goes out on the next attempt', async () => {
+    send.mockRejectedValueOnce(Object.assign(new Error('getaddrinfo EAI_AGAIN smtp.gmail.com'), { code: 'EDNS' }));
+    const c = await createUser('CUSTOMER');
+    const order = (await book(c.auth, '16:00').expect(201)).body.data;
+    await settle();
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(await outboxOf(order.id)).toEqual([{ status: 'PENDING', attempts: 1, last_error: expect.stringContaining('EAI_AGAIN') }]);
+
+    // Not due yet: the job leaves it alone (retry waits RETRY_DELAYS_SECONDS[0]).
+    expect(await deliverDue()).toEqual({ sent: 0, failed: 0 });
+    await makeDue();
+    expect(await deliverDue()).toEqual({ sent: 1, failed: 0 });
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(await outboxOf(order.id)).toEqual([{ status: 'SENT', attempts: 2, last_error: null }]);
+    expect(await deliverDue()).toEqual({ sent: 0, failed: 0 }); // never sent twice
+  });
+
+  it('gives up (FAILED) only after every retry failed', async () => {
+    send.mockRejectedValue(new Error('550 mailbox unavailable'));
+    const c = await createUser('CUSTOMER');
+    const order = (await book(c.auth, '17:00').expect(201)).body.data;
+    await settle();
+    for (let i = 0; i < RETRY_DELAYS_SECONDS.length; i++) {
+      await makeDue();
+      await deliverDue();
     }
+    expect(await outboxOf(order.id)).toEqual([{ status: 'FAILED', attempts: RETRY_DELAYS_SECONDS.length + 1, last_error: '550 mailbox unavailable' }]);
+  });
+
+  it('a refused booking leaves no queued email', async () => {
+    const before = (await pool.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM email_outbox')).rows[0].n;
+    const c = await createUser('CUSTOMER');
+    await request(app).post(`${API}/booking`).set(c.auth).send({ workshop_id: ws.workshopId, service_id: ws.serviceId, booking_date: tomorrow(), time_slot: '03:00' }).expect(422);
+    expect((await pool.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM email_outbox')).rows[0].n).toBe(before);
   });
 
   it('after-commit tasks never run when the transaction rolls back', async () => {
