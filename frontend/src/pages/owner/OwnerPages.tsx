@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiAsset, emergencyApi, ownerApi, orderApi } from '@/services/api/endpoints';
+import { emergencyApi, ownerApi, orderApi } from '@/services/api/endpoints';
 import { errorMessage } from '@/services/api/client';
 import type { Mechanic, Order, OrderStatus, OrderType, OwnWorkshop, Review, Service, SlotAvailability, VehicleType } from '@/services/api/types';
 import { MapPicker, type LatLng } from '@/components/map/Maps';
@@ -15,6 +15,7 @@ import { ORDER_STATUS, WORKSHOP_STATUS, dateTime, distance, jakartaDate, longDat
 import { NEGOTIABLE, customerRange, splitPriceRange } from '@/utils/priceRange';
 import { ACCEPT_IMAGES, ImageCheckError, fileSize, prepareImage } from '@/utils/imageUpload';
 import { usePreparedImage } from '@/hooks/usePreparedImage';
+import { useProtectedImage } from '@/hooks/useProtectedImage';
 
 function useMyWorkshop() {
   return useQuery({ queryKey: ['my-workshop'], queryFn: ownerApi.me });
@@ -1729,7 +1730,7 @@ function OwnerPhotosSection() {
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" data-testid="photo-grid">
             {photos.map((p) => (
               <li key={p.id} className="overflow-hidden rounded-xl border border-line bg-card">
-                <img src={apiAsset(`${p.url}?size=sm`)!} alt="Foto bengkel" className="aspect-[4/3] w-full object-cover" loading="lazy" />
+                <OwnPhoto id={p.id} />
                 <div className="flex items-center justify-between gap-1 p-2">
                   {p.is_cover ? (
                     <Badge tone="success">Sampul</Badge>
@@ -1759,12 +1760,24 @@ function OwnerPhotosSection() {
   );
 }
 
-/** Mechanic photo when uploaded (served publicly once the workshop is approved), else the initial. */
+/** Thumbnail of one of the owner's own photos; loaded with the login, so it shows before approval too. */
+function OwnPhoto({ id }: { id: string }) {
+  const img = useProtectedImage(`/workshops/photos/${id}/file?size=sm`);
+  if (!img.url) {
+    return (
+      <div className="grid aspect-[4/3] w-full place-items-center bg-surface-low text-ink-3">
+        <Icon name={img.error ? 'broken_image' : 'image'} />
+      </div>
+    );
+  }
+  return <img src={img.url} alt="Foto bengkel" className="aspect-[4/3] w-full object-cover" data-testid="owner-photo" />;
+}
+
+/** Mechanic photo when uploaded (loaded with the login, so it shows before approval too), else the initial. */
 function MechanicAvatar({ m }: { m: Mechanic }) {
-  const [broken, setBroken] = useState(false);
-  const src = m.has_photo && m.workshop_id ? apiAsset(`/workshops/${m.workshop_id}/mechanics/${m.id}/photo`) : null;
-  if (src && !broken) {
-    return <img src={src} alt={`Foto ${m.name}`} onError={() => setBroken(true)} className="h-12 w-12 shrink-0 rounded-full object-cover" data-testid="mechanic-photo" />;
+  const img = useProtectedImage(m.has_photo ? `/workshops/mechanics/${m.id}/photo` : null);
+  if (m.has_photo && img.url) {
+    return <img src={img.url} alt={`Foto ${m.name}`} className="h-12 w-12 shrink-0 rounded-full object-cover" data-testid="mechanic-photo" />;
   }
   return <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-navy text-lg font-bold text-white">{m.name.charAt(0).toUpperCase()}</span>;
 }

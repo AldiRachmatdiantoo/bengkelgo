@@ -32,6 +32,12 @@ async function publicImage(res: Response, key: string) {
   await sendStored(res, key);
 }
 
+/** The owner's own images: never stored by shared caches. */
+async function privateImage(res: Response, key: string) {
+  res.setHeader('Cache-Control', 'private, max-age=3600');
+  await sendStored(res, key);
+}
+
 export const workshopController = {
   // ---------- Owner portal ----------
   async myWorkshop(req: Request, res: Response) {
@@ -81,6 +87,15 @@ export const workshopController = {
   // Photos (item 19)
   async listPhotos(req: Request, res: Response) {
     ok(res, await s.listPhotos(uid(req)));
+  },
+
+  async ownPhoto(req: Request, res: Response) {
+    const { params, query } = input<unknown, { size?: 'sm' }, IdParams>(req);
+    await privateImage(res, await s.ownPhotoFile(uid(req), params.id, query.size));
+  },
+
+  async ownMechanicPhoto(req: Request, res: Response) {
+    await privateImage(res, await s.ownMechanicPhotoFile(uid(req), idOf(req)));
   },
 
   async addPhoto(req: Request, res: Response) {

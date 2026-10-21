@@ -70,6 +70,27 @@ describeDb('Workshop photo variants (integration)', () => {
     expect(fs.existsSync(path.resolve(env.UPLOAD_DIR, legacyKey))).toBe(false); // the old PNG is gone
   });
 
+  it('the owner sees their photos while the workshop still waits for approval; the public does not', async () => {
+    const ws = await createWorkshop({ lat: ORIGIN.lat, lng: ORIGIN.lng, name: 'Menunggu Shop', status: 'PENDING' });
+    const up = await request(app).post(`${API}/workshops/photos`).set(ws.owner.auth).attach('photo', await bigPhoto(), { filename: 'a.jpg', contentType: 'image/jpeg' }).expect(201);
+    await get(up.body.data.url).expect(404);
+
+    const own = await get(`/workshops/photos/${up.body.data.id}/file?size=sm`).set(ws.owner.auth).expect(200);
+    expect(own.headers['cache-control']).toContain('private');
+    expect((await meta(photoBytes(own))).width).toBe(640);
+    await get(`/workshops/photos/${up.body.data.id}/file`).expect(401);
+
+    const mech = ws.mechanicIds[0];
+    const png = await sharp({ create: { width: 300, height: 300, channels: 3, background: '#335577' } }).png().toBuffer();
+    await request(app).put(`${API}/workshops/mechanics/${mech}/photo`).set(ws.owner.auth).attach('photo', png, { filename: 'm.png', contentType: 'image/png' }).expect(200);
+    expect((await meta(photoBytes(await get(`/workshops/mechanics/${mech}/photo`).set(ws.owner.auth).expect(200)))).format).toBe('webp');
+    await get(`/workshops/${ws.workshopId}/mechanics/${mech}/photo`).expect(404);
+
+    // Another owner cannot read it.
+    const other = await createWorkshop({ lat: ORIGIN.lat, lng: ORIGIN.lng, name: 'Lain Shop' });
+    await get(`/workshops/photos/${up.body.data.id}/file`).set(other.owner.auth).expect(404);
+  });
+
   it('an image that cannot be read is refused with a clear message, not a server error', async () => {
     const ws = await createWorkshop({ lat: ORIGIN.lat, lng: ORIGIN.lng, name: 'Foto Rusak Shop' });
     const broken = Buffer.concat([await sharp({ create: { width: 40, height: 40, channels: 3, background: '#000' } }).jpeg().toBuffer()]).subarray(0, 200);

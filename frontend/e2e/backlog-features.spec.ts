@@ -193,6 +193,7 @@ test('owner: schedule, holiday, photos, mechanic photo and deleting a service', 
   await o.getByTestId('photo-input').setInputFiles(PHOTO);
   await o.getByTestId('photo-upload').click();
   await expect(o.getByTestId('photo-grid')).toContainText('Sampul');
+  await expect(o.getByTestId('owner-photo')).toHaveJSProperty('complete', true); // the owner's own copy loads
   await c.goto(`/workshops/${workshopId}`);
   await expect(c.getByTestId('workshop-photos').locator('img')).toHaveCount(1);
 

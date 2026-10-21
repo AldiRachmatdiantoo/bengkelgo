@@ -4,3 +4,4 @@ dist/
 e2e-report/
 test-results/
 playwright/.cache/
+*.tsbuildinfo

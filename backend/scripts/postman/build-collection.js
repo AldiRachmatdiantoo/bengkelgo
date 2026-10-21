@@ -939,6 +939,21 @@ Error: **400** \`SAME_SLOT\`, **409** \`TOO_LATE_TO_RESCHEDULE\` (slot lama suda
         form: [{ key: 'photo', file: 'sample-image.png', desc: 'JPEG/PNG/WEBP, maks 2MB' }],
         desc: 'Mengganti foto mekanik (file lama dihapus). `DELETE` ke path yang sama menghapus foto. URL publik ada di `mechanics[].photo_url` pada detail bengkel.',
       }),
+      req({
+        name: 'Get Own Workshop Photo (Owner)',
+        method: 'GET',
+        path: '/workshops/photos/{{photo_id}}/file',
+        query: [{ key: 'size', value: 'sm', desc: 'Opsional: thumbnail' }],
+        token: 'owner_token',
+        desc: 'Foto milik sendiri untuk portal pemilik, **juga saat bengkel belum disetujui** (URL publik baru aktif setelah APPROVED). `size=sm` = thumbnail 640 px. `Cache-Control: private`.',
+      }),
+      req({
+        name: 'Get Own Mechanic Photo (Owner)',
+        method: 'GET',
+        path: '/workshops/mechanics/{{mechanic_id}}/photo',
+        token: 'owner_token',
+        desc: 'Foto mekanik milik sendiri, juga sebelum bengkel disetujui. **404** bila mekanik belum punya foto.',
+      }),
       req({ name: 'Delete Workshop Photo', method: 'DELETE', path: '/workshops/photos/{{photo_id}}', token: 'owner_token', desc: 'Bila sampul dihapus, foto tertua berikutnya otomatis jadi sampul. File ikut dihapus.' }),
       req({ name: 'Public Platform Stats', method: 'GET', path: '/stats/public', desc: 'Angka nyata untuk beranda: bengkel aktif, mekanik aktif, pelanggan, pesanan selesai, rating rata-rata, rata-rata waktu respons SOS (menit, 90 hari). Di-cache ±5 menit.' }),
       req({

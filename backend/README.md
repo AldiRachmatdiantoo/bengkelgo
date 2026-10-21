@@ -58,7 +58,7 @@ src/
 
 Database diagram: [../docs/erd.md](../docs/erd.md) (regenerate with `scripts/erd/build-erd.py`).
 
-Full Postman documentation (90 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
+Full Postman documentation (92 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
 
 | Endpoint | Method | Access |
 | --- | --- | --- |

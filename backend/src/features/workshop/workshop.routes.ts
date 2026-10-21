@@ -41,8 +41,11 @@ r.delete('/holidays/:id', ...owner, validate(idParam), c.removeHoliday);
 
 r.get('/photos', ...owner, c.listPhotos);
 r.post('/photos', ...owner, imageUpload('photo'), c.addPhoto);
+// The owner's own view: works before approval too (the public URLs only serve APPROVED workshops).
+r.get('/photos/:id/file', ...owner, validate({ ...idParam, query: photoQuery }), c.ownPhoto);
 r.patch('/photos/:id/cover', ...owner, validate(idParam), c.setCoverPhoto);
 r.delete('/photos/:id', ...owner, validate(idParam), c.removePhoto);
+r.get('/mechanics/:id/photo', ...owner, validate(idParam), c.ownMechanicPhoto);
 r.put('/mechanics/:id/photo', ...owner, validate(idParam), imageUpload('photo'), c.setMechanicPhoto);
 r.delete('/mechanics/:id/photo', ...owner, validate(idParam), c.removeMechanicPhoto);
 

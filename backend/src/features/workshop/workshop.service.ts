@@ -37,6 +37,14 @@ async function optimizeStoredPhoto(workshopId: string, photoId: string) {
   }
 }
 
+/** Storage key of a workshop photo (thumbnail with size 'sm'); converts an older photo on first request. */
+async function storedPhotoKey(workshopId: string, photoId: string, size?: 'sm') {
+  let p = await photoRepository.find(db, workshopId, photoId);
+  if (!p) throw AppError.notFound('Photo not found');
+  if (!p.optimized) p = (await optimizeStoredPhoto(workshopId, photoId)) ?? p;
+  return size === 'sm' && p.thumb_path ? p.thumb_path : p.path;
+}
+
 async function ownedWorkshop(ownerId: string) {
   const w = await workshopRepository.findByOwner(db, ownerId);
   if (!w) throw AppError.notFound('You have no registered workshop', 'WORKSHOP_NOT_FOUND');
@@ -197,10 +205,12 @@ export const workshopService = {
    */
   async photoFile(workshopId: string, photoId: string, size?: 'sm') {
     const w = await workshopRepository.findById(db, workshopId);
-    let p = w && w.status === 'APPROVED' ? await photoRepository.find(db, workshopId, photoId) : null;
-    if (!p) throw AppError.notFound('Photo not found');
-    if (!p.optimized) p = (await optimizeStoredPhoto(workshopId, photoId)) ?? p;
-    return size === 'sm' && p.thumb_path ? p.thumb_path : p.path;
+    if (!w || w.status !== 'APPROVED') throw AppError.notFound('Photo not found');
+    return storedPhotoKey(workshopId, photoId, size);
+  },
+  /** The owner's own photo, whatever the workshop's status (e.g. while waiting for approval). */
+  async ownPhotoFile(ownerId: string, photoId: string, size?: 'sm') {
+    return storedPhotoKey((await ownedWorkshop(ownerId)).id, photoId, size);
   },
   async setMechanicPhoto(ownerId: string, mechanicId: string, file: { buffer: Buffer; mimetype: string } | null) {
     const w = await ownedWorkshop(ownerId);
@@ -216,6 +226,11 @@ export const workshopService = {
     }
     await deleteStored(prev.old);
     return { id: mechanicId, has_photo: Boolean(key) };
+  },
+  async ownMechanicPhotoFile(ownerId: string, mechanicId: string) {
+    const m = await mechanicRepository.photoPath(db, (await ownedWorkshop(ownerId)).id, mechanicId);
+    if (!m?.photo_path) throw AppError.notFound('Photo not found');
+    return m.photo_path;
   },
   async mechanicPhotoFile(workshopId: string, mechanicId: string) {
     const w = await workshopRepository.findById(db, workshopId);
