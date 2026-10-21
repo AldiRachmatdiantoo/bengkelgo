@@ -7,6 +7,7 @@ import type { UserRole } from '../../common/utils/jwt';
 import { deleteStored, saveImage } from '../../common/utils/storage';
 import { workshopRepository } from '../workshop/workshop.repository';
 import { paymentRepository, type PaymentRow } from './payment.repository';
+import { emailOrderAfterCommit } from '../order/order.email';
 
 const PAYABLE_ORDER_STATUSES = ['CONFIRMED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED'];
 
@@ -120,6 +121,7 @@ export const paymentService = {
       await notif.notifyOrder(tx, orderId, 'CUSTOMER', input.approve
         ? { type: 'PAYMENT_VERIFIED', title: 'Pembayaran lunas', body: `${notif.rupiah(p.amount)} · ${invoice}` }
         : { type: 'PAYMENT_REJECTED', title: 'Bukti bayar ditolak', body: input.reason ?? null });
+      if (input.approve) await emailOrderAfterCommit(tx, orderId, 'payment_verified');
       return { order_id: orderId, status, rejection_reason: input.approve ? null : input.reason, invoice_number: invoice };
     });
   },

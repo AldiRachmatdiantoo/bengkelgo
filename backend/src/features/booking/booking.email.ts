@@ -1,11 +1,11 @@
 /**
  * Booking emails to the customer: confirmation, waitlist, promoted from the waitlist, rescheduled, and the
- * day-before / ~2-hours-before reminders. Email clients ignore <style> blocks and modern CSS, so the HTML is
- * table-based with inline styles; every dynamic value is escaped.
+ * day-before / ~2-hours-before reminders. The look comes from the shared email layout (common/mail/layout.ts).
  */
 import { env } from '../../config/env';
 import type { Queryable } from '../../common/db/transaction';
 import { queueEmailAfterCommit } from '../../common/mail/outbox';
+import { renderEmail } from '../../common/mail/layout';
 
 export interface BookingEmailData {
   order_id: string;
@@ -32,23 +32,13 @@ export const BOOKING_EMAIL_COLUMNS = `
   w.name AS workshop_name, w.address AS workshop_address, w.phone AS workshop_phone,
   ST_Y(w.location::geometry) AS workshop_lat, ST_X(w.location::geometry) AS workshop_lng, s.name AS service_name`;
 
-const BRAND = '#4361EE';
-const NAVY = '#192557';
-const MUTED = '#5F6784';
-const LINE = '#E3E7F1';
-const SOFT = '#F0F3FF';
-
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-
 /** "Rabu, 21 Oktober 2026" (calendar date, timezone-independent). */
 export function longDateId(isoDate: string) {
   return new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${isoDate}T00:00:00Z`));
 }
 
-const firstName = (name: string) => name.trim().split(/\s+/)[0] || name;
-
 const ARRIVAL_TIPS = ['Datang sekitar 10 menit sebelum jadwal.', 'Sebutkan nomor pesanan atau tunjukkan QR di halaman pesanan saat tiba.'];
-const CHANGE_TIP = 'Berhalangan hadir? Ganti jadwal atau batalkan lewat halaman pesanan agar slot bisa dipakai pelanggan lain.';
+const CHANGE_TIP = 'Berhalangan hadir? Ganti jadwal atau batalkan lewat halaman pesanan agar jadwalnya bisa dipakai pelanggan lain.';
 const REMINDER_NOTE = 'Kami akan mengingatkan Anda lewat email sehari sebelumnya dan sekitar 2 jam sebelum jadwal.';
 
 /** Wording per kind; `day` is the long date, `extra.waitlistPosition` only for the waitlist. */
@@ -69,20 +59,20 @@ function copyFor(kind: BookingEmailKind, r: BookingEmailData, day: string, extra
         subject: `Booking masuk daftar tunggu: ${when}`,
         tag: 'Daftar tunggu',
         label: 'Jadwal yang dipilih',
-        preheader: `Slot ${when} sedang penuh. Kami kabari begitu booking Anda terkonfirmasi.`,
+        preheader: `Jadwal ${when} sedang penuh. Kami kabari begitu booking Anda terkonfirmasi.`,
         intro:
-          `Slot yang Anda pilih sedang penuh, jadi booking Anda masuk daftar tunggu` +
+          `Jam yang Anda pilih sedang penuh, jadi booking Anda masuk daftar tunggu` +
           (extra.waitlistPosition ? ` (posisi ${extra.waitlistPosition}).` : '.') +
           ' Kami akan mengirim email lagi begitu booking Anda terkonfirmasi.',
-        tips: ['Tidak ingin menunggu? Pilih jadwal lain lewat halaman pesanan.', 'Booking di daftar tunggu belum menjamin slot sampai terkonfirmasi.'],
+        tips: ['Tidak ingin menunggu? Pilih jadwal lain lewat halaman pesanan.', 'Booking di daftar tunggu belum mendapat jadwal sampai terkonfirmasi.'],
       };
     case 'promoted':
       return {
         subject: `Kabar baik: booking Anda terkonfirmasi, ${when}`,
         tag: 'Booking terkonfirmasi',
         label: 'Jadwal servis',
-        preheader: `Ada slot kosong, booking Anda di ${r.workshop_name} kini terkonfirmasi.`,
-        intro: 'Kabar baik! Ada slot yang kosong, jadi booking Anda dari daftar tunggu kini terkonfirmasi.',
+        preheader: `Ada tempat kosong, booking Anda di ${r.workshop_name} kini terkonfirmasi.`,
+        intro: 'Kabar baik! Ada tempat yang kosong, jadi booking Anda dari daftar tunggu kini terkonfirmasi.',
         tips: [...ARRIVAL_TIPS, CHANGE_TIP],
       };
     case 'rescheduled':
@@ -134,121 +124,21 @@ export function renderBookingEmail(kind: BookingEmailKind, r: BookingEmailData, 
     ...(r.workshop_phone ? ([['Telepon bengkel', r.workshop_phone]] as [string, string][]) : []),
   ];
 
-  const text = [
-    `Halo ${r.customer_name},`,
-    '',
+  return renderEmail({
+    subject,
+    tag,
+    preheader,
+    name: r.customer_name,
     intro,
-    '',
-    `${'Jadwal'.padEnd(20)}: ${day}, pukul ${r.time_slot} WIB`,
-    ...rows.map(([k, v]) => `${k.padEnd(20)}: ${v}`),
-    '',
-    'Informasi:',
-    ...tips.map((t) => `- ${t}`),
-    '',
-    `Lihat detail booking: ${orderUrl}`,
-    `Petunjuk arah: ${mapsUrl}`,
-    '',
-    'Salam,',
-    'Tim BengkelGo',
-    '',
-    'Email ini dikirim otomatis. Mohon tidak membalas email ini; hubungi bengkel melalui nomor di atas bila ada pertanyaan.',
-  ].join('\n');
-
-  const detailRows = rows
-    .map(
-      ([k, v], i) => `
-      <tr>
-        <td style="padding:10px 0;${i ? `border-top:1px solid ${LINE};` : ''}color:${MUTED};font-size:13px;width:38%;vertical-align:top;">${esc(k)}</td>
-        <td style="padding:10px 0;${i ? `border-top:1px solid ${LINE};` : ''}color:${NAVY};font-size:14px;font-weight:600;vertical-align:top;">${esc(v)}</td>
-      </tr>`,
-    )
-    .join('');
-
-  const html = `<!doctype html>
-<html lang="id">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(subject)}</title>
-</head>
-<body style="margin:0;padding:0;background:#F4F6FB;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preheader)}</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F6FB;">
-  <tr>
-    <td align="center" style="padding:24px 12px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFFFF;border:1px solid ${LINE};border-radius:12px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-        <tr>
-          <td style="background:${BRAND};border-radius:12px 12px 0 0;padding:18px 28px;">
-            <span style="color:#FFFFFF;font-size:20px;font-weight:800;letter-spacing:-0.3px;">BengkelGo</span>
-            <span style="color:#DDE3FF;font-size:12px;padding-left:8px;">${esc(tag)}</span>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:28px 28px 8px;">
-            <p style="margin:0 0 12px;color:${NAVY};font-size:16px;">Halo ${esc(firstName(r.customer_name))},</p>
-            <p style="margin:0;color:${MUTED};font-size:14px;line-height:22px;">${esc(intro)}</p>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:16px 28px 4px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${SOFT};border-radius:10px;">
-              <tr>
-                <td style="padding:16px 20px;">
-                  <p style="margin:0;color:${MUTED};font-size:12px;letter-spacing:0.6px;text-transform:uppercase;">${esc(label)}</p>
-                  <p style="margin:4px 0 0;color:${NAVY};font-size:20px;font-weight:800;">${esc(day)}</p>
-                  <p style="margin:2px 0 0;color:${BRAND};font-size:16px;font-weight:700;">Pukul ${esc(r.time_slot)} WIB</p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:12px 28px 0;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${detailRows}
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:20px 28px 4px;">
-            <table role="presentation" cellpadding="0" cellspacing="0">
-              <tr>
-                <td style="background:${BRAND};border-radius:8px;">
-                  <a href="${esc(orderUrl)}" style="display:inline-block;padding:12px 22px;color:#FFFFFF;font-size:14px;font-weight:700;text-decoration:none;">Lihat detail booking</a>
-                </td>
-                <td style="padding-left:12px;">
-                  <a href="${esc(mapsUrl)}" style="color:${BRAND};font-size:14px;font-weight:600;text-decoration:none;">Petunjuk arah &rsaquo;</a>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:20px 28px 8px;">
-            <p style="margin:0 0 8px;color:${NAVY};font-size:13px;font-weight:700;">Informasi penting</p>
-            <ul style="margin:0;padding-left:18px;color:${MUTED};font-size:13px;line-height:21px;">
-              ${tips.map((t) => `<li style="margin:0 0 4px;">${esc(t)}</li>`).join('')}
-            </ul>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:20px 28px 28px;">
-            <p style="margin:0;color:${NAVY};font-size:14px;">Salam,<br><strong>Tim BengkelGo</strong></p>
-          </td>
-        </tr>
-        <tr>
-          <td style="border-top:1px solid ${LINE};padding:16px 28px;color:${MUTED};font-size:12px;line-height:18px;">
-            Email ini dikirim otomatis karena Anda memiliki booking di BengkelGo. Mohon tidak membalas email ini;
-            ${r.workshop_phone ? `hubungi bengkel di ${esc(r.workshop_phone)} bila ada pertanyaan.` : 'hubungi bengkel melalui halaman pesanan bila ada pertanyaan.'}
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-</body>
-</html>`;
-
-  return { subject, text, html };
+    highlight: { label, title: day, subtitle: `Pukul ${r.time_slot} WIB` },
+    rows,
+    button: { text: 'Lihat detail booking', url: orderUrl },
+    link: { text: 'Petunjuk arah', url: mapsUrl },
+    tips,
+    footer:
+      'Email ini dikirim otomatis karena Anda memiliki booking di BengkelGo. Mohon tidak membalas email ini; ' +
+      (r.workshop_phone ? `hubungi bengkel di ${r.workshop_phone} bila ada pertanyaan.` : 'hubungi bengkel melalui halaman pesanan bila ada pertanyaan.'),
+  });
 }
 
 /**

@@ -5,7 +5,7 @@ import * as mailer from '../../src/config/mailer';
 import { memoryStore } from '../../src/common/middlewares/rateLimiter';
 import { afterCommit, withTransaction } from '../../src/common/db/transaction';
 import { deliverDue, RETRY_DELAYS_SECONDS } from '../../src/common/mail/outbox';
-import { API, createUser, createWorkshop, describeDb, ORIGIN, resetDb, tomorrow } from './helpers';
+import { API, createUser, createWorkshop, describeDb, ORIGIN, PNG, resetDb, tomorrow } from './helpers';
 
 const app = createApp();
 
@@ -106,6 +106,61 @@ describeDb('Booking emails (integration)', () => {
     const c = await createUser('CUSTOMER');
     await request(app).post(`${API}/booking`).set(c.auth).send({ workshop_id: ws.workshopId, service_id: ws.serviceId, booking_date: tomorrow(), time_slot: '03:00' }).expect(422);
     expect((await pool.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM email_outbox')).rows[0].n).toBe(before);
+  });
+
+  /** Emails sent to one address so far, as { subject, text }. */
+  const mailTo = (to: string) => send.mock.calls.map((c) => c[0]).filter((m) => m.to === to);
+
+  it('customer cancels: confirmation email with the reason', async () => {
+    const shop = await createWorkshop({ lat: ORIGIN.lat, lng: ORIGIN.lng, name: 'Batal Shop' });
+    const c = await createUser('CUSTOMER', 'Dewi Batal');
+    const order = (await request(app).post(`${API}/booking`).set(c.auth).send({ workshop_id: shop.workshopId, service_id: shop.serviceId, booking_date: tomorrow(), time_slot: '09:00' })).body.data;
+    await request(app).patch(`${API}/orders/${order.id}/cancel`).set(c.auth).send({ reason: 'Ada keperluan keluarga' }).expect(200);
+    await settle();
+    const mail = mailTo(await emailOf(c.id)).find((m) => m.subject.startsWith('Pembatalan berhasil'));
+    expect(mail).toBeDefined();
+    expect(mail.text).toContain('Ada keperluan keluarga');
+    expect(mail.text).toContain(order.order_number);
+  });
+
+  it('paid, completed, and a paid order cancelled by the workshop with a refund: one email each', async () => {
+    const shop = await createWorkshop({ lat: ORIGIN.lat, lng: ORIGIN.lng, name: 'Lunas Shop' });
+    const [c1, c2] = [await createUser('CUSTOMER', 'Eka Lunas'), await createUser('CUSTOMER', 'Fajar Refund')];
+    const owner = shop.owner.auth;
+    const book = async (auth: Record<string, string>, slot: string) =>
+      (await request(app).post(`${API}/booking`).set(auth).send({ workshop_id: shop.workshopId, service_id: shop.serviceId, booking_date: tomorrow(), time_slot: slot })).body.data;
+    const pay = async (auth: Record<string, string>, orderId: string) => {
+      await request(app).post(`${API}/payments/upload`).set(auth).field('order_id', orderId).attach('proof', PNG, { filename: 'p.png', contentType: 'image/png' }).expect(200);
+      await request(app).patch(`${API}/payments/${orderId}/verify`).set(owner).send({ approve: true }).expect(200);
+    };
+
+    // Paid then completed.
+    const a = await book(c1.auth, '10:00');
+    await pay(c1.auth, a.id);
+    await request(app).patch(`${API}/orders/${a.id}/status`).set(owner).send({ status: 'IN_PROGRESS' }).expect(200);
+    await request(app).patch(`${API}/orders/${a.id}/status`).set(owner).send({ status: 'COMPLETED' }).expect(200);
+    await settle();
+    const toA = mailTo(await emailOf(c1.id));
+    const paid = toA.find((m) => m.subject === `Pembayaran lunas: ${a.order_number}`);
+    expect(paid.text).toMatch(/Nomor invoice\s+: INV-\d{8}-\d{6}/);
+    const done = toA.find((m) => m.subject.startsWith('Pesanan selesai'));
+    expect(done.text).toMatch(/Pembayaran\s+: Lunas/);
+    expect(done.text).not.toContain('Belum membayar');
+
+    // Paid, then the workshop cancels and confirms the refund.
+    const b = await book(c2.auth, '11:00');
+    await pay(c2.auth, b.id);
+    await request(app)
+      .patch(`${API}/orders/${b.id}/status`)
+      .set(owner)
+      .send({ status: 'CANCELLED', cancel_reason: 'Mekanik sakit', refund_confirmed: true, refund_note: 'Ditransfer balik via QRIS' })
+      .expect(200);
+    await settle();
+    const cancelled = mailTo(await emailOf(c2.id)).find((m) => m.subject === `Pesanan dibatalkan bengkel: ${b.order_number}`);
+    expect(cancelled.text).toContain('Mekanik sakit');
+    expect(cancelled.text).toMatch(/Dana dikembalikan\s+: Rp/);
+    expect(cancelled.text).toContain('Ditransfer balik via QRIS');
+    expect(cancelled.html).toContain('Cari bengkel lain');
   });
 
   it('after-commit tasks never run when the transaction rolls back', async () => {

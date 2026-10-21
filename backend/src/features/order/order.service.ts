@@ -8,6 +8,7 @@ import { bookingService } from '../booking/booking.service';
 import { workshopRepository } from '../workshop/workshop.repository';
 import { orderRepository, type OrderStatus } from './order.repository';
 import type { ListOrdersQuery, UpdateStatusInput } from './order.schema';
+import { emailOrderAfterCommit } from './order.email';
 
 const DETAIL_SQL = `
   SELECT o.id, o.order_number, o.type, o.status, o.customer_id, o.workshop_id, o.vehicle_type, o.vehicle_plate, o.notes,
@@ -157,6 +158,7 @@ export const orderService = {
         await orderRepository.recordCancellation(tx, order.id, 'WORKSHOP', input.cancel_reason);
         await audit(tx, actor, { action: 'ORDER_CANCELLED', entity: 'order', entityId: order.id, details: { from: order.status, reason: input.cancel_reason ?? null } });
         await notif.notifyOrder(tx, order.id, 'CUSTOMER', { type: 'ORDER_CANCELLED', title: 'Pesanan dibatalkan bengkel', body: input.cancel_reason ?? null });
+        await emailOrderAfterCommit(tx, order.id, 'cancelled_by_workshop');
       } else {
         if (input.status === 'COMPLETED' && order.type === 'EMERGENCY' && input.final_amount === undefined && order.total_amount <= 0) {
           throw AppError.badRequest('final_amount is required to complete an emergency order', 'FINAL_AMOUNT_REQUIRED');
@@ -168,6 +170,7 @@ export const orderService = {
           const amount = input.final_amount ?? order.total_amount;
           await notif.notifyOrder(tx, order.id, 'CUSTOMER', { ...notice, body: input.status === 'COMPLETED' && amount > 0 ? `Total ${notif.rupiah(amount)}` : null });
         }
+        if (input.status === 'COMPLETED') await emailOrderAfterCommit(tx, order.id, 'completed');
       }
       return { id: order.id, previous_status: order.status, status: input.status };
     });
@@ -194,6 +197,7 @@ export const orderService = {
       }
       await orderRepository.recordCancellation(tx, order.id, 'CUSTOMER', reason);
       await notif.notifyOrder(tx, order.id, 'OWNER', { type: 'ORDER_CANCELLED', title: 'Pesanan dibatalkan oleh {customer}', body: reason ?? null });
+      await emailOrderAfterCommit(tx, order.id, 'cancelled_by_customer');
       return { id: order.id, previous_status: order.status, status: 'CANCELLED' };
     });
   },
