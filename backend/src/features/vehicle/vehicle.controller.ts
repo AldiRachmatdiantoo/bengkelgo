@@ -2,7 +2,8 @@ import type { Request, Response } from 'express';
 import { currentUser } from '../../common/middlewares/auth';
 import { input } from '../../common/middlewares/validate';
 import { created, ok } from '../../common/utils/http';
-import { vehicleService, type UpdateVehicleInput, type VehicleInput } from './vehicle.service';
+import type { UpdateVehicleInput, VehicleInput } from './vehicle.schema';
+import { vehicleService } from './vehicle.service';
 
 type IdParams = { id: string };
 

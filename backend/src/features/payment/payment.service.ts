@@ -1,5 +1,4 @@
-import { db, withTransaction, type Queryable } from '../../common/db/transaction';
-import { localNow } from '../../common/utils/time';
+import { db, withTransaction } from '../../common/db/transaction';
 import { audit, setActor, type ActorRole } from '../../common/db/actor';
 import { notificationService as notif } from '../notification/notification.service';
 import { AppError } from '../../common/errors/AppError';
@@ -7,36 +6,9 @@ import type { AllowedImageMime } from '../../common/middlewares/upload';
 import type { UserRole } from '../../common/utils/jwt';
 import { deleteStored, saveImage } from '../../common/utils/storage';
 import { workshopRepository } from '../workshop/workshop.repository';
-
-interface PaymentRow {
-  order_id: string;
-  order_number: string;
-  order_status: string;
-  customer_id: string;
-  workshop_id: string | null;
-  amount: number;
-  status: 'UNPAID' | 'PENDING_VERIFICATION' | 'VERIFIED' | 'REJECTED' | 'REFUNDED';
-  proof_path: string | null;
-  proof_mime: string | null;
-  qris_image_path: string | null;
-  uploaded_at: string | null;
-  verified_at: string | null;
-  rejection_reason: string | null;
-  refunded_at: string | null;
-  refund_note: string | null;
-  invoice_number: string | null;
-  payer_reference: string | null;
-  payer_name: string | null;
-}
+import { paymentRepository, type PaymentRow } from './payment.repository';
 
 const PAYABLE_ORDER_STATUSES = ['CONFIRMED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED'];
-
-const SELECT_PAYMENT = `
-  SELECT t.order_id, o.order_number, o.status AS order_status, o.customer_id, o.workshop_id, t.amount, t.status,
-         t.proof_path, t.proof_mime, w.qris_image_path, t.uploaded_at, t.verified_at, t.rejection_reason,
-         t.refunded_at, t.refund_note, t.invoice_number, t.payer_reference, t.payer_name
-  FROM transactions t JOIN orders o ON o.id = t.order_id LEFT JOIN workshops w ON w.id = o.workshop_id
-  WHERE t.order_id = $1`;
 
 const view = (p: PaymentRow) => ({
   order_id: p.order_id,
@@ -55,16 +27,9 @@ const view = (p: PaymentRow) => ({
   payer_name: p.payer_name,
 });
 
-/** INV-YYYYMMDD-000001: issued once, when a payment is verified (business-timezone date). */
-async function nextInvoiceNumber(tx: Queryable) {
-  const { rows } = await tx.query<{ seq: number }>(`SELECT nextval('invoice_number_seq') AS seq`);
-  return `INV-${localNow().date.replace(/-/g, '')}-${String(rows[0].seq).padStart(6, '0')}`;
-}
-
 /** BOLA guard: customer of the order, owner of the assigned workshop, or admin. */
 async function loadAuthorized(user: { id: string; role: UserRole }, orderId: string) {
-  const { rows } = await db.query<PaymentRow>(SELECT_PAYMENT, [orderId]);
-  const p = rows[0];
+  const p = await paymentRepository.find(db, orderId);
   if (!p) throw AppError.notFound('Payment not found');
   if (user.role === 'ADMIN' || p.customer_id === user.id) return p;
   if (user.role === 'WORKSHOP_OWNER' && p.workshop_id) {
@@ -105,8 +70,7 @@ export const paymentService = {
     try {
       const result = await withTransaction(async (tx) => {
         await setActor(tx, { id: customerId, role });
-        const { rows } = await tx.query<PaymentRow>(`${SELECT_PAYMENT} FOR UPDATE OF t`, [orderId]);
-        const p = rows[0];
+        const p = await paymentRepository.findForUpdate(tx, orderId);
         if (!p || p.customer_id !== customerId) throw AppError.notFound('Payment not found');
         if (!PAYABLE_ORDER_STATUSES.includes(p.order_status)) {
           throw AppError.conflict(`Order in status ${p.order_status} cannot be paid yet`, 'ORDER_NOT_PAYABLE');
@@ -114,12 +78,7 @@ export const paymentService = {
         if (p.status === 'VERIFIED') throw AppError.conflict('Payment is already verified', 'ALREADY_VERIFIED');
         if (p.amount <= 0) throw AppError.conflict('Order amount has not been set by the workshop yet', 'AMOUNT_NOT_SET');
         previous = p.proof_path;
-        await tx.query(
-          `UPDATE transactions SET proof_path = $2, proof_mime = $3, status = 'PENDING_VERIFICATION', uploaded_at = NOW(),
-             rejection_reason = NULL, verified_at = NULL, verified_by = NULL, payer_reference = $4, payer_name = $5, updated_at = NOW()
-           WHERE order_id = $1`,
-          [orderId, key, file.mimetype, payer.payerReference ?? null, payer.payerName ?? null],
-        );
+        await paymentRepository.saveProof(tx, orderId, { path: key, mime: file.mimetype, payerReference: payer.payerReference ?? null, payerName: payer.payerName ?? null });
         await notif.notifyOrder(tx, orderId, 'OWNER', { type: 'PAYMENT_PROOF', title: 'Bukti bayar masuk dari {customer}', body: notif.rupiah(p.amount) });
         return {
           ...view(p),
@@ -144,19 +103,14 @@ export const paymentService = {
     return withTransaction(async (tx) => {
       const actor = { id: ownerId, role: 'WORKSHOP_OWNER' as const };
       await setActor(tx, actor);
-      const { rows } = await tx.query<PaymentRow>(`${SELECT_PAYMENT} FOR UPDATE OF t`, [orderId]);
-      const p = rows[0];
+      const p = await paymentRepository.findForUpdate(tx, orderId);
       // Only the owner of the workshop assigned to this order may verify (BOLA).
       if (!p || !workshop || p.workshop_id !== workshop.id) throw AppError.notFound('Payment not found');
       if (p.status !== 'PENDING_VERIFICATION') throw AppError.conflict(`Payment is ${p.status}, nothing to verify`, 'INVALID_PAYMENT_STATE');
       if (!input.approve && !input.reason) throw AppError.badRequest('reason is required when rejecting', 'REASON_REQUIRED');
       const status = input.approve ? 'VERIFIED' : 'REJECTED';
-      const invoice = input.approve && !p.invoice_number ? await nextInvoiceNumber(tx) : p.invoice_number;
-      await tx.query(
-        `UPDATE transactions SET status = $2, verified_by = $3, verified_at = NOW(), rejection_reason = $4, invoice_number = $5, updated_at = NOW()
-         WHERE order_id = $1`,
-        [orderId, status, ownerId, input.approve ? null : input.reason, invoice],
-      );
+      const invoice = input.approve && !p.invoice_number ? await paymentRepository.nextInvoiceNumber(tx) : p.invoice_number;
+      await paymentRepository.setVerification(tx, orderId, { status, verifiedBy: ownerId, reason: input.approve ? null : input.reason ?? null, invoiceNumber: invoice });
       await audit(tx, actor, {
         action: input.approve ? 'PAYMENT_VERIFIED' : 'PAYMENT_REJECTED',
         entity: 'order',

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticate, authorize } from '../../common/middlewares/auth';
 import { uuidParam, validate } from '../../common/middlewares/validate';
 import { vehicleController as c } from './vehicle.controller';
-import { updateVehicleSchema, vehicleSchema } from './vehicle.service';
+import { updateVehicleSchema, vehicleSchema } from './vehicle.schema';
 
 const r = Router();
 const idParam = { params: uuidParam('id') };
