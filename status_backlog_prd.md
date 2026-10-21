@@ -13,8 +13,8 @@
 | Status | Jumlah | PBI |
 |---|---|---|
 | ✅ Selesai & terverifikasi | 24 | Semua PBI selain yang di bawah |
-| ⚠️ Selesai dengan catatan | 2 | **103**, **106** |
-| ❌ Belum selesai | 1 | **407** |
+| ⚠️ Selesai dengan catatan | 3 | **103** (keputusan istilah di PRD), **106** (uji login Google sungguhan), **407** (uji alur lengkap di produksi) |
+| ❌ Belum selesai | 0 | – |
 
 Total ada **27 PBI** (Sprint 1: 8, Sprint 2: 6, Sprint 3: 6, Sprint 4: 7). PBI-306 (k6 stress test) sudah **dijalankan dan lolos** hari ini. Detailnya ada di bagian [Hasil PBI-306](#hasil-pbi-306-k6-stress-test).
 
@@ -34,7 +34,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 | 6 | ~~Set `TRUST_PROXY` sesuai jumlah proxy di produksi~~ ✅ `TRUST_PROXY=4` di Render (diukur 20 Okt) | Konfigurasi | [Temuan nomor 2](#temuan-selama-pengujian) |
 | 7 | Sisa perubahan backend desain Stitch yang **butuh keputusan/konten**: BE-3 kategori layanan (daftar kategori), BE-5 tahan slot + bayar dulu (12.2), BE-6 pit (12.3), BE-7 lacak mekanik live, BE-10 add-on, BE-11 promo, BE-12 komisi (12.4), BE-17 dokumen mitra; sebagian BE-2 (fasilitas, sertifikasi, kota). ✅ Sudah 20 Okt: BE-1, BE-4, BE-8, BE-9 (kategori), BE-13, BE-14, BE-16, foto & jadwal dari BE-2, dan BE-lain (invoice/RRN, alasan batal, pilih mekanik, reschedule, statistik, riwayat status, kisaran/ubah harga SOS, notifikasi server, hapus layanan, balas ulasan) | Keputusan + backend | [Paket A](#paket-a-backend-20-oktober-2026-frontend-tidak-diubah), [Paket B](#paket-b-backend-20-oktober-2026-frontend-tidak-diubah), [bagian 13](#13-daftar-perubahan-backend-gabungan) |
 | 8 | ~~Bug skema PATCH layanan/mekanik~~ ✅ diperbaiki di backend 20 Okt (Paket A) | Backend | [Paket A](#paket-a-backend-20-oktober-2026-frontend-tidak-diubah) |
-| 9 | Integrasi pihak ketiga (VA, OCR, geocoding, ETA, wallet pass, OTP WA) | Integrasi | [Lampiran 1, bagian 14](#14-integrasi-pihak-ketiga-int) |
+| 9 | Integrasi pihak ketiga (VA, OCR, ETA, wallet pass, OTP WA; geocoding ✅ 21 Okt) | Integrasi | [Lampiran 1, bagian 14](#14-integrasi-pihak-ketiga-int) |
 | 10 | Konten asli: logo, foto bengkel/mekanik, nomor hotline & WA CS, FAQ resmi, S&K, kebijakan privasi/pembatalan/garansi, daftar kota | Konten | [Lampiran 1, Lampiran A](#lampiran-a-aset-yang-harus-disiapkan-tim) |
 | 11 | Keputusan desain/bisnis: warna primer & SOS di PRD 3.1, alur bayar (12.2), slot per jam (12.3), komisi 5% (12.4), klaim marketing (12.5) | Keputusan | [Lampiran 1, bagian 12](#12-konflik-yang-harus-diputuskan-tim); catatan di [prd.md](prd.md) 3.1 |
 | 12 | Fitur sparepart masuk cakupan atau tidak | Keputusan + backend | [Lampiran 2](#lampiran-2-keputusan-dari-review-flowchart-booking) |
