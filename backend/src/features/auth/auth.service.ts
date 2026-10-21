@@ -9,7 +9,7 @@ import { DUMMY_PASSWORD_HASH, generateOpaqueToken, hashPassword, sha256, verifyP
 import { signAccessToken } from '../../common/utils/jwt';
 import { workshopRepository } from '../workshop/workshop.repository';
 import { authRepository, type UserRow } from './auth.repository';
-import { verificationEmail } from './auth.email';
+import { passwordChangedEmail, passwordResetEmail, verificationEmail } from './auth.email';
 import type { GoogleInput, GuestInput, LoginInput, RegisterCustomerInput, RegisterWorkshopInput } from './auth.schema';
 
 export interface AuthResult {
@@ -27,6 +27,8 @@ const toPublic = (u: UserRow): PublicUser => ({ id: u.id, name: u.name, email: u
 const CODE_TTL_MINUTES = 15;
 const MAX_CODE_ATTEMPTS = 5;
 const RESEND_AFTER_SECONDS = 60;
+const RESET_TTL_MINUTES = 30;
+const RESET_RESEND_SECONDS = 60;
 
 /** Keyed hash, so a leaked table can't be brute-forced offline without the server secret. */
 const codeHash = (userId: string, code: string) => crypto.createHmac('sha256', env.JWT_ACCESS_SECRET).update(`email-verify:${userId}:${code}`).digest('hex');
@@ -201,6 +203,37 @@ export const authService = {
       const stored = await authRepository.findRefreshTokenForUpdate(tx, sha256(rawToken));
       if (stored) await authRepository.revokeFamily(tx, stored.family_id);
     });
+  },
+
+  /**
+   * "Forgot password": mails a single-use link (30 minutes) to an active account with an email. The answer is the
+   * same whether or not the email exists, so nobody can probe which addresses have an account; a new link at
+   * most once a minute (repeats within that minute are silently skipped).
+   */
+  async forgotPassword(email: string) {
+    await withTransaction(async (tx) => {
+      const user = await authRepository.findUserByEmail(tx, email);
+      if (!user?.email || !user.is_active || user.role === 'GUEST') return;
+      const last = await authRepository.lastResetRequest(tx, user.id);
+      if (last && Date.now() - last.getTime() < RESET_RESEND_SECONDS * 1000) return;
+      const token = generateOpaqueToken(32);
+      await authRepository.saveResetToken(tx, user.id, sha256(token), RESET_TTL_MINUTES);
+      await queueEmailAfterCommit(tx, passwordResetEmail(user.email, user.name, token, RESET_TTL_MINUTES), { user_id: user.id, kind: 'password_reset' });
+    });
+    return { sent: true };
+  },
+
+  /** Sets a new password from a reset link: single use, ends every session, and tells the owner by email. */
+  async resetPassword(token: string, newPassword: string) {
+    const passwordHash = await hashPassword(newPassword);
+    await withTransaction(async (tx) => {
+      const userId = await authRepository.consumeResetToken(tx, sha256(token));
+      const user = userId ? await authRepository.findUserById(tx, userId) : null;
+      if (!user || !user.is_active) throw AppError.unprocessable('This link is invalid or has expired', 'RESET_TOKEN_INVALID');
+      await authRepository.setPassword(tx, user.id, passwordHash);
+      if (user.email) await queueEmailAfterCommit(tx, passwordChangedEmail(user.email, user.name), { user_id: user.id, kind: 'password_changed' });
+    });
+    return { reset: true };
   },
 
   /** Confirms the account's email with the code that was mailed to it. */

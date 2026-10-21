@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { authApi } from '@/services/api/endpoints';
 import { errorMessage } from '@/services/api/client';
@@ -104,6 +104,12 @@ export function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           data-testid="login-password"
         />
+        <Link to="/lupa-password" state={{ email }} className="-mt-2 self-end font-label text-xs font-semibold text-primary hover:underline" data-testid="forgot-link">
+          Lupa password?
+        </Link>
+        {(location.state as { passwordReset?: boolean } | null)?.passwordReset && !login.error && (
+          <Alert tone="success">Password baru sudah disimpan. Silakan masuk dengan password baru Anda.</Alert>
+        )}
         {login.error && <Alert tone="danger">{errorMessage(login.error)}</Alert>}
         <Button type="submit" size="lg" loading={login.isPending} data-testid="login-submit">
           Masuk
@@ -466,6 +472,116 @@ export function VerifyEmailPage() {
           </button>
         </form>
       )}
+    </AuthShell>
+  );
+}
+
+/** "Lupa password?": asks for the account email; the answer never says whether the email has an account. */
+export function ForgotPasswordPage() {
+  const location = useLocation();
+  const [email, setEmail] = useState((location.state as { email?: string } | null)?.email ?? '');
+  const [tried, setTried] = useState(false);
+  const forgot = useMutation({ mutationFn: () => authApi.forgotPassword(email.trim()) });
+  const issues = [issueOf(email, 'Email', isEmail, 'Format email belum benar', 'forgot-email')];
+
+  return (
+    <AuthShell
+      title="Lupa password"
+      subtitle="Masukkan email akun Anda. Kami kirim tautan untuk membuat password baru."
+      footer={
+        <>
+          Sudah ingat?{' '}
+          <Link to="/login" className="font-semibold text-primary hover:underline">
+            Masuk
+          </Link>
+        </>
+      }
+    >
+      {forgot.isSuccess ? (
+        <div className="flex flex-col gap-4" data-testid="forgot-sent">
+          <Alert tone="success">
+            Kalau <b>{email.trim()}</b> terdaftar di BengkelGo, tautan untuk membuat password baru sudah kami kirim. Tautan berlaku 30 menit.
+          </Alert>
+          <p className="text-sm text-ink-2">Tidak ada di kotak masuk? Cek juga folder Spam atau Promosi, atau coba lagi beberapa menit lagi.</p>
+          <Button variant="secondary" onClick={() => forgot.reset()}>
+            Kirim ulang
+          </Button>
+        </div>
+      ) : (
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setTried(true);
+            if (issues.some(Boolean)) return;
+            forgot.mutate();
+          }}
+        >
+          <Input id="forgot-email" label="Email" icon="mail" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} data-testid="forgot-email" />
+          {tried && <MissingFields items={issues} />}
+          {forgot.error && <Alert tone="danger">{errorMessage(forgot.error)}</Alert>}
+          <Button type="submit" size="lg" loading={forgot.isPending} data-testid="forgot-submit">
+            Kirim tautan
+          </Button>
+        </form>
+      )}
+    </AuthShell>
+  );
+}
+
+/** Opened from the reset email: choose a new password (the link is single use and expires after 30 minutes). */
+export function ResetPasswordPage() {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const token = params.get('token') ?? '';
+  const [f, setF] = useState({ password: '', confirm: '' });
+  const [tried, setTried] = useState(false);
+  const reset = useMutation({
+    mutationFn: () => authApi.resetPassword(token, f.password),
+    onSuccess: () => navigate('/login', { replace: true, state: { passwordReset: true } }),
+  });
+  const issues = [
+    issueOf(f.password, 'Password baru', isStrongPassword, 'Password belum memenuhi syarat', 'reset-password'),
+    (!f.confirm || f.confirm !== f.password) && { label: 'Ulangi password yang sama', target: 'reset-confirm' },
+  ];
+
+  if (!token) {
+    return (
+      <AuthShell title="Tautan tidak lengkap" subtitle="Buka tautan langsung dari email, atau minta tautan baru." footer={null}>
+        <Link to="/lupa-password" className="font-semibold text-primary hover:underline">
+          Minta tautan baru
+        </Link>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell
+      title="Buat password baru"
+      subtitle="Setelah disimpan, semua perangkat yang sedang masuk akan dikeluarkan."
+      footer={
+        <Link to="/lupa-password" className="font-semibold text-primary hover:underline">
+          Minta tautan baru
+        </Link>
+      }
+    >
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setTried(true);
+          if (issues.some(Boolean)) return;
+          reset.mutate();
+        }}
+      >
+        <Input id="reset-password" label="Password baru" icon="lock" type="password" autoComplete="new-password" required value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} hint={PASSWORD_HINT} data-testid="reset-password" />
+        <Input id="reset-confirm" label="Ulangi password baru" icon="lock" type="password" autoComplete="new-password" required value={f.confirm} onChange={(e) => setF({ ...f, confirm: e.target.value })} data-testid="reset-confirm" />
+        {tried && <MissingFields items={issues} />}
+        {reset.error && <Alert tone="danger">{errorMessage(reset.error)}</Alert>}
+        <Button type="submit" size="lg" loading={reset.isPending} data-testid="reset-submit">
+          Simpan password baru
+        </Button>
+      </form>
     </AuthShell>
   );
 }

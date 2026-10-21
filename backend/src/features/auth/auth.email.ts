@@ -1,5 +1,6 @@
 import { env } from '../../config/env';
 import type { Mail } from '../../config/mailer';
+import { renderEmail } from '../../common/mail/layout';
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
@@ -32,4 +33,46 @@ export function verificationEmail(to: string, name: string, code: string, minute
 </td></tr></table></td></tr></table>
 </body></html>`;
   return { to, subject, text, html };
+}
+
+const appUrl = (path: string) => `${env.APP_URL.replace(/\/$/, '')}${path}`;
+
+/** "Buat password baru" link (single use, expires after `minutes`). */
+export function passwordResetEmail(to: string, name: string, token: string, minutes: number): Mail {
+  const link = appUrl(`/reset-password?token=${encodeURIComponent(token)}`);
+  return {
+    to,
+    ...renderEmail({
+      subject: 'Buat password baru BengkelGo',
+      tag: 'Lupa password',
+      preheader: `Tautan untuk membuat password baru, berlaku ${minutes} menit.`,
+      name,
+      intro: 'Kami menerima permintaan untuk membuat password baru akun BengkelGo Anda. Tekan tombol di bawah untuk melanjutkan.',
+      rows: [['Berlaku', `${minutes} menit, hanya bisa dipakai sekali`]],
+      button: { text: 'Buat password baru', url: link },
+      tips: [
+        'Bukan Anda yang meminta? Abaikan email ini; password Anda tidak berubah.',
+        'Jangan teruskan email ini ke siapa pun.',
+      ],
+      footer: 'Email ini dikirim otomatis karena ada permintaan lupa password untuk akun BengkelGo Anda. Mohon tidak membalas email ini.',
+    }),
+  };
+}
+
+/** Sent after the password was changed through a reset link. */
+export function passwordChangedEmail(to: string, name: string): Mail {
+  return {
+    to,
+    ...renderEmail({
+      subject: 'Password BengkelGo Anda sudah diganti',
+      tag: 'Keamanan akun',
+      preheader: 'Password akun BengkelGo Anda baru saja diganti.',
+      name,
+      intro: 'Password akun BengkelGo Anda baru saja diganti. Semua perangkat yang sebelumnya masuk sudah dikeluarkan.',
+      rows: [['Waktu', new Intl.DateTimeFormat('id-ID', { dateStyle: 'full', timeStyle: 'short', timeZone: env.CRON_TIMEZONE }).format(new Date()) + ' WIB']],
+      button: { text: 'Masuk ke BengkelGo', url: appUrl('/login') },
+      tips: ['Bukan Anda yang mengganti? Segera buat password baru lewat "Lupa password?" di halaman masuk.'],
+      footer: 'Email ini dikirim otomatis untuk menjaga keamanan akun Anda. Mohon tidak membalas email ini.',
+    }),
+  };
 }

@@ -1,6 +1,6 @@
 # ERD Database BengkelGo
 
-Dibuat otomatis dari skema database yang berjalan (`backend/scripts/erd/build-erd.py`). 19 tabel, 28 relasi. Migrasi: `001_init` s/d `007_email_verification`.
+Dibuat otomatis dari skema database yang berjalan (`backend/scripts/erd/build-erd.py`). 20 tabel, 29 relasi. Migrasi: `001_init` s/d `008_password_reset`.
 
 Versi teks untuk **QuickDBD** (app.quickdatabasediagrams.com): [erd-quickdbd.txt](erd-quickdbd.txt), dibuat dengan `backend/scripts/erd/build-quickdbd.py` dari ekspor kolom (dengan `column_default`), relasi, dan enum database lokal.
 
@@ -23,6 +23,7 @@ erDiagram
     mechanics |o--o{ orders : "mechanic_id"
     vehicles |o--o{ orders : "vehicle_id"
     workshops |o--o{ orders : "workshop_id"
+    users ||--o| password_resets : "user_id"
     refresh_tokens |o--o{ refresh_tokens : "replaced_by"
     users ||--o{ refresh_tokens : "user_id"
     users ||--o{ reviews : "customer_id"
@@ -42,7 +43,7 @@ erDiagram
 
 ## Akun & pelanggan
 
-Pengguna semua peran, sesi login, verifikasi email, notifikasi, dan kendaraan tersimpan.
+Pengguna semua peran, sesi login, verifikasi email, reset password, notifikasi, dan kendaraan tersimpan.
 
 ```mermaid
 erDiagram
@@ -78,6 +79,12 @@ erDiagram
         smallint attempts
         timestamptz sent_at
     }
+    password_resets {
+        uuid user_id PK,FK
+        text token_hash UK
+        timestamptz expires_at
+        timestamptz created_at
+    }
     notifications {
         uuid id PK
         uuid user_id FK
@@ -103,6 +110,7 @@ erDiagram
     }
     users ||--o| email_verifications : "user_id"
     users ||--o{ notifications : "user_id"
+    users ||--o| password_resets : "user_id"
     refresh_tokens |o--o{ refresh_tokens : "replaced_by"
     users ||--o{ refresh_tokens : "user_id"
     users ||--o{ vehicles : "user_id"
@@ -113,6 +121,7 @@ erDiagram
 | `users` | Semua peran: CUSTOMER, GUEST, WORKSHOP_OWNER, ADMIN. |
 | `refresh_tokens` | Hanya hash SHA-256 yang disimpan; satu family dicabut bila token dipakai ulang. |
 | `email_verifications` | Kode 6 angka (hanya HMAC-nya), berlaku 15 menit, maks. 5 kali salah. *(baru, migrasi 007)* |
+| `password_resets` | Tautan "lupa password" (hanya hash-nya), sekali pakai, berlaku 30 menit. *(baru, migrasi 008)* |
 | `notifications` | Notifikasi di dalam aplikasi per pengguna. *(baru, migrasi 004)* |
 | `vehicles` | Kendaraan tersimpan pelanggan (soft delete). *(baru, migrasi 004)* |
 
@@ -420,6 +429,7 @@ erDiagram
 | `orders.mechanic_id` | `mechanics.id` | SET NULL |
 | `orders.vehicle_id` | `vehicles.id` | SET NULL |
 | `orders.workshop_id` | `workshops.id` | RESTRICT |
+| `password_resets.user_id` | `users.id` | CASCADE |
 | `refresh_tokens.replaced_by` | `refresh_tokens.id` | SET NULL |
 | `refresh_tokens.user_id` | `users.id` | CASCADE |
 | `reviews.customer_id` | `users.id` | CASCADE |

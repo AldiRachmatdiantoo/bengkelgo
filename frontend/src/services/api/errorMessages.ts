@@ -16,6 +16,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   GOOGLE_AUTH_FAILED: 'Login Google gagal. Silakan coba lagi.',
   GOOGLE_EMAIL_UNVERIFIED: 'Email Google Anda belum terverifikasi.',
   RATE_LIMITED: 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',
+  RESET_TOKEN_INVALID: 'Tautan ini sudah tidak berlaku (lewat 30 menit atau sudah dipakai). Minta tautan baru lewat "Lupa password?".',
   EMAIL_NOT_VERIFIED: 'Verifikasi email Anda dulu untuk booking. Masukkan kode yang kami kirim ke email Anda.',
   VERIFICATION_CODE_INVALID: 'Kode belum tepat. Periksa lagi 6 angka di email Anda.',
   VERIFICATION_CODE_EXPIRED: 'Kode sudah tidak berlaku. Tekan "Kirim ulang kode" untuk mendapat kode baru.',

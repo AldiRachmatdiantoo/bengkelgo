@@ -58,7 +58,7 @@ src/
 
 Database diagram: [../docs/erd.md](../docs/erd.md) (regenerate with `scripts/erd/build-erd.py`).
 
-Full Postman documentation (88 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
+Full Postman documentation (90 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
 
 | Endpoint | Method | Access |
 | --- | --- | --- |
@@ -67,6 +67,7 @@ Full Postman documentation (88 requests, runnable end-to-end, with real response
 | `/auth/refresh` · `/auth/logout` | POST | Refresh cookie/body |
 | `/auth/me` | GET | Any authenticated user |
 | `/auth/email/verify` · `/auth/email/resend` (6-digit code mailed at sign-up; booking needs a verified email) | POST | Signed-in user |
+| `/auth/password/forgot` · `/auth/password/reset` (single-use emailed link, 30 min; same answer for unknown emails; ends all sessions) | POST | Public |
 | `/emergency/scan` | POST | Public (rate limited) |
 | `/emergency/request` | POST | Customer / Guest |
 | `/emergency/:order_id/respond` | PATCH | Workshop owner (`ACCEPT` / `DECLINE`, optional `mechanic_id`) |

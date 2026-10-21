@@ -164,6 +164,21 @@ Saat dijalankan otomatis request ini **sengaja gagal** (kode contoh): **422** \`
 Paling cepat 1 menit setelah kode terakhir, jadi tepat setelah daftar request ini **sengaja gagal**: **429** \`VERIFICATION_RESEND_TOO_SOON\`.`,
       }),
       req({
+        name: 'Forgot Password',
+        method: 'POST',
+        path: '/auth/password/forgot',
+        body: { email: '{{customer_email}}' },
+        desc: `Mengirim tautan "Buat password baru" ke email (sekali pakai, berlaku 30 menit; tautan lama hangus). **200** \`{ sent: true }\` **selalu**, juga untuk email yang tidak terdaftar, agar tidak bisa dipakai mengecek email mana yang punya akun. Permintaan berulang dalam 1 menit diabaikan diam-diam. Batas: 15/15 menit per IP dan 5/jam per email (**429**).`,
+      }),
+      req({
+        name: 'Reset Password (token from email)',
+        method: 'POST',
+        path: '/auth/password/reset',
+        status: 422,
+        body: { token: 'contoh-token-dari-email-yang-tidak-berlaku', password: 'PasswordBaru123' },
+        desc: `Menyimpan password baru dari tautan email. **200** \`{ reset: true }\`: semua sesi lama dicabut, email dianggap terverifikasi, dan pemberitahuan "Password sudah diganti" dikirim. Saat dijalankan otomatis request ini **sengaja gagal** (token contoh): **422** \`RESET_TOKEN_INVALID\` (tidak dikenal, kedaluwarsa, atau sudah dipakai). Password mengikuti aturan pendaftaran (**400** bila lemah).`,
+      }),
+      req({
         name: 'Login (Customer)',
         method: 'POST',
         path: '/auth/login',

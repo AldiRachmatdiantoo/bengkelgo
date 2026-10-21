@@ -1,4 +1,4 @@
-# BengkelGo database (PostgreSQL + PostGIS), generated from migrations 001-007
+# BengkelGo database (PostgreSQL + PostGIS), generated from migrations 001-008
 # Paste into https://app.quickdatabasediagrams.com
 #
 # Enum types:
@@ -267,3 +267,10 @@ code_hash text
 expires_at timestamptz
 attempts smallint default=0
 sent_at timestamptz default=now()
+
+password_resets
+-
+user_id uuid PK FK >- users.id
+token_hash text UNIQUE
+expires_at timestamptz
+created_at timestamptz default=now()

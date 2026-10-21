@@ -134,6 +134,16 @@ export const loginAccountLimiter = rateLimit({
     return email ? crypto.createHash('sha256').update(email).digest('hex').slice(0, 32) : req.ip ?? 'unknown';
   },
 });
+/** Reset-link requests per email (hashed), whether or not the email has an account. */
+export const passwordResetAccountLimiter = rateLimit({
+  name: 'pw-reset-account',
+  windowMs: 60 * 60_000,
+  limit: 5,
+  keyGenerator: (req) => {
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    return email ? crypto.createHash('sha256').update(email).digest('hex').slice(0, 32) : req.ip ?? 'unknown';
+  },
+});
 /** Email verification: code checks plus resend requests per account (resends are also spaced by the service). */
 export const verificationLimiter = rateLimit({
   name: 'email-verify',

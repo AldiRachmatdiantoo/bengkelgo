@@ -62,7 +62,7 @@ export function canReturnTo(role: Role, path: string): boolean {
   if (path.startsWith('/admin')) return role === 'ADMIN';
   if (/^\/orders\/[^/]+\/?(\?.*)?$/.test(path)) return true; // order detail: any party (server checks ownership)
   if (path.startsWith('/orders') || path.startsWith('/notifications')) return role === 'CUSTOMER' || role === 'GUEST';
-  if (path.startsWith('/login') || path.startsWith('/register')) return false;
+  if (['/login', '/register', '/lupa-password', '/reset-password'].some((p) => path.startsWith(p))) return false;
   // Public pages (workshop detail mid-booking, SOS, ...) are meant for customers.
   return role === 'CUSTOMER' || role === 'GUEST';
 }

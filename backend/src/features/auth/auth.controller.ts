@@ -5,7 +5,7 @@ import { currentUser } from '../../common/middlewares/auth';
 import { AppError } from '../../common/errors/AppError';
 import { ok } from '../../common/utils/http';
 import { authService, type AuthResult } from './auth.service';
-import type { GoogleInput, GuestInput, LoginInput, RegisterCustomerInput, RegisterWorkshopInput, VerifyEmailInput } from './auth.schema';
+import type { ForgotPasswordInput, GoogleInput, GuestInput, LoginInput, RegisterCustomerInput, RegisterWorkshopInput, ResetPasswordInput, VerifyEmailInput } from './auth.schema';
 
 export const REFRESH_COOKIE = 'bengkel_rt';
 
@@ -67,6 +67,15 @@ export const authController = {
     await authService.logout(refreshFrom(req));
     res.clearCookie(REFRESH_COOKIE, cookieOptions());
     ok(res, { logged_out: true });
+  },
+
+  async forgotPassword(req: Request, res: Response) {
+    ok(res, await authService.forgotPassword(input<ForgotPasswordInput>(req).body.email));
+  },
+
+  async resetPassword(req: Request, res: Response) {
+    const { token, password } = input<ResetPasswordInput>(req).body;
+    ok(res, await authService.resetPassword(token, password));
   },
 
   async verifyEmail(req: Request, res: Response) {

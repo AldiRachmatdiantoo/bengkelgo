@@ -66,3 +66,11 @@ export const verifyEmailSchema = z.object({
   code: z.string().trim().regex(/^\d{6}$/, 'Code must be 6 digits'),
 });
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+
+export const forgotPasswordSchema = z.object({ email });
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(20).max(200),
+  password,
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

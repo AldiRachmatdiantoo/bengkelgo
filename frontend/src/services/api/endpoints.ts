@@ -77,6 +77,8 @@ export const authApi = {
     return user;
   },
   resendVerification: () => call<{ sent: boolean; already_verified: boolean }>(http.post('/auth/email/resend', {})),
+  forgotPassword: (email: string) => call<{ sent: boolean }>(http.post('/auth/password/forgot', { email })),
+  resetPassword: (token: string, password: string) => call<{ reset: boolean }>(http.post('/auth/password/reset', { token, password })),
 };
 
 export const workshopApi = {

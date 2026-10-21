@@ -8,3 +8,4 @@ Disallow: /notifications
 Disallow: /vehicles
 Disallow: /verifikasi-email
 Disallow: /auth/
+Disallow: /reset-password

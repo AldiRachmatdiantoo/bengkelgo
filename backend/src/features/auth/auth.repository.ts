@@ -63,6 +63,41 @@ export const authRepository = {
     await q.query('UPDATE users SET google_sub = $2, email_verified_at = COALESCE(email_verified_at, NOW()), updated_at = NOW() WHERE id = $1', [userId, sub]);
   },
 
+  // ---------- password reset ----------
+  /** When the account last asked for a reset link (null if no live link). */
+  async lastResetRequest(q: Queryable, userId: string) {
+    const { rows } = await q.query<{ created_at: Date }>('SELECT created_at FROM password_resets WHERE user_id = $1', [userId]);
+    return rows[0]?.created_at ?? null;
+  },
+
+  /** Stores a new link (replacing any earlier one) valid for `ttlMinutes`. */
+  async saveResetToken(q: Queryable, userId: string, tokenHash: string, ttlMinutes: number) {
+    await q.query(
+      `INSERT INTO password_resets (user_id, token_hash, expires_at, created_at) VALUES ($1, $2, NOW() + make_interval(mins => $3), NOW())
+       ON CONFLICT (user_id) DO UPDATE SET token_hash = EXCLUDED.token_hash, expires_at = EXCLUDED.expires_at, created_at = NOW()`,
+      [userId, tokenHash, ttlMinutes],
+    );
+  },
+
+  /** Takes a live link out of the table (single use); returns its account, or null if unknown or expired. */
+  async consumeResetToken(q: Queryable, tokenHash: string) {
+    const { rows } = await q.query<{ user_id: string; live: boolean }>(
+      `DELETE FROM password_resets WHERE token_hash = $1 RETURNING user_id, expires_at > NOW() AS live`,
+      [tokenHash],
+    );
+    return rows[0]?.live ? rows[0].user_id : null;
+  },
+
+  /** New password; the address is proven (the link reached it), and every session is ended. */
+  async setPassword(q: Queryable, userId: string, passwordHash: string) {
+    await q.query(
+      `UPDATE users SET password_hash = $2, email_verified_at = COALESCE(email_verified_at, NOW()), updated_at = NOW() WHERE id = $1`,
+      [userId, passwordHash],
+    );
+    await q.query('UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL', [userId]);
+    await q.query('DELETE FROM email_verifications WHERE user_id = $1', [userId]);
+  },
+
   // ---------- email verification ----------
   /** Stores a new code (replacing any earlier one) with a fresh expiry and attempt counter. */
   async saveVerificationCode(q: Queryable, userId: string, codeHash: string, ttlMinutes: number) {
