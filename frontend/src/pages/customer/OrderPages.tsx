@@ -143,7 +143,7 @@ export function PaymentPage() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-3 rounded-lg bg-white/80 px-4 py-2 ring-1 ring-line">
+        <div className="flex items-center gap-3 rounded-lg bg-card/80 px-4 py-2 ring-1 ring-line">
           <div>
             <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Kode reservasi</p>
             <p className="font-mono text-sm font-bold text-navy">{order.order_number}</p>

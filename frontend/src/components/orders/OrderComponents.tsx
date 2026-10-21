@@ -194,23 +194,23 @@ export function BookingPass({ order }: { order: Order }) {
           <OrderStatusBadge order={order} />
         </div>
         <div className="mt-5 grid gap-5 rounded-xl bg-surface-low p-4 sm:grid-cols-[auto_1fr]">
-          <div className="flex flex-col items-center gap-2 rounded-lg bg-white p-4 shadow-sm">
+          <div className="flex flex-col items-center gap-2 rounded-lg bg-card p-4 shadow-sm">
             <QrCode value={order.order_number} size={132} />
             <span className="font-mono text-xs font-bold text-navy">{order.order_number}</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-lg bg-white p-4 shadow-sm sm:col-span-2">
+            <div className="rounded-lg bg-card p-4 shadow-sm sm:col-span-2">
               <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Nomor antrean</p>
               <p className="text-[26px] leading-tight font-extrabold text-primary" data-testid="queue-number">
                 #{b.queue_number}
               </p>
             </div>
-            <div className="rounded-lg bg-white p-3 shadow-sm">
+            <div className="rounded-lg bg-card p-3 shadow-sm">
               <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Jadwal servis</p>
               <p className="text-sm font-bold text-navy">{longDate(b.booking_date)}</p>
               <p className="font-label text-xs text-ink-2">{slotRange(b.time_slot)} WIB</p>
             </div>
-            <div className="rounded-lg bg-white p-3 shadow-sm">
+            <div className="rounded-lg bg-card p-3 shadow-sm">
               <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Estimasi kedatangan</p>
               <p className="text-sm font-bold text-warning-ink">{arrive} WIB</p>
               <p className="font-label text-xs text-ink-2">(10 menit lebih awal)</p>
@@ -488,7 +488,7 @@ export function EmergencyMapCard({ order }: { order: Order }) {
           height={340}
           className="rounded-none border-0"
         />
-        <div className="absolute inset-x-3 top-3 z-[500] flex flex-wrap items-center gap-2 rounded-xl bg-white/90 p-3 shadow-lift backdrop-blur">
+        <div className="absolute inset-x-3 top-3 z-[500] flex flex-wrap items-center gap-2 rounded-xl bg-card/90 p-3 shadow-lift backdrop-blur">
           <span className="grid h-9 w-9 place-items-center rounded-lg bg-sky text-primary">
             <Icon name="near_me" />
           </span>
@@ -863,7 +863,7 @@ export function QrisPayCard({ order }: { order: Order }) {
       </div>
       <div className="mt-5 grid gap-6 rounded-xl border border-dashed border-line-strong p-4 sm:grid-cols-[auto_1fr] sm:p-5">
         <div className="flex flex-col items-center gap-2">
-          <div className="rounded-xl bg-white p-3 shadow-sm ring-1 ring-line">
+          <div className="rounded-xl bg-card p-3 shadow-sm ring-1 ring-line">
             {qris.url ? (
               <img src={qris.url} alt="QRIS bengkel" className="aspect-square w-48 object-contain" />
             ) : (
@@ -978,9 +978,9 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
           className={cx('flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition', drag ? 'border-primary bg-sky' : 'border-line-strong bg-surface-low hover:border-primary hover:bg-sky')}
         >
           {photo.preview ? (
-            <img src={photo.preview} alt="Pratinjau bukti pembayaran" className="max-h-48 rounded-lg border border-line bg-white object-contain shadow-sm" data-testid="proof-preview" />
+            <img src={photo.preview} alt="Pratinjau bukti pembayaran" className="max-h-48 rounded-lg border border-line bg-card object-contain shadow-sm" data-testid="proof-preview" />
           ) : (
-            <span className="grid h-12 w-12 place-items-center rounded-full bg-white text-primary shadow-sm">
+            <span className="grid h-12 w-12 place-items-center rounded-full bg-card text-primary shadow-sm">
               <Icon name={photo.busy ? 'hourglass_top' : 'add_photo_alternate'} />
             </span>
           )}
@@ -1285,7 +1285,7 @@ export function OwnerOrderActions({ order }: { order: Order }) {
             <p className="mb-3 flex items-center gap-2 font-semibold text-emergency-ink">
               <Icon name="e911_emergency" filled /> Panggilan darurat menunggu respons Anda
               {order.emergency?.response_deadline && (
-                <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 font-mono text-sm text-emergency-ink">
+                <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-card px-2 py-0.5 font-mono text-sm text-emergency-ink">
                   <Icon name="timer" className="text-[16px]" /> <ResponseCountdown deadline={order.emergency.response_deadline} />
                 </span>
               )}
@@ -1294,9 +1294,9 @@ export function OwnerOrderActions({ order }: { order: Order }) {
               Kisaran biaya pelanggan: <b className="text-navy">{customerRange(order.emergency) ?? NEGOTIABLE}</b>
             </p>
             <div className="flex flex-wrap items-end gap-3">
-              <Input label="Estimasi biaya (Rp, opsional)" hint="Kosongkan jika harga bisa dibicarakan" type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} className="w-48 bg-white" />
+              <Input label="Estimasi biaya (Rp, opsional)" hint="Kosongkan jika harga bisa dibicarakan" type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} className="w-48 bg-card" />
               {activeMechanics.length > 1 && (
-                <Select label="Mekanik yang dikirim" value={mechanicId} onChange={(e) => setMechanicId(e.target.value)} className="w-56 bg-white" data-testid="emergency-mechanic">
+                <Select label="Mekanik yang dikirim" value={mechanicId} onChange={(e) => setMechanicId(e.target.value)} className="w-56 bg-card" data-testid="emergency-mechanic">
                   <option value="">Otomatis (rating tertinggi yang bebas)</option>
                   {activeMechanics.map((m) => (
                     <option key={m.id} value={m.id}>

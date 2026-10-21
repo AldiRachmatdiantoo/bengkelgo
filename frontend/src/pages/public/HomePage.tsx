@@ -170,7 +170,7 @@ export default function HomePage() {
           </Reveal>
           <RevealGroup className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {ADVANTAGES.map((a) => (
-              <RevealItem key={a.title} className="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm transition-shadow hover:shadow-lift">
+              <RevealItem key={a.title} className="flex flex-col gap-4 rounded-2xl bg-card p-6 shadow-sm transition-shadow hover:shadow-lift">
                 <span className={cx('grid h-12 w-12 place-items-center rounded-xl text-white shadow-soft', a.tone)}>
                   <Icon name={a.icon} className="text-[24px]" />
                 </span>
@@ -205,7 +205,7 @@ export default function HomePage() {
             </ul>
           </div>
           <div className="flex flex-col gap-3 lg:items-end">
-            <Link to="/register/workshop" className="inline-flex h-12 items-center justify-center rounded-lg bg-white px-7 font-label text-sm font-bold text-navy hover:bg-sky">
+            <Link to="/register/workshop" className="inline-flex h-12 items-center justify-center rounded-lg bg-card px-7 font-label text-sm font-bold text-navy hover:bg-sky">
               Daftarkan Bengkel Sekarang
             </Link>
             <Link to="/login" className="inline-flex h-12 items-center justify-center rounded-lg bg-white/15 px-7 font-label text-sm font-bold text-white hover:bg-white/25">
@@ -220,7 +220,7 @@ export default function HomePage() {
         <SectionHeading eyebrow="Pusat informasi & panduan" title="Pertanyaan yang Sering Diajukan (FAQ)" subtitle="Cara kerja bantuan darurat, antrean, dan pembayaran." />
         <div className="flex max-w-3xl flex-col gap-3">
           {FAQ.map((f) => (
-            <details key={f.q} className="group rounded-xl bg-surface-low px-5 py-4 open:bg-white open:shadow-sm open:ring-1 open:ring-line">
+            <details key={f.q} className="group rounded-xl bg-surface-low px-5 py-4 open:bg-card open:shadow-sm open:ring-1 open:ring-line">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-bold text-navy [&::-webkit-details-marker]:hidden">
                 {f.q}
                 <Icon name="expand_more" className="text-primary transition group-open:rotate-180" />
@@ -261,7 +261,7 @@ function HeroVisual() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.35 + i * 0.12, ease: 'easeOut' }}
-          className={cx('absolute flex items-center gap-2 rounded-xl bg-white/95 px-4 py-3 font-label text-sm font-bold text-navy shadow-lift ring-1 ring-line/60 backdrop-blur', c.pos)}
+          className={cx('absolute flex items-center gap-2 rounded-xl bg-card/95 px-4 py-3 font-label text-sm font-bold text-navy shadow-lift ring-1 ring-line/60 backdrop-blur', c.pos)}
         >
           <Icon name={c.icon} className={c.tone} /> {c.text}
         </m.span>
@@ -343,7 +343,7 @@ function HowItWorks({ sectionRef }: { sectionRef: React.RefObject<HTMLElement | 
             <RevealItem as="li" key={s.title} className="relative flex flex-col items-center text-center">
               <span className={cx('relative z-10 grid h-14 w-14 place-items-center rounded-full text-white shadow-lift ring-8 ring-canvas', g.tone)}>
                 <Icon name={s.icon} className="text-[20px]" />
-                <span className="absolute -top-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-white font-label text-xs font-bold text-navy shadow-sm">{i + 1}</span>
+                <span className="absolute -top-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-card font-label text-xs font-bold text-navy shadow-sm">{i + 1}</span>
               </span>
               <div className="mt-4 flex w-full flex-1 flex-col rounded-xl border border-line bg-card p-5 shadow-sm">
                 <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Langkah {i + 1}</p>

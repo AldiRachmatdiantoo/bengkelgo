@@ -52,7 +52,7 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
       <div className="relative aspect-[16/8] overflow-hidden bg-gradient-to-br from-primary to-navy">
         <div className="absolute inset-0 opacity-15 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:16px_16px]" />
         <Icon name="car_repair" className="absolute -right-4 -bottom-6 text-[140px] text-white/15" />
-        <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 font-label text-[11px] font-bold text-navy shadow-sm">
+        <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 font-label text-[11px] font-bold text-navy shadow-sm">
           <Icon name="verified" filled className="text-[14px] text-primary" /> {featured ? 'Rekomendasi BengkelGo' : 'Mitra Resmi BengkelGo'}
         </span>
         <span className="absolute bottom-3 left-3 max-w-[70%] truncate text-lg font-bold text-white drop-shadow">{workshop.name}</span>
@@ -119,7 +119,7 @@ export function ServicePicker({ services, value, onChange }: { services: Service
             onClick={() => onChange(s.id)}
             className={cx(
               'flex flex-col gap-2 rounded-xl border p-4 text-left transition',
-              selected ? 'border-primary bg-sky ring-2 ring-primary' : 'border-line bg-white hover:border-primary/50 hover:shadow-sm',
+              selected ? 'border-primary bg-sky ring-2 ring-primary' : 'border-line bg-card hover:border-primary/50 hover:shadow-sm',
             )}
           >
             <div className="flex items-start gap-3">
@@ -133,7 +133,7 @@ export function ServicePicker({ services, value, onChange }: { services: Service
                 </p>
               </div>
               <span className={cx('mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full border-[1.5px]', selected ? 'border-primary bg-primary' : 'border-line-strong')}>
-                {selected && <span className="h-2 w-2 rounded-full bg-white" />}
+                {selected && <span className="h-2 w-2 rounded-full bg-card" />}
               </span>
             </div>
             {s.description && <p className="text-sm text-ink-2">{s.description}</p>}
@@ -162,7 +162,7 @@ export function DateStrip({ value, onChange, days = 7 }: { value: string; onChan
             onClick={() => onChange(d)}
             className={cx(
               'relative flex w-[88px] shrink-0 flex-col items-center gap-0.5 rounded-xl border px-2 py-3 transition',
-              selected ? 'border-2 border-primary bg-sky' : 'border-line bg-white hover:border-primary/50',
+              selected ? 'border-2 border-primary bg-sky' : 'border-line bg-card hover:border-primary/50',
             )}
           >
             {selected && <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-primary" />}
@@ -216,7 +216,7 @@ export function SlotPicker({ slots, value, onChange, durationMinutes }: { slots:
                     data-testid={`slot-${s.time_slot}`}
                     className={cx(
                       'flex w-full flex-col gap-1.5 rounded-xl border p-3.5 text-left transition disabled:cursor-not-allowed disabled:bg-surface-low disabled:opacity-60',
-                      selected ? 'border-2 border-primary bg-sky shadow-sm' : 'border-line bg-white hover:border-primary/50',
+                      selected ? 'border-2 border-primary bg-sky shadow-sm' : 'border-line bg-card hover:border-primary/50',
                     )}
                   >
                     <span className="flex items-start justify-between gap-2">
@@ -262,7 +262,7 @@ export function MechanicList({ mechanics }: { mechanics: Mechanic[] }) {
             {m.specializations.length > 0 && (
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {m.specializations.map((s) => (
-                  <span key={s} className="rounded-md bg-white px-1.5 py-0.5 font-label text-[11px] font-semibold text-ink-2">
+                  <span key={s} className="rounded-md bg-card px-1.5 py-0.5 font-label text-[11px] font-semibold text-ink-2">
                     {s}
                   </span>
                 ))}

@@ -182,13 +182,13 @@ export function AdminDashboardPage() {
       <section className="flex flex-col gap-5 rounded-xl border border-line bg-card p-6 shadow-sm lg:flex-row lg:items-end">
         <div className="min-w-0 flex-1">
           <p className="flex flex-wrap items-center gap-2 font-label text-xs font-semibold text-ink-2">
-            <span className="rounded-full bg-sky px-2.5 py-1 font-bold text-primary">Governance Core</span>• PBI-405 / PBI-406
+            <span className="rounded-full bg-sky px-2.5 py-1 font-bold text-primary">Pusat kendali admin</span>
           </p>
           <h1 className="mt-2 text-[21px] leading-tight font-bold tracking-[-0.02em] text-navy sm:text-headline-lg">Admin Platform &amp; Analitik Operasional</h1>
           <p className="mt-1 max-w-2xl text-subtitle text-ink-2">Pusat verifikasi mitra bengkel UMKM, ringkasan transaksi QRIS, dan aktivitas panggilan darurat.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="relative inline-flex h-11 items-center gap-2 rounded-full border border-line bg-white pr-9 pl-4 font-label text-sm font-semibold text-navy">
+          <label className="relative inline-flex h-11 items-center gap-2 rounded-full border border-line bg-card pr-9 pl-4 font-label text-sm font-semibold text-navy">
             <Icon name="calendar_month" className="text-primary" />
             <select value={period} onChange={(e) => setPeriod(e.target.value as Period)} className="appearance-none bg-transparent focus:outline-none" aria-label="Periode">
               {PERIODS.map((p) => (
@@ -199,10 +199,10 @@ export function AdminDashboardPage() {
             </select>
             <Icon name="arrow_drop_down" className="pointer-events-none absolute right-3" />
           </label>
-          <Button variant="ghost" icon="download" className="border border-line bg-white" disabled={!report.data} onClick={() => report.data && exportReport(report.data)}>
+          <Button variant="ghost" icon="download" className="border border-line bg-card" disabled={!report.data} onClick={() => report.data && exportReport(report.data)}>
             Export CSV
           </Button>
-          <Button variant="ghost" icon="picture_as_pdf" className="border border-line bg-white" disabled={!report.data} onClick={() => report.data && exportReportPdf(report.data)}>
+          <Button variant="ghost" icon="picture_as_pdf" className="border border-line bg-card" disabled={!report.data} onClick={() => report.data && exportReportPdf(report.data)}>
             Export PDF
           </Button>
           <Link to="/admin/reports" className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-white hover:bg-primary-dark">
@@ -254,7 +254,7 @@ export function AdminDashboardPage() {
               </span>
               <div className="min-w-0">
                 <h2 className="text-headline-sm text-navy">Pipeline Persetujuan Kemitraan Bengkel Baru</h2>
-                <p className="font-mono text-[11px] break-all text-ink-3">PATCH /admin/workshops/:id/approval</p>
+                <p className="text-xs text-ink-3">Bengkel baru yang menunggu diperiksa dan disetujui.</p>
               </div>
             </div>
             {queue.length > 0 && (
@@ -280,7 +280,7 @@ export function AdminDashboardPage() {
                   <ul className="flex flex-col gap-2">
                     {queue.slice(1, 6).map((w) => (
                       <li key={w.id} className="flex items-center gap-3 rounded-lg bg-surface-low p-3">
-                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white font-label text-sm font-bold text-navy">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-card font-label text-sm font-bold text-navy">
                           {w.name
                             .split(' ')
                             .map((p) => p[0])
@@ -294,7 +294,7 @@ export function AdminDashboardPage() {
                             {regionOf(w.address)} • daftar {dateTime(w.created_at)}
                           </p>
                         </div>
-                        <Link to="/admin/workshops" className="rounded-lg bg-white px-3 py-1.5 font-label text-xs font-bold text-primary shadow-sm hover:bg-sky">
+                        <Link to="/admin/workshops" className="rounded-lg bg-card px-3 py-1.5 font-label text-xs font-bold text-primary shadow-sm hover:bg-sky">
                           Periksa
                         </Link>
                       </li>
@@ -535,7 +535,7 @@ function WorkshopApprovalCard({
             href={`https://www.openstreetmap.org/?mlat=${w.latitude}&mlon=${w.longitude}#map=16/${w.latitude}/${w.longitude}`}
             target="_blank"
             rel="noreferrer"
-            className="absolute right-2 bottom-2 z-[500] inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 font-label text-[11px] font-bold text-navy shadow-sm"
+            className="absolute right-2 bottom-2 z-[500] inline-flex items-center gap-1 rounded-md bg-card/95 px-2 py-1 font-label text-[11px] font-bold text-navy shadow-sm"
           >
             Coverage 5 km <Icon name="open_in_new" className="text-[14px]" />
           </a>
@@ -562,7 +562,7 @@ export function AdminReportsPage() {
         title="Audit Transaksi"
         subtitle={
           <span>
-            Ringkasan pesanan dan pembayaran terverifikasi seluruh mitra. <span className="font-mono text-xs text-ink-3">GET /admin/reports/transactions</span>
+            Ringkasan pesanan dan pembayaran terverifikasi seluruh mitra.
           </span>
         }
         actions={

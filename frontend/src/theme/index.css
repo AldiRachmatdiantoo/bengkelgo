@@ -110,6 +110,60 @@
   }
 }
 
+/*
+ * Dark theme for the owner and admin portals: html.theme-dark, switched with the moon/sun button in the portal
+ * top bar (default light; the public site is always light). Surfaces, lines and muted text come from the tokens;
+ * brand colours that double as button fills (primary, success, navy) keep their fill and only their TEXT use is
+ * lightened, so white-on-colour buttons stay readable. Text colours below keep >= 4.5:1 on the dark cards.
+ */
+html.theme-dark {
+  color-scheme: dark;
+  --color-canvas: #0e1322;
+  --color-card: #161c30;
+  --color-surface-low: #1c2338;
+  --color-surface: #242c44;
+  --color-surface-high: #2c3550;
+  --color-sky: #1d2646;
+  --color-primary-fixed: #33468f;
+  --color-line: #29314d;
+  --color-line-strong: #3a4466;
+  --color-ink-2: #b9bfd4;
+  --color-ink-3: #9aa1bb;
+  --color-success-soft: #10301f;
+  --color-warning-soft: #3b2c0c;
+  --color-emergency-soft: #3d1d12;
+  --color-warning-ink: #fbbf24;
+  --color-emergency-ink: #fdba74;
+  --shadow-soft: 0 4px 14px -2px rgb(0 0 0 / 0.35);
+  --shadow-lift: 0 12px 28px -4px rgb(0 0 0 / 0.45);
+  --shadow-float: 0 24px 48px -8px rgb(0 0 0 / 0.55);
+  --shadow-header: 0 1px 8px rgb(0 0 0 / 0.4);
+}
+/* Text without its own colour inherits the page colour (navy in light mode). */
+html.theme-dark body,
+html.theme-dark .text-navy {
+  color: #e7eaf6;
+}
+html.theme-dark .text-primary,
+html.theme-dark .hover\:text-primary:hover {
+  color: #9fb0f9;
+}
+html.theme-dark .text-success {
+  color: #4ade80;
+}
+html.theme-dark .text-emergency {
+  color: #fb8a5c;
+}
+html.theme-dark .text-warning {
+  color: #fbbf24;
+}
+html.theme-dark .bg-navy {
+  background-color: #2a3976;
+}
+html.theme-dark ::selection {
+  color: #ffffff;
+}
+
 .material-symbols-outlined {
   font-family: "Material Symbols Outlined";
   font-weight: normal;

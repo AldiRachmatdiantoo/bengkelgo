@@ -78,7 +78,7 @@ export function PlaceSearch({
 
   return (
     <div className={cx('relative', className)}>
-      <div className="flex items-center gap-2 rounded-lg border border-line-strong bg-white pr-1 pl-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25">
+      <div className="flex items-center gap-2 rounded-lg border border-line-strong bg-card pr-1 pl-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25">
         <Icon name="travel_explore" className="text-primary" />
         <input
           ref={inputRef}
@@ -113,7 +113,7 @@ export function PlaceSearch({
       {tooShort && <p className="mt-1 text-xs text-ink-3">Ketik minimal 3 huruf, lalu tekan Enter atau Cari.</p>}
 
       {open && query && (
-        <div className="absolute inset-x-0 top-full z-[1000] mt-1 overflow-hidden rounded-lg border border-line bg-white shadow-float">
+        <div className="absolute inset-x-0 top-full z-[1000] mt-1 overflow-hidden rounded-lg border border-line bg-card shadow-float">
           {result.isFetching ? (
             <p className="flex items-center gap-2 px-4 py-3 text-sm text-ink-2">
               <Spinner small /> Mencari “{query}”…

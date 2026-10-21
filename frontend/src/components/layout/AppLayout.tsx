@@ -95,7 +95,7 @@ function Dropdown({ trigger, children, align = 'right', label, width = 'w-60' }:
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.16, ease: 'easeOut' }}
             style={{ transformOrigin: align === 'right' ? 'top right' : 'top left' }}
-            className={cx('absolute top-full z-[1100] mt-2 overflow-hidden rounded-xl border border-line bg-white py-2 shadow-lift', width, align === 'right' ? 'right-0' : 'left-0')}
+            className={cx('absolute top-full z-[1100] mt-2 overflow-hidden rounded-xl border border-line bg-card py-2 shadow-lift', width, align === 'right' ? 'right-0' : 'left-0')}
           >
             {children}
           </m.div>
@@ -224,7 +224,7 @@ function PublicShell() {
   return (
     // overflow-x-clip: full-bleed landing bands use 100vw; clip (not hidden) keeps the sticky header working.
     <div className="flex min-h-screen flex-col overflow-x-clip">
-      <header className="sticky top-0 z-[1000] bg-white/95 shadow-header backdrop-blur-xl">
+      <header className="sticky top-0 z-[1000] bg-card/95 shadow-header backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:h-20 sm:px-8 lg:px-20">
           <Link to="/" aria-label="BengkelGo beranda" className="shrink-0">
             <Brand />
@@ -299,7 +299,7 @@ function PublicShell() {
           </div>
         </div>
         {open && (
-          <nav className="flex flex-col gap-1 border-t border-line bg-white px-4 py-3 xl:hidden">
+          <nav className="flex flex-col gap-1 border-t border-line bg-card px-4 py-3 xl:hidden">
             {PUBLIC_NAV.map((l) => (
               <Link
                 key={l.label}
@@ -349,7 +349,7 @@ function PublicShell() {
         </PageFade>
       </main>
 
-      <footer className="border-t border-line bg-white">
+      <footer className="border-t border-line bg-card">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8 md:grid-cols-[1.6fr_1fr_1fr_1fr] lg:px-20">
           <div className="max-w-sm">
             <Brand />
@@ -437,7 +437,7 @@ function PublicShell() {
 function VerifyEmailStrip({ wide }: { wide?: boolean }) {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  if (!user?.email || user.email_verified !== false || pathname === '/verifikasi-email') return null;
+  if (user?.role !== 'CUSTOMER' || !user.email || user.email_verified !== false || pathname === '/verifikasi-email') return null;
   return (
     <div className="border-b border-warning/30 bg-warning-soft" data-testid="verify-email-strip">
       <div className={cx('mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 font-label text-xs text-warning-ink sm:px-8', wide ? 'lg:px-12' : 'lg:px-20')}>
@@ -448,6 +448,47 @@ function VerifyEmailStrip({ wide }: { wide?: boolean }) {
         </Link>
       </div>
     </div>
+  );
+}
+
+const THEME_KEY = 'bengkelgo-portal-theme';
+
+/** Light/dark choice for the portals, remembered per browser. Leaving the portal always returns to light. */
+function usePortalTheme() {
+  const [dark, setDark] = useState(() => {
+    try {
+      return localStorage.getItem(THEME_KEY) === 'dark';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle('theme-dark', dark);
+    try {
+      localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
+    } catch {
+      /* private mode: the choice just isn't remembered */
+    }
+    return () => root.classList.remove('theme-dark');
+  }, [dark]);
+  return { dark, toggle: () => setDark((d) => !d) };
+}
+
+function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
+  const label = dark ? 'Pakai tampilan terang' : 'Pakai tampilan gelap';
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={dark}
+      aria-label={label}
+      title={label}
+      className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-ink-2 transition hover:bg-sky hover:text-primary"
+      data-testid="theme-toggle"
+    >
+      <Icon name={dark ? 'light_mode' : 'dark_mode'} />
+    </button>
   );
 }
 
@@ -482,6 +523,7 @@ const OWNER_NAV: NavItem[] = [
 ];
 
 function OwnerShell({ user }: { user: User }) {
+  const theme = usePortalTheme();
   const doLogout = useLogout();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
@@ -536,9 +578,9 @@ function OwnerShell({ user }: { user: User }) {
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
-      <aside className="sticky top-0 hidden h-screen flex-col gap-6 overflow-y-auto border-r border-line bg-white p-5 lg:flex">
+      <aside className="sticky top-0 hidden h-screen flex-col gap-6 overflow-y-auto border-r border-line bg-card p-5 lg:flex">
         <Link to="/owner">
-          <Brand suffix="Mitra" sub="Owner Operational Portal" />
+          <Brand suffix="Mitra" sub="Portal Pemilik Bengkel" />
         </Link>
         {w && (
           <div className="rounded-lg bg-surface-low p-3">
@@ -564,7 +606,7 @@ function OwnerShell({ user }: { user: User }) {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-white/95 px-4 backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
+        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-card/95 px-4 backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
           <button className="grid h-10 w-10 place-items-center rounded-lg hover:bg-sky lg:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}>
             <Icon name={open ? 'close' : 'menu'} />
           </button>
@@ -589,6 +631,7 @@ function OwnerShell({ user }: { user: User }) {
                 <Icon name={live ? 'toggle_on' : 'toggle_off'} className="text-[23px]" />
               </button>
             )}
+            <ThemeToggle dark={theme.dark} onToggle={theme.toggle} />
             <NotificationBell role={user.role} />
             <Dropdown
               trigger={(isOpen) => (
@@ -613,7 +656,7 @@ function OwnerShell({ user }: { user: User }) {
             </Dropdown>
           </div>
         </header>
-        {open && <div className="sticky top-14 z-[999] border-b border-line bg-white p-4 shadow-lift sm:top-16 lg:hidden">{nav}</div>}
+        {open && <div className="sticky top-14 z-[999] border-b border-line bg-card p-4 shadow-lift sm:top-16 lg:hidden">{nav}</div>}
         <VerifyEmailStrip wide />
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
           <PageFade key={pathname}>
@@ -638,6 +681,7 @@ const ADMIN_NAV: NavItem[] = [
 ];
 
 function AdminShell({ user }: { user: User }) {
+  const theme = usePortalTheme();
   const doLogout = useLogout();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -671,12 +715,12 @@ function AdminShell({ user }: { user: User }) {
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
-      <aside className="sticky top-0 hidden h-screen flex-col gap-6 border-r border-line bg-white p-5 lg:flex">
+      <aside className="sticky top-0 hidden h-screen flex-col gap-6 border-r border-line bg-card p-5 lg:flex">
         <Link to="/admin">
-          <Brand sub="Platform Core" />
+          <Brand sub="Portal Admin" />
         </Link>
         <span className="inline-flex items-center gap-1.5 self-start rounded-md bg-sky px-2 py-1 font-label text-[10px] font-bold tracking-[0.06em] text-primary uppercase">
-          <Icon name="admin_panel_settings" className="text-[14px]" /> Governance HQ
+          <Icon name="admin_panel_settings" className="text-[14px]" /> Admin Platform
         </span>
         {nav}
         <div className="mt-auto rounded-lg bg-surface-low p-3 font-label text-xs text-ink-2">
@@ -688,7 +732,7 @@ function AdminShell({ user }: { user: User }) {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-white/95 px-4 backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
+        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-card/95 px-4 backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
           <button className="grid h-10 w-10 place-items-center rounded-lg hover:bg-sky lg:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}>
             <Icon name={open ? 'close' : 'menu'} />
           </button>
@@ -700,7 +744,8 @@ function AdminShell({ user }: { user: User }) {
             {pending.isError ? 'Koneksi terputus, mencoba lagi…' : 'Terhubung'}
           </span>
           <AdminSearchBox />
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <ThemeToggle dark={theme.dark} onToggle={theme.toggle} />
             <NotificationBell role={user.role} />
             <Dropdown
               trigger={() => (
@@ -722,7 +767,7 @@ function AdminShell({ user }: { user: User }) {
             </Dropdown>
           </div>
         </header>
-        {open && <div className="sticky top-14 z-[999] border-b border-line bg-white p-4 shadow-lift sm:top-16 lg:hidden">{nav}</div>}
+        {open && <div className="sticky top-14 z-[999] border-b border-line bg-card p-4 shadow-lift sm:top-16 lg:hidden">{nav}</div>}
         <VerifyEmailStrip wide />
         <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
           <PageFade key={pathname}>

@@ -94,7 +94,7 @@ export default function EmergencyPage() {
       <section className="relative overflow-hidden rounded-xl bg-emergency-ink p-6 text-white shadow-lift sm:p-8">
         <div className="pointer-events-none absolute -right-16 -bottom-24 h-72 w-72 rounded-full bg-white/10" />
         <div className="relative flex flex-wrap items-center gap-5">
-          <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-white text-emergency-ink animate-beacon">
+          <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-card text-emergency-ink animate-beacon">
             <Icon name="e911_emergency" filled className="text-[30px]" />
           </span>
           <div className="min-w-0 flex-1">
@@ -210,7 +210,7 @@ export default function EmergencyPage() {
                         }}
                         className={cx(
                           'flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition',
-                          selected ? 'border-emergency bg-emergency-soft ring-1 ring-emergency' : 'border-line bg-white hover:border-emergency/50',
+                          selected ? 'border-emergency bg-emergency-soft ring-1 ring-emergency' : 'border-line bg-card hover:border-emergency/50',
                         )}
                       >
                         <Icon name={p.icon} className={selected ? 'text-emergency' : 'text-ink-2'} />
@@ -332,7 +332,7 @@ export default function EmergencyPage() {
           )}
 
           {/* Mobile: one slim bar pinned to the bottom edge (thumb reach, little screen taken). Desktop: inline. */}
-          <div className="fixed inset-x-0 bottom-0 z-[900] border-t border-line bg-white/95 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0">
+          <div className="fixed inset-x-0 bottom-0 z-[900] border-t border-line bg-card/95 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0">
             <div className="flex items-center gap-2 lg:block">
               {missing.some(Boolean) && (
                 <button
@@ -391,7 +391,7 @@ export function PriceRangeField({ value, onChange }: { value: PriceRange; onChan
             onClick={() => onChange(p.range)}
             className={cx(
               'h-9 rounded-lg border px-3.5 font-label text-xs font-semibold transition',
-              same(p.range) ? 'border-primary bg-primary text-white' : 'border-line bg-white text-navy hover:border-primary/50',
+              same(p.range) ? 'border-primary bg-primary text-white' : 'border-line bg-card text-navy hover:border-primary/50',
             )}
           >
             {p.label}

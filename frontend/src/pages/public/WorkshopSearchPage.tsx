@@ -251,7 +251,7 @@ export default function WorkshopSearchPage() {
             {tab === 'sos' && (
               <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap items-center gap-4 rounded-xl border border-emergency/20 bg-emergency-soft p-4">
-                  <span className="grid h-11 w-11 place-items-center rounded-full bg-white text-emergency-ink shadow-sm">
+                  <span className="grid h-11 w-11 place-items-center rounded-full bg-card text-emergency-ink shadow-sm">
                     <Icon name="my_location" />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -259,7 +259,7 @@ export default function WorkshopSearchPage() {
                     <p className="font-semibold text-navy">{geo.position ? `${geo.position.lat.toFixed(5)}, ${geo.position.lng.toFixed(5)}` : (geo.error ?? 'Lokasi belum terdeteksi')}</p>
                     <p className="font-label text-xs text-ink-2">Bengkel aktif dalam 5 km dari titik ini akan dihubungi otomatis.</p>
                   </div>
-                  <Button variant="secondary" size="sm" icon="sync" loading={geo.locating} onClick={geo.locate} className="border-emergency text-emergency-ink hover:bg-white">
+                  <Button variant="secondary" size="sm" icon="sync" loading={geo.locating} onClick={geo.locate} className="border-emergency text-emergency-ink hover:bg-card">
                     {geo.position ? 'Perbarui Titik GPS' : 'Deteksi GPS'}
                   </Button>
                 </div>
@@ -275,7 +275,7 @@ export default function WorkshopSearchPage() {
                           role="radio"
                           aria-checked={sel}
                           onClick={() => setProblem(p.text)}
-                          className={cx('flex items-start gap-3 rounded-xl border p-3 text-left transition', sel ? 'border-2 border-emergency bg-emergency-soft' : 'border-line bg-white hover:border-emergency/50')}
+                          className={cx('flex items-start gap-3 rounded-xl border p-3 text-left transition', sel ? 'border-2 border-emergency bg-emergency-soft' : 'border-line bg-card hover:border-emergency/50')}
                         >
                           <Icon name={p.icon} className={sel ? 'text-emergency' : 'text-ink-2'} />
                           <span>
@@ -395,7 +395,7 @@ export default function WorkshopSearchPage() {
 
 function FieldCell({ icon, label, hint, children }: { icon: string; label: string; hint: ReactNode; children: ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-lg bg-white px-3 py-2.5 shadow-sm">
+    <div className="flex min-w-0 flex-col gap-1 rounded-lg bg-card px-3 py-2.5 shadow-sm">
       <span className="flex items-center gap-1.5 font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">
         <Icon name={icon} className="text-[16px] text-primary" /> {label}
       </span>
@@ -433,7 +433,7 @@ function RadarSection({ workshops, origin }: { workshops: Workshop[]; origin: { 
           className="shadow-sm"
         />
         {top && (
-          <div className="absolute top-4 left-4 z-[500] w-[min(320px,calc(100%-2rem))] rounded-xl bg-white/95 p-4 shadow-lift backdrop-blur">
+          <div className="absolute top-4 left-4 z-[500] w-[min(320px,calc(100%-2rem))] rounded-xl bg-card/95 p-4 shadow-lift backdrop-blur">
             <div className="flex items-center justify-between gap-2">
               <span className="rounded-md bg-emergency-ink px-1.5 py-0.5 font-label text-[10px] font-bold text-white uppercase">{origin ? 'Terdekat terdeteksi' : 'Rekomendasi'}</span>
               <span className="font-label text-[11px] text-ink-3">{regionOf(top.address)}</span>

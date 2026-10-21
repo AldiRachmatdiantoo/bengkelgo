@@ -273,7 +273,7 @@ function SlotBoard({ date, slots, bookings, highlightHour }: { date: string; slo
         const now = highlightHour === Number(s.time_slot.slice(0, 2));
         const pct = s.max_slot_per_hour ? (s.current_booked / s.max_slot_per_hour) * 100 : 100;
         return (
-          <div key={s.time_slot} className={cx('grid gap-3 rounded-lg border p-3 sm:grid-cols-[150px_1fr_auto] sm:items-center', now ? 'border-primary/40 bg-sky/50' : 'border-line bg-white')}>
+          <div key={s.time_slot} className={cx('grid gap-3 rounded-lg border p-3 sm:grid-cols-[150px_1fr_auto] sm:items-center', now ? 'border-primary/40 bg-sky/50' : 'border-line bg-card')}>
             <div>
               <p className="flex items-center gap-2 font-mono text-sm font-bold text-navy">
                 {slotRange(s.time_slot)}
@@ -295,7 +295,7 @@ function SlotBoard({ date, slots, bookings, highlightHour }: { date: string; slo
                   <Link
                     key={o.id}
                     to={`/orders/${o.id}`}
-                    className={cx('min-w-44 shrink-0 rounded-lg border px-3 py-2 transition hover:shadow-sm', CHIP_TONE[o.status] ?? 'border-line bg-white')}
+                    className={cx('min-w-44 shrink-0 rounded-lg border px-3 py-2 transition hover:shadow-sm', CHIP_TONE[o.status] ?? 'border-line bg-card')}
                   >
                     <p className="flex items-center justify-between gap-2 font-label text-[10px] font-bold text-ink-2 uppercase">
                       <span>Antrean #{o.booking?.queue_number}</span>
@@ -390,7 +390,7 @@ function TeamList({ mechanics, tasks }: { mechanics: Mechanic[]; tasks: Map<stri
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-1.5 text-sm font-bold text-navy">
                 <span className="truncate">{m.name}</span>
-                {m.specializations[0] && <span className="shrink-0 rounded-md bg-white px-1.5 py-0.5 font-label text-[10px] font-semibold text-ink-2">{m.specializations[0]}</span>}
+                {m.specializations[0] && <span className="shrink-0 rounded-md bg-card px-1.5 py-0.5 font-label text-[10px] font-semibold text-ink-2">{m.specializations[0]}</span>}
               </p>
               <p className={cx('truncate font-label text-xs', task?.type === 'EMERGENCY' ? 'font-semibold text-emergency-ink' : 'text-ink-2')}>
                 {!m.is_active ? 'Nonaktif' : task ? (task.type === 'EMERGENCY' ? `Menuju SOS: ${splitPriceRange(task.emergency?.problem_description).text}` : `Tugas: ${task.booking?.service_name} (${task.customer.name})`) : 'Siap menerima tugas'}
@@ -431,8 +431,8 @@ function IncomingEmergency({ order }: { order: Order }) {
             <span className="rounded-md bg-emergency-ink px-2 py-0.5 font-label text-[11px] font-bold text-white uppercase">Emergency SOS · {distance(e?.distance_meters)}</span>
             <span className="font-mono text-xs text-ink-2">#{order.order_number}</span>
           </p>
-          <p className="mt-1 inline-flex rounded-md bg-white px-2 py-0.5 font-label text-xs font-semibold text-emergency-ink">{p.text}</p>
-          <p className="mt-1 ml-2 inline-flex rounded-md bg-white px-2 py-0.5 font-label text-xs font-semibold text-navy">Kisaran biaya: {customerRange(e) ?? NEGOTIABLE}</p>
+          <p className="mt-1 inline-flex rounded-md bg-card px-2 py-0.5 font-label text-xs font-semibold text-emergency-ink">{p.text}</p>
+          <p className="mt-1 ml-2 inline-flex rounded-md bg-card px-2 py-0.5 font-label text-xs font-semibold text-navy">Kisaran biaya: {customerRange(e) ?? NEGOTIABLE}</p>
           <h3 className="mt-1 text-headline-sm text-navy">
             {order.customer.name}
             <span className="ml-2 font-label text-sm font-normal text-ink-2">
@@ -459,7 +459,7 @@ function IncomingEmergency({ order }: { order: Order }) {
           )}
         </div>
         {e?.response_deadline && (
-          <div className="flex items-center gap-2 rounded-lg bg-white px-4 py-3 shadow-sm">
+          <div className="flex items-center gap-2 rounded-lg bg-card px-4 py-3 shadow-sm">
             <Icon name="timer" className="text-emergency" />
             <div>
               <p className="font-mono text-xl font-bold text-emergency-ink">
@@ -474,10 +474,10 @@ function IncomingEmergency({ order }: { order: Order }) {
             Terima &amp; Tugaskan Mekanik
           </Button>
           <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1 bg-white" loading={respond.isPending} onClick={() => respond.mutate('DECLINE')}>
+            <Button variant="secondary" className="flex-1 bg-card" loading={respond.isPending} onClick={() => respond.mutate('DECLINE')}>
               Tolak / Alihkan
             </Button>
-            <Link to={`/orders/${order.id}`} className="grid h-12 w-12 place-items-center rounded-lg bg-white text-navy shadow-sm hover:bg-sky" aria-label="Detail & estimasi biaya">
+            <Link to={`/orders/${order.id}`} className="grid h-12 w-12 place-items-center rounded-lg bg-card text-navy shadow-sm hover:bg-sky" aria-label="Detail & estimasi biaya">
               <Icon name="open_in_new" />
             </Link>
           </div>
@@ -1322,7 +1322,7 @@ export function OwnerProfilePage() {
           </form>
           {qrisPhoto.preview && (
             <div className="mt-4 flex flex-wrap items-end gap-4">
-              <img src={qrisPhoto.preview} alt="Pratinjau QRIS" className="max-h-56 rounded-lg border border-line bg-white object-contain p-2" />
+              <img src={qrisPhoto.preview} alt="Pratinjau QRIS" className="max-h-56 rounded-lg border border-line bg-card object-contain p-2" />
               <p className="text-xs text-ink-2">
                 Pratinjau sebelum diunggah. Pastikan kode QR terlihat jelas dan tidak terpotong.
                 {qrisPhoto.image?.changed && (
@@ -1422,7 +1422,7 @@ function Toggle({ checked, onChange, label, hint, icon }: { checked: boolean; on
         <span className="block text-xs text-ink-3">{hint}</span>
       </span>
       <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span className="relative h-6 w-11 shrink-0 rounded-full bg-line-strong transition peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5" />
+      <span className="relative h-6 w-11 shrink-0 rounded-full bg-line-strong transition peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-card after:shadow after:transition peer-checked:after:translate-x-5" />
     </label>
   );
 }
@@ -1589,7 +1589,7 @@ function OwnerScheduleSection({ w }: { w: OwnWorkshop }) {
                     type="button"
                     aria-pressed={on}
                     onClick={() => setClosed(on ? closed.filter((x) => x !== i) : [...closed, i].sort())}
-                    className={cx('h-9 rounded-lg border px-3 font-label text-xs font-semibold transition', on ? 'border-emergency bg-emergency-soft text-emergency-ink' : 'border-line bg-white text-navy hover:border-primary/50')}
+                    className={cx('h-9 rounded-lg border px-3 font-label text-xs font-semibold transition', on ? 'border-emergency bg-emergency-soft text-emergency-ink' : 'border-line bg-card text-navy hover:border-primary/50')}
                     data-testid={`closed-day-${i}`}
                   >
                     {d}

@@ -271,3 +271,27 @@ test('new customer: code page after sign-up, booking waits for a confirmed email
   await expect(p.getByTestId('verify-email-strip')).toBeHidden();
   await ctx.close();
 });
+
+test('portal dark mode: light by default, the switch is remembered, the public site stays light', async ({ browser }) => {
+  const ctx = await browser.newContext();
+  const a = await ctx.newPage();
+  await data(await a.request.post(`${API}/auth/login`, { data: { email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD } }));
+  await a.goto('/admin');
+  const isDark = () => a.evaluate(() => document.documentElement.classList.contains('theme-dark'));
+  const toggle = a.getByTestId('theme-toggle');
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  expect(await isDark()).toBe(false);
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  expect(await isDark()).toBe(true);
+  await a.reload();
+  await expect(a.getByTestId('theme-toggle')).toHaveAttribute('aria-pressed', 'true');
+
+  await a.goto('/');
+  expect(await isDark()).toBe(false);
+  await a.goto('/admin');
+  await a.getByTestId('theme-toggle').click(); // back to light for other tests in this browser
+  expect(await isDark()).toBe(false);
+  await ctx.close();
+});

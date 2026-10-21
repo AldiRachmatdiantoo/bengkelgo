@@ -9,7 +9,7 @@ export default function NotFoundPage() {
     <Reveal className="mx-auto flex max-w-xl flex-col items-center py-10 text-center sm:py-16">
       <span className="relative grid h-24 w-24 place-items-center rounded-full bg-sky text-primary">
         <Icon name="wrong_location" className="text-[44px]" />
-        <span className="absolute -right-1 -bottom-1 grid h-9 w-9 place-items-center rounded-full bg-white font-label text-[11px] font-extrabold text-navy shadow-soft">404</span>
+        <span className="absolute -right-1 -bottom-1 grid h-9 w-9 place-items-center rounded-full bg-card font-label text-[11px] font-extrabold text-navy shadow-soft">404</span>
       </span>
       <p className="mt-6 font-label text-label-sm text-primary uppercase">Halaman tidak ditemukan</p>
       <h1 className="mt-2 text-headline-lg text-navy">Sepertinya Anda salah belok</h1>

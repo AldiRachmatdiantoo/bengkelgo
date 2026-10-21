@@ -22,7 +22,7 @@ export function Icon({ name, filled, className }: { name: string; filled?: boole
 type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost' | 'navy';
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-primary text-white shadow-soft hover:bg-primary-dark',
-  secondary: 'border-[1.5px] border-primary bg-white text-primary hover:bg-sky',
+  secondary: 'border-[1.5px] border-primary bg-card text-primary hover:bg-sky',
   danger: 'bg-emergency text-white shadow-soft hover:bg-emergency-dark',
   success: 'bg-success text-white shadow-soft hover:brightness-95',
   ghost: 'text-navy hover:bg-sky',
@@ -77,7 +77,7 @@ function FieldShell({ label, hint, error, id, icon, children }: { label?: string
 }
 
 const fieldClass =
-  'w-full rounded-lg border border-line-strong bg-white px-3.5 text-xs text-navy placeholder:text-ink-3 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:bg-canvas';
+  'w-full rounded-lg border border-line-strong bg-card px-3.5 text-xs text-navy placeholder:text-ink-3 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:bg-canvas';
 
 type FieldProps = { label?: string; hint?: string; error?: string; icon?: string };
 
@@ -156,13 +156,13 @@ export function MissingFields({ items, className }: { items: (MissingField | fal
               <button
                 type="button"
                 onClick={() => jumpTo(f.target!)}
-                className="rounded-full border border-warning/40 bg-white px-2.5 py-1 font-label font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-warning-ink"
+                className="rounded-full border border-warning/40 bg-card px-2.5 py-1 font-label font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-warning-ink"
               >
                 {f.label}
               </button>
             </li>
           ) : (
-            <li key={f.label} className="rounded-full border border-warning/40 bg-white px-2.5 py-1 font-label font-semibold">
+            <li key={f.label} className="rounded-full border border-warning/40 bg-card px-2.5 py-1 font-label font-semibold">
               {f.label}
             </li>
           ),
@@ -201,7 +201,7 @@ export function Segmented<T extends string>({
           className={cx(
             'inline-flex shrink-0 items-center gap-1.5 rounded-md font-label font-semibold whitespace-nowrap transition',
             size === 'sm' ? 'h-8 px-3 text-xs' : 'h-10 px-4 text-sm',
-            value === o.value ? 'bg-white text-primary shadow-soft' : 'text-ink-2 hover:text-navy',
+            value === o.value ? 'bg-card text-primary shadow-soft' : 'text-ink-2 hover:text-navy',
           )}
         >
           {o.icon && <Icon name={o.icon} />}
@@ -305,7 +305,7 @@ export function Loading({ text = 'Memuat…' }: { text?: string }) {
 
 export function EmptyState({ children, icon = 'inbox', action }: { children: ReactNode; icon?: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line-strong bg-white/60 px-6 py-10 text-center text-ink-2">
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line-strong bg-card/60 px-6 py-10 text-center text-ink-2">
       <span className="grid h-12 w-12 place-items-center rounded-full bg-sky text-primary">
         <Icon name={icon} />
       </span>
@@ -415,7 +415,7 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
             <span
               className={cx(
                 'grid h-8 w-8 shrink-0 place-items-center rounded-full font-label text-sm font-bold',
-                done ? 'bg-success text-white' : active ? 'bg-primary text-white ring-4 ring-primary-fixed' : 'border border-line-strong bg-white text-ink-3',
+                done ? 'bg-success text-white' : active ? 'bg-primary text-white ring-4 ring-primary-fixed' : 'border border-line-strong bg-card text-ink-3',
               )}
             >
               {done ? <Icon name="check" /> : i + 1}
@@ -523,7 +523,7 @@ export function Modal({
       <m.div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-float"
+        className="w-full max-w-md rounded-xl bg-card p-6 shadow-float"
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, y: 12, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -579,7 +579,7 @@ export function Toaster() {
       {items.map((t) => (
         <div
           key={t.id}
-          className={cx('pointer-events-auto flex animate-toast items-start gap-3 rounded-xl border bg-white p-4 shadow-lift', t.tone === 'danger' ? 'border-emergency/30' : 'border-success/30')}
+          className={cx('pointer-events-auto flex animate-toast items-start gap-3 rounded-xl border bg-card p-4 shadow-lift', t.tone === 'danger' ? 'border-emergency/30' : 'border-success/30')}
         >
           <span className={cx('grid h-8 w-8 shrink-0 place-items-center rounded-full', TONES[t.tone].chip)}>
             <Icon name={TONES[t.tone].icon} />
@@ -606,7 +606,7 @@ export function CopyButton({ text, label = 'Salin', className }: { text: string;
           setTimeout(() => setDone(false), 1500);
         });
       }}
-      className={cx('inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-white px-3 font-label text-xs font-semibold text-navy hover:bg-sky', className)}
+      className={cx('inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-card px-3 font-label text-xs font-semibold text-navy hover:bg-sky', className)}
       aria-label={`${label}: ${text}`}
     >
       <Icon name={done ? 'check' : 'content_copy'} className="text-[16px]" /> {done ? 'Tersalin' : label}

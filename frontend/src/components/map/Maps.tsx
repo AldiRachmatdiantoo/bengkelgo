@@ -43,7 +43,7 @@ export function MapPicker({ value, onChange, height = 280, className }: { value:
         )}
       </MapContainer>
       {!value && (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[500] rounded-xl bg-white/90 px-3 py-2 text-center text-xs font-semibold text-ink-2 shadow-soft backdrop-blur">
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[500] rounded-xl bg-card/90 px-3 py-2 text-center text-xs font-semibold text-ink-2 shadow-soft backdrop-blur">
           Klik pada peta untuk menandai lokasi
         </div>
       )}
@@ -118,7 +118,7 @@ export function PointsMap({
             pathOptions={{ color: '#FFFFFF', weight: 2.5, fillColor: p.highlight ? '#4361EE' : '#728AF3', fillOpacity: 1 }}
           >
             {labels && p.highlight ? (
-              <Tooltip permanent direction="top" offset={[0, -10]} className="!rounded-md !border-0 !bg-white !px-2 !py-1 !font-label !text-[11px] !font-bold !text-navy !shadow-md">
+              <Tooltip permanent direction="top" offset={[0, -10]} className="!rounded-md !border-0 !bg-card !px-2 !py-1 !font-label !text-[11px] !font-bold !text-navy !shadow-md">
                 {p.label}
               </Tooltip>
             ) : (
