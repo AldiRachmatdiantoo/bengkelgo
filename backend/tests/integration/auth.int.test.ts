@@ -141,4 +141,16 @@ describeDb('Auth (integration)', () => {
     const c = await createUser('CUSTOMER');
     expect((await request(app).put(`${API}/workshops/profile`).set(c.auth).send({ name: 'Hack' })).status).toBe(403);
   });
+
+  it('password guessing is capped per email even when every request fakes a different client IP', async () => {
+    const victim = { email: 'target@test.local', password: 'Salah12345' };
+    const attempt = (i: number, body = victim) => request(app).post(`${API}/auth/login`).set('X-Forwarded-For', `203.0.113.${i}`).send(body);
+    for (let i = 1; i <= 10; i++) expect((await attempt(i)).status).toBe(401); // the per-IP limit never kicks in
+    const blocked = await attempt(11);
+    expect(blocked.status).toBe(429);
+    expect(blocked.body.error.code).toBe('RATE_LIMITED');
+    // Same email in different letter case is the same account; other accounts are unaffected.
+    expect((await attempt(12, { ...victim, email: 'TARGET@test.local' })).status).toBe(429);
+    expect((await attempt(13, { ...victim, email: 'someone-else@test.local' })).status).toBe(401);
+  });
 });

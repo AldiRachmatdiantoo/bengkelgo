@@ -120,6 +120,20 @@ export const emergencyLimiter = rateLimit({ name: 'emergency', windowMs: 60_000,
 export const authLimiter = rateLimit({ name: 'auth', windowMs: 15 * 60_000, limit: 15 });
 export const globalLimiter = rateLimit({ name: 'global', windowMs: 60_000, limit: 300 });
 /** Place search proxies free OpenStreetMap services; keep one client from exhausting their fair use. */
+/**
+ * Login attempts per email, on top of the per-IP limit: the client IP comes from X-Forwarded-For, which a
+ * request sent straight to the API host (skipping the proxies) can fake, so guessing one account's password
+ * must also be capped by the account itself. The email is hashed so the store never holds addresses.
+ */
+export const loginAccountLimiter = rateLimit({
+  name: 'login-account',
+  windowMs: 15 * 60_000,
+  limit: 10,
+  keyGenerator: (req) => {
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    return email ? crypto.createHash('sha256').update(email).digest('hex').slice(0, 32) : req.ip ?? 'unknown';
+  },
+});
 /** Booking attempts per customer account (not per IP: shared networks must not block each other). */
 export const bookingLimiter = rateLimit({
   name: 'booking',
