@@ -332,7 +332,7 @@ export default function EmergencyPage() {
           )}
 
           {/* Mobile: one slim bar pinned to the bottom edge (thumb reach, little screen taken). Desktop: inline. */}
-          <div className="fixed inset-x-0 bottom-0 z-[900] border-t border-line bg-card/95 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur lg:static lg:border-0 lg:bg-transparent lg:p-0">
+          <div className="fixed inset-x-0 bottom-0 z-[900] border-t border-line bg-card px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:border-0 lg:bg-transparent lg:p-0">
             <div className="flex items-center gap-2 lg:block">
               {missing.some(Boolean) && (
                 <button

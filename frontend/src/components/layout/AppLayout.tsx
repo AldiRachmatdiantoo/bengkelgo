@@ -224,7 +224,7 @@ function PublicShell() {
   return (
     // overflow-x-clip: full-bleed landing bands use 100vw; clip (not hidden) keeps the sticky header working.
     <div className="flex min-h-screen flex-col overflow-x-clip">
-      <header className="sticky top-0 z-[1000] bg-card/95 shadow-header backdrop-blur-xl">
+      <header className="sticky top-0 z-[1000] bg-card shadow-header sm:bg-card/95 sm:backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:h-20 sm:px-8 lg:px-20">
           <Link to="/" aria-label="BengkelGo beranda" className="shrink-0">
             <Brand />
@@ -604,7 +604,7 @@ function OwnerShell({ user }: { user: User }) {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-card/95 px-4 backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
+        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-card px-4 sm:bg-card/95 sm:backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
           <button className="grid h-10 w-10 place-items-center rounded-lg hover:bg-sky lg:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}>
             <Icon name={open ? 'close' : 'menu'} />
           </button>
@@ -730,7 +730,7 @@ function AdminShell({ user }: { user: User }) {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-card/95 px-4 backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
+        <header className="sticky top-0 z-[1000] flex h-14 items-center gap-3 border-b border-line bg-card px-4 sm:bg-card/95 sm:backdrop-blur-xl sm:h-16 sm:px-8 lg:px-12">
           <button className="grid h-10 w-10 place-items-center rounded-lg hover:bg-sky lg:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}>
             <Icon name={open ? 'close' : 'menu'} />
           </button>

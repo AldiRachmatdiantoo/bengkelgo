@@ -89,11 +89,6 @@
   --shadow-float: 0 24px 48px -8px rgb(25 37 87 / 0.14), 0 8px 16px -4px rgb(25 37 87 / 0.06);
   --shadow-header: 0 1px 8px rgb(25 37 87 / 0.06);
 
-  --animate-beacon: beacon 1.8s ease-out infinite;
-  @keyframes beacon {
-    0% { box-shadow: 0 0 0 0 rgb(240 90 40 / 0.45); }
-    100% { box-shadow: 0 0 0 14px rgb(240 90 40 / 0); }
-  }
   --animate-toast: toast-in 0.25s ease-out;
   @keyframes toast-in {
     from { opacity: 0; transform: translateY(-8px); }
@@ -181,6 +176,35 @@ html.theme-dark ::selection {
 }
 .material-symbols-outlined.filled {
   font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
+}
+
+/*
+ * SOS "beacon": a ring drawn once and only scaled and faded. Transform/opacity run on the GPU, so the page is
+ * not repainted every frame (the old box-shadow animation was, which made low-end phones feel heavy).
+ */
+.animate-beacon {
+  isolation: isolate;
+}
+.animate-beacon:not(.fixed):not(.absolute):not(.sticky) {
+  position: relative;
+}
+.animate-beacon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: 0 0 0 7px rgb(204 68 16 / 0.4);
+  opacity: 0;
+  pointer-events: none;
+  animation: beacon-ring 1.8s ease-out infinite;
+}
+@keyframes beacon-ring {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-beacon::after { animation: none; }
 }
 
 /* Leaflet sits below the sticky header */
