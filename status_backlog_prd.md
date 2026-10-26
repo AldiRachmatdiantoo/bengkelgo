@@ -73,7 +73,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 
 ## Fitur Akun Saya / profil pengguna (26 Okt 2026)
 
-Permintaan tim 26 Okt: fitur profil pengguna. Dikerjakan di branch `main`. ✅ **Selesai 26 Okt** (belum di-push).
+Permintaan tim 26 Okt: fitur profil pengguna. Dikerjakan di branch `main`. ✅ **Selesai 26 Okt**, nomor WhatsApp akun Google 27 Okt; **di-push dan live 27 Okt** (migrasi 010 berjalan otomatis di Render; dicek: `/auth/me/sessions` aktif di Render & Vercel, web memuat halaman Akun Saya).
 
 | # | Bagian | Isi | Status |
 |---|---|---|---|
