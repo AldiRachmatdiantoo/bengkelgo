@@ -24,6 +24,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
   VERIFICATION_RESEND_TOO_SOON: 'Kode baru saja dikirim. Tunggu sebentar sebelum meminta lagi.',
   NO_EMAIL: 'Akun ini tidak memakai email.',
   WRONG_PASSWORD: 'Password saat ini salah.',
+  PHONE_REQUIRED: 'Isi nomor WhatsApp Anda dulu agar bengkel bisa menghubungi Anda.',
   PASSWORD_REQUIRED: 'Masukkan password Anda saat ini.',
   SAME_EMAIL: 'Itu sudah email akun Anda sekarang.',
   ACCOUNT_DELETE_NOT_ALLOWED: 'Akun pemilik bengkel dan admin tidak bisa dihapus sendiri. Hubungi admin BengkelGo.',

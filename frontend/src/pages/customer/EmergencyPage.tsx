@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { authApi, emergencyApi, vehicleApi } from '@/services/api/endpoints';
+import { accountApi, authApi, emergencyApi, vehicleApi } from '@/services/api/endpoints';
 import { errorCode, errorMessage } from '@/services/api/client';
 import type { ProblemCategory, VehicleType } from '@/services/api/types';
 import { useAuth } from '@/services/auth/AuthProvider';
@@ -44,6 +44,8 @@ export default function EmergencyPage() {
   const [addressNote, setAddressNote] = useState('');
   const [plate, setPlate] = useState('');
   const [guest, setGuest] = useState({ name: '', whatsapp: '' });
+  // Signed in with Google and no phone number yet: the mechanic needs one to call, so it is asked here.
+  const needsPhone = !!user && !user.phone;
   // Default: price is negotiated with the workshop; the customer may set a budget range.
   const [range, setRange] = useState<PriceRange>({});
 
@@ -54,6 +56,7 @@ export default function EmergencyPage() {
       const pos = geo.position!;
       // Not logged in -> quick guest session (name + WhatsApp + GPS), then send the SOS.
       if (!user) await authApi.guest({ name: guest.name, whatsapp: guest.whatsapp, latitude: pos.lat, longitude: pos.lng });
+      else if (needsPhone) await accountApi.update({ phone: guest.whatsapp.trim() });
       return emergencyApi.request({
         latitude: pos.lat,
         longitude: pos.lng,
@@ -78,13 +81,14 @@ export default function EmergencyPage() {
   // Routing skips workshops without a free mechanic, so the "priority" pick is the first one that has one.
   const priorityId = workshops.find((w) => w.available_mechanics > 0)?.id;
   const badRange = !!range.min && !!range.max && range.min > range.max;
-  const canSend = !!geo.position && problem.trim().length >= 5 && !badRange && (user || (guest.name.trim().length >= 2 && isIdPhone(guest.whatsapp)));
+  const canSend =
+    !!geo.position && problem.trim().length >= 5 && !badRange && (user ? !needsPhone || isIdPhone(guest.whatsapp) : guest.name.trim().length >= 2 && isIdPhone(guest.whatsapp));
   const missing = [
     !geo.position && { label: 'Lokasi Anda (GPS atau titik di peta)', target: 'sos-location' },
     problem.trim().length < 5 && { label: 'Apa yang terjadi (min. 5 karakter)', target: 'sos-problem' },
     badRange && { label: 'Kisaran biaya: minimum melebihi maksimum', target: 'sos-price' },
     !user && guest.name.trim().length < 2 && { label: 'Nama Anda', target: 'sos-guest-name' },
-    !user && !isIdPhone(guest.whatsapp) && { label: guest.whatsapp.trim() ? 'Nomor WhatsApp belum benar (mis. 0812…)' : 'Nomor WhatsApp', target: 'sos-guest-wa' },
+    (!user || needsPhone) && !isIdPhone(guest.whatsapp) && { label: guest.whatsapp.trim() ? 'Nomor WhatsApp belum benar (mis. 0812…)' : 'Nomor WhatsApp', target: 'sos-guest-wa' },
   ];
 
   return (
@@ -258,6 +262,24 @@ export default function EmergencyPage() {
                   Masuk
                 </Link>
               </p>
+            </Card>
+          )}
+          {needsPhone && (
+            <Card title="3. Nomor WhatsApp Anda" icon="contact_phone" subtitle="Akun Google tidak menyertakan nomor telepon. Mekanik menghubungi Anda lewat nomor ini.">
+              <div className="max-w-sm">
+                <Input
+                  label="Nomor WhatsApp"
+                  icon="call"
+                  inputMode="tel"
+                  required
+                  value={guest.whatsapp}
+                  onChange={(e) => setGuest({ ...guest, whatsapp: e.target.value })}
+                  placeholder="08xxxxxxxxxx"
+                  hint="Disimpan di akun Anda, jadi cukup diisi sekali."
+                  id="sos-guest-wa"
+                  data-testid="sos-user-wa"
+                />
+              </div>
             </Card>
           )}
           {/* Phones: the full checklist sits here in the page; the fixed send bar only shows a one-line summary. */}

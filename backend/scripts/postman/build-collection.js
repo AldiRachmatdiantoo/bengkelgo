@@ -556,6 +556,7 @@ Field per bengkel: \`distance_meters\`, \`top_mechanic_rating\`, \`available_mec
 Error:
 - **422** \`NO_WORKSHOP_NEARBY\` — tidak ada bengkel tersedia dalam 5 km.
 - **409** \`ACTIVE_EMERGENCY_EXISTS\` — masih punya emergency aktif.
+- **422** \`PHONE_REQUIRED\` — akun belum punya nomor WhatsApp (mis. daftar lewat Google); isi lewat \`PATCH /auth/me\`.
 - **429** — rate limit.`,
       }),
       req({
@@ -624,7 +625,7 @@ Kuota slot dikunci dengan **\`SELECT … FOR UPDATE\`** sehingga request bersama
 
 **201** → \`status\` = \`CONFIRMED\` (mekanik otomatis ditugaskan) atau \`IN_QUEUE\`, plus \`booking.queue_number\` dan \`booking.waitlist_position\`.
 
-Error: **403** \`EMAIL_NOT_VERIFIED\` (email pelanggan belum diverifikasi), **404** bengkel/layanan tidak ditemukan, **422** \`OUTSIDE_OPERATING_HOURS\` / \`SLOT_ALREADY_STARTED\` / \`DATE_TOO_FAR\` / \`WORKSHOP_CLOSED\`, **409** \`DUPLICATE_BOOKING\` (slot yang sama), \`DAILY_WORKSHOP_LIMIT\` (sudah punya booking di bengkel ini pada tanggal itu), \`ACTIVE_BOOKING_LIMIT\` (maks. 3 booking belum selesai), **429** \`BOOKING_RATE_LIMITED\` (maks. 5 percobaan booking per jam per akun).`,
+Error: **403** \`EMAIL_NOT_VERIFIED\` (email pelanggan belum diverifikasi), **404** bengkel/layanan tidak ditemukan, **422** \`PHONE_REQUIRED\` (akun belum punya nomor WhatsApp, mis. daftar lewat Google: isi lewat \`PATCH /auth/me\`) / \`OUTSIDE_OPERATING_HOURS\` / \`SLOT_ALREADY_STARTED\` / \`DATE_TOO_FAR\` / \`WORKSHOP_CLOSED\`, **409** \`DUPLICATE_BOOKING\` (slot yang sama), \`DAILY_WORKSHOP_LIMIT\` (sudah punya booking di bengkel ini pada tanggal itu), \`ACTIVE_BOOKING_LIMIT\` (maks. 3 booking belum selesai), **429** \`BOOKING_RATE_LIMITED\` (maks. 5 percobaan booking per jam per akun).`,
       }),
       req({
         name: 'Cancel Booking (Customer)',

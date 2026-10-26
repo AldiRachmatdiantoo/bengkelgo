@@ -3,6 +3,7 @@ import { logger } from '../../config/logger';
 import { db, withTransaction, type Queryable } from '../../common/db/transaction';
 import { AppError } from '../../common/errors/AppError';
 import { SYSTEM, audit, setActor, type ActorRole } from '../../common/db/actor';
+import { authRepository } from '../auth/auth.repository';
 import { notificationService as notif } from '../notification/notification.service';
 import { vehicleService } from '../vehicle/vehicle.service';
 import { orderRepository } from '../order/order.repository';
@@ -50,6 +51,10 @@ export const emergencyService = {
    * is created atomically; any failure rolls back everything.
    */
   async request(customerId: string, input: EmergencyRequestInput, role: ActorRole = 'CUSTOMER') {
+    // The mechanic calls the customer on the way (guests always give a number; Google sign-ups may not have one yet).
+    if (!(await authRepository.findUserById(db, customerId))?.phone) {
+      throw AppError.unprocessable('Add your WhatsApp number so the mechanic can reach you', 'PHONE_REQUIRED');
+    }
     const vehicle = input.vehicle_id ? await vehicleService.forOrder(db, customerId, input.vehicle_id, input.vehicle_type) : null;
     return withTransaction(async (tx) => {
       await setActor(tx, { id: customerId, role });

@@ -440,11 +440,28 @@ function PublicShell() {
   );
 }
 
-/** Thin reminder under the header (scrolls away, never pinned) until the sign-up email is confirmed. */
+/**
+ * Thin reminder under the header (scrolls away, never pinned): first until the sign-up email is confirmed, then
+ * until the account has a WhatsApp number (Google sign-ups arrive without one, and workshops need to reach them).
+ */
 function VerifyEmailStrip({ wide }: { wide?: boolean }) {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  if (user?.role !== 'CUSTOMER' || !user.email || user.email_verified !== false || pathname === '/verifikasi-email') return null;
+  if (user?.role !== 'CUSTOMER' || pathname === '/verifikasi-email') return null;
+  if (!user.email || user.email_verified !== false) {
+    if (user.phone || pathname === '/akun') return null;
+    return (
+      <div className="border-b border-warning/30 bg-warning-soft" data-testid="add-phone-strip">
+        <div className={cx('mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 font-label text-xs text-warning-ink sm:px-8', wide ? 'lg:px-12' : 'lg:px-20')}>
+          <Icon name="call" className="text-[18px]" />
+          <span className="min-w-0 flex-1">Tambahkan nomor WhatsApp agar bengkel bisa menghubungi Anda.</span>
+          <Link to="/akun" className="shrink-0 font-bold underline">
+            Tambahkan
+          </Link>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="border-b border-warning/30 bg-warning-soft" data-testid="verify-email-strip">
       <div className={cx('mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 font-label text-xs text-warning-ink sm:px-8', wide ? 'lg:px-12' : 'lg:px-20')}>

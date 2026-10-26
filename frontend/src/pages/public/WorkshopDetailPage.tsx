@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { apiAsset, bookingApi, vehicleApi, workshopApi } from '@/services/api/endpoints';
+import { accountApi, apiAsset, bookingApi, vehicleApi, workshopApi } from '@/services/api/endpoints';
 import { errorMessage } from '@/services/api/client';
 import { useAuth } from '@/services/auth/AuthProvider';
 import { directionsUrl, type LatLng } from '@/components/map/Maps';
@@ -20,6 +20,7 @@ import {
 } from '@/components/workshop/WorkshopComponents';
 import { Alert, Badge, Button, Card, Icon, Input, Loading, MissingFields, Select, Stars, Stepper, TextArea, cx } from '@/components/ui';
 import { distance, jakartaDate, longDate, rupiah, vehicleName } from '@/utils/format';
+import { isIdPhone } from '@/utils/formChecks';
 
 /** Straight-line distance in meters (haversine), for "x km dari lokasi Anda". */
 function metersBetween(a: LatLng, b: LatLng) {
@@ -90,6 +91,9 @@ export default function WorkshopDetailPage() {
   const [plate, setPlate] = useState(draft.plate ?? '');
   const [notes, setNotes] = useState(draft.notes ?? '');
   const [vehicleId, setVehicleId] = useState('');
+  // Accounts made with Google have no phone number: asked here once and saved to the account.
+  const [phone, setPhone] = useState('');
+  const needsPhone = user?.role === 'CUSTOMER' && !user.phone;
 
   const detail = useQuery({ queryKey: ['workshop', id], queryFn: () => workshopApi.detail(id) });
   const slots = useQuery({ queryKey: ['availability', id, date], queryFn: () => workshopApi.availability(id, date), enabled: !!date });
@@ -98,8 +102,10 @@ export default function WorkshopDetailPage() {
   const nextSlot = useQuery({ queryKey: ['next-slot', id], queryFn: () => workshopApi.nextSlot(id) });
 
   const book = useMutation({
-    mutationFn: () =>
-      bookingApi.create({ workshop_id: id, service_id: serviceId, booking_date: date, time_slot: slot, vehicle_plate: plate || undefined, notes: notes || undefined, vehicle_id: vehicleId || undefined }),
+    mutationFn: async () => {
+      if (needsPhone) await accountApi.update({ phone: phone.trim() });
+      return bookingApi.create({ workshop_id: id, service_id: serviceId, booking_date: date, time_slot: slot, vehicle_plate: plate || undefined, notes: notes || undefined, vehicle_id: vehicleId || undefined });
+    },
     onSuccess: (b) => {
       writeDraft(id, null);
       // Step 4 of the flow: pay right away when the slot is confirmed; waiting-list bookings go to their ticket.
@@ -131,6 +137,7 @@ export default function WorkshopDetailPage() {
       writeDraft(id, { serviceId, date, slot, plate, notes });
       return navigate('/verifikasi-email', { state: { from: location.pathname } });
     }
+    if (needsPhone && !isIdPhone(phone)) return document.getElementById('booking-phone')?.focus();
     book.mutate();
   };
 
@@ -344,6 +351,22 @@ export default function WorkshopDetailPage() {
 
           <Section n={3} title="Data Kendaraan & Catatan Khusus" subtitle="Informasi ini membantu teknisi mempersiapkan alat sebelum kedatangan Anda.">
             <div className="grid gap-4">
+              {needsPhone && (
+                <div className="max-w-sm">
+                  <Input
+                    id="booking-phone"
+                    label="Nomor WhatsApp Anda"
+                    icon="call"
+                    inputMode="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="08xxxxxxxxxx"
+                    hint="Akun Google tidak menyertakan nomor telepon. Nomor ini disimpan di akun Anda agar bengkel bisa menghubungi Anda."
+                    data-testid="booking-phone"
+                  />
+                </div>
+              )}
               {/* Saved vehicles of the matching type (the API rejects a motorbike for a car service). */}
               {!!myVehicles.length && (
                 <div className="max-w-md">
@@ -446,7 +469,11 @@ export default function WorkshopDetailPage() {
             )}
             <MissingFields
               className="mt-4"
-              items={[!serviceId && { label: 'Paket servis', target: 'booking-service' }, !slot && { label: 'Jam kedatangan', target: 'booking-slot' }]}
+              items={[
+                !serviceId && { label: 'Paket servis', target: 'booking-service' },
+                !slot && { label: 'Jam kedatangan', target: 'booking-slot' },
+                needsPhone && !isIdPhone(phone) && { label: phone.trim() ? 'Nomor WhatsApp belum benar (mis. 0812…)' : 'Nomor WhatsApp Anda', target: 'booking-phone' },
+              ]}
             />
             <Button type="submit" size="lg" className="mt-5 w-full" disabled={!serviceId || !slot || wrongRole} loading={book.isPending} data-testid="booking-submit">
               {user ? 'Konfirmasi & Lanjut ke QRIS' : 'Masuk untuk Booking'} <Icon name="arrow_forward" />

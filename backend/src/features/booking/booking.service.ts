@@ -70,6 +70,8 @@ export const bookingService = {
     // Fake sign-ups can't fill workshop slots or bounce booking emails: the address must be confirmed first.
     const customer = await authRepository.findUserById(db, customerId);
     if (!customer?.email_verified_at) throw AppError.forbidden('Verify your email address before booking', 'EMAIL_NOT_VERIFIED');
+    // Google sign-ups arrive without a phone number; the workshop must be able to reach the customer.
+    if (!customer.phone) throw AppError.unprocessable('Add your WhatsApp number so the workshop can reach you', 'PHONE_REQUIRED');
     const workshop = await workshopRepository.findById(db, input.workshop_id);
     if (!workshop || workshop.status !== 'APPROVED') throw AppError.notFound('Workshop not found');
     if (!workshop.is_open) throw AppError.unprocessable('Workshop is currently not accepting bookings', 'WORKSHOP_CLOSED');

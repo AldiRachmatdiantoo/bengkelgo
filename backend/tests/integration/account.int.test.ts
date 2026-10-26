@@ -77,6 +77,24 @@ describeDb('Account / profile (integration)', () => {
     expect(mails('Password BengkelGo Anda sudah dibuat')).toHaveLength(1);
   });
 
+  it('an account without a phone number (Google sign-up) adds one before booking or sending an SOS', async () => {
+    const ws = await createWorkshop({ lat: ORIGIN.lat, lng: ORIGIN.lng, name: 'Telepon Shop' });
+    const g = await createUser('CUSTOMER');
+    await pool.query('UPDATE users SET phone = NULL WHERE id = $1', [g.id]);
+    const book = () =>
+      request(app).post(`${API}/booking`).set(g.auth).send({ workshop_id: ws.workshopId, service_id: ws.serviceId, booking_date: tomorrow(), time_slot: '11:00' });
+    const sos = () =>
+      request(app)
+        .post(`${API}/emergency/request`)
+        .set(g.auth)
+        .send({ latitude: ORIGIN.lat, longitude: ORIGIN.lng, vehicle_type: 'MOTOR', problem_description: 'Ban bocor di jalan' });
+
+    expect((await book()).body.error.code).toBe('PHONE_REQUIRED');
+    expect((await sos()).body.error.code).toBe('PHONE_REQUIRED');
+    await request(app).patch(`${API}/auth/me`).set(g.auth).send({ phone: '081299990000' }).expect(200);
+    expect((await book()).status).toBe(201);
+  });
+
   it('a new email is confirmed with a code sent to it; the old address is told; login uses the new one', async () => {
     const u = await register();
     const taken = await register();

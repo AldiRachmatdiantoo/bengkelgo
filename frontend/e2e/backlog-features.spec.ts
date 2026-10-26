@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { expect, test, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
 
@@ -174,6 +175,31 @@ test('SOS: category, range and vehicle; owner picks the mechanic and edits the p
   await c.goto(`/workshops/${workshopId}`);
   await expect(c.getByTestId('review-reply').first()).toContainText('Terima kasih, Kak Sinta!');
   await expect(c.getByTestId('status-history')).toHaveCount(0); // public page has no order timeline
+});
+
+test('account without a phone number (as after a Google sign-up): reminder, WhatsApp asked at booking and saved', async ({ browser }) => {
+  const ctx = await browser.newContext();
+  const p = await ctx.newPage();
+  const email = `nophone.${run}@example.test`;
+  const signup = await data(await p.request.post(`${API}/auth/register/customer`, { data: { name: 'Tanpa Nomor', email, phone: `0817${digits()}`, password: `E2eNo${run}A1` } }));
+  await data(await p.request.patch(`${API}/admin/users/${signup.user.id}/verify-email`, { headers: { Authorization: `Bearer ${adminToken}` } }));
+  // Google sign-ups have no phone; this is the only way to make one through the API.
+  execSync(`docker compose exec -T db psql -U bengkel -d bengkel -c "UPDATE users SET phone = NULL WHERE id = '${signup.user.id}'"`, { cwd: new URL('../../backend', import.meta.url) });
+
+  await p.goto(`/workshops/${workshopId}?date=${tomorrow()}`);
+  await expect(p.getByTestId('add-phone-strip')).toBeVisible();
+  await p.getByRole('radiogroup', { name: 'Pilih layanan' }).getByRole('radio', { name: /Servis Rutin Fitur/ }).click();
+  await p.getByRole('radiogroup', { name: 'Pilih jam' }).getByRole('radio', { name: /14:00/ }).first().click();
+  await p.getByTestId('booking-submit').click();
+  await expect(p.getByText('Nomor WhatsApp Anda').last()).toBeVisible(); // listed as missing, nothing sent
+  await expect(p).toHaveURL(/\/workshops\//);
+  await p.getByTestId('booking-phone').fill('081388887777');
+  await p.getByTestId('booking-submit').click();
+  await expect(p).toHaveURL(/\/orders\/[0-9a-f-]+(\/pay)?$/);
+  await expect(p.getByTestId('add-phone-strip')).toHaveCount(0);
+  const me = await data(await p.request.post(`${API}/auth/refresh`, { data: {} }));
+  expect(me.user.phone).toBe('081388887777');
+  await ctx.close();
 });
 
 test('owner: schedule, holiday, photos, mechanic photo and deleting a service', async () => {

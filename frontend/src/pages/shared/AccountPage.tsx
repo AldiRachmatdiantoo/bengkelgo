@@ -144,6 +144,11 @@ function DetailsCard({ user }: { user: User }) {
           save.mutate();
         }}
       >
+        {!user.phone && (
+          <Alert tone="warning" icon="call">
+            {user.google_linked ? 'Akun Google tidak menyertakan nomor telepon. ' : ''}Isi nomor WhatsApp agar bengkel dan mekanik bisa menghubungi Anda saat booking atau SOS.
+          </Alert>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <Input id="account-name-input" label="Nama lengkap" icon="person" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} data-testid="account-name-input" />
           <Input
