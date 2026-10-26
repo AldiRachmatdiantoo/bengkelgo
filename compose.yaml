@@ -1,0 +1,75 @@
+# BengkelGo on one host: web (NGINX + React build) -> api (Express) -> db (PostGIS) + redis.
+# Only `web` publishes a port; db and redis sit on an internal network the outside world cannot reach.
+# Secrets come from .env (copy .env.example). Run: docker compose up -d --build
+name: bengkelgo
+
+services:
+  web:
+    build: ./frontend
+    ports: ["80:80"]
+    depends_on:
+      api: { condition: service_healthy }
+    networks: [frontend]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    init: true   # PID 1 signal handling (graceful shutdown)
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://bengkel:${POSTGRES_PASSWORD}@db:5432/bengkel
+      REDIS_URL: redis://redis:6379
+      RUN_MIGRATIONS_ON_BOOT: "true"
+      STORAGE_DRIVER: local
+      UPLOAD_DIR: /app/uploads
+      TRUST_PROXY: "1"   # one hop: the web container's NGINX
+    volumes: [uploads:/app/uploads]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [frontend, backend]
+    restart: unless-stopped
+    # healthcheck: inherited from backend/Dockerfile (GET /health)
+
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: bengkel
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: bengkel
+    volumes: [pgdata:/var/lib/postgresql/data]
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bengkel -d bengkel"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes: [redisdata:/data]
+    networks: [backend]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+networks:
+  frontend:
+  backend:
+    internal: true   # no published ports, no route in from outside
+
+volumes:
+  pgdata:
+  redisdata:
+  uploads:
