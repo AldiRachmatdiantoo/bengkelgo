@@ -11,6 +11,7 @@ export interface UserRow {
   google_sub: string | null;
   is_active: boolean;
   email_verified_at: string | null;
+  photo_path: string | null;
   created_at: string;
 }
 
@@ -22,7 +23,7 @@ export interface RefreshTokenRow {
   revoked_at: Date | null;
 }
 
-const USER_COLS = 'id, name, email, phone, password_hash, role, google_sub, is_active, email_verified_at, created_at';
+const USER_COLS = 'id, name, email, phone, password_hash, role, google_sub, is_active, email_verified_at, photo_path, created_at';
 
 export const authRepository = {
   async findUserByEmail(q: Queryable, email: string) {
@@ -30,8 +31,8 @@ export const authRepository = {
     return rows[0] ?? null;
   },
 
-  async findUserById(q: Queryable, id: string) {
-    const { rows } = await q.query<UserRow>(`SELECT ${USER_COLS} FROM users WHERE id = $1`, [id]);
+  async findUserById(q: Queryable, id: string, forUpdate = false) {
+    const { rows } = await q.query<UserRow>(`SELECT ${USER_COLS} FROM users WHERE id = $1${forUpdate ? ' FOR UPDATE' : ''}`, [id]);
     return rows[0] ?? null;
   },
 

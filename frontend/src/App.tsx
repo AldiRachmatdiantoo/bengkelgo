@@ -15,6 +15,7 @@ const WorkshopSearchPage = lazy(() => import('@/pages/public/WorkshopSearchPage'
 const WorkshopDetailPage = lazy(() => import('@/pages/public/WorkshopDetailPage'));
 const EmergencyPage = lazy(() => import('@/pages/customer/EmergencyPage'));
 const VehiclesPage = lazy(() => import('@/pages/customer/VehiclesPage'));
+const AccountPage = lazy(() => import('@/pages/shared/AccountPage'));
 const NotFoundPage = lazy(() => import('@/pages/public/NotFoundPage'));
 const PrivacyPage = lazy(() => import('@/pages/public/PrivacyPage'));
 const auth = () => import('@/pages/auth/AuthPages');
@@ -77,6 +78,7 @@ const router = createBrowserRouter([
           { path: '/orders/:id/pay', element: page(<PaymentPage />) },
           { path: '/notifications', element: <NotificationsPage /> },
           { path: '/vehicles', element: page(<VehiclesPage />) },
+          { path: '/akun', element: page(<AccountPage />) },
         ],
       },
       // Any party of an order (server enforces ownership)
@@ -100,6 +102,7 @@ const router = createBrowserRouter([
           { path: '/owner/profile', element: page(<OwnerProfilePage />) },
           { path: '/owner/reviews', element: page(<OwnerReviewsPage />) },
           { path: '/owner/notifications', element: <NotificationsPage /> },
+          { path: '/owner/akun', element: page(<AccountPage />) },
         ],
       },
 
@@ -115,6 +118,7 @@ const router = createBrowserRouter([
           { path: '/admin/health', element: page(<AdminHealthPage />) },
           { path: '/admin/users', element: page(<AdminUsersPage />) },
           { path: '/admin/notifications', element: <NotificationsPage /> },
+          { path: '/admin/akun', element: page(<AccountPage />) },
         ],
       },
 

@@ -191,7 +191,7 @@ Paling cepat 1 menit setelah kode terakhir, jadi tepat setelah daftar request in
         method: 'GET',
         path: '/auth/me',
         token: 'customer_token',
-        desc: 'Profil user yang sedang login: `{ id, name, email, phone, role }`.',
+        desc: 'Profil user yang sedang login: `{ id, name, email, phone, role, created_at, email_verified, photo_url, has_password, google_linked }`. Ubah profil: folder **12. Akun Saya**.',
       }),
       req({
         name: 'Refresh Token (rotation)',
@@ -1021,7 +1021,132 @@ Tidak bisa menonaktifkan diri sendiri (**422** \`CANNOT_DEACTIVATE_SELF\`) atau 
     ],
   ),
 
-  folder('12. Session End', 'Ditaruh terakhir agar alur Runner tidak terganggu.', [
+  folder(
+    '12. Akun Saya (profil)',
+    `Profil pengguna yang sedang login, di bawah \`/auth/me\` (agar cookie sesi \`bengkel_rt\` ikut terkirim dan server tahu perangkat mana yang meminta).
+
+- Semua butuh login. Akun **GUEST** hanya boleh ubah nama & nomor dan melihat/keluarkan perangkat (**403** untuk foto, password, email, hapus akun).
+- Ganti password, minta ganti email, dan hapus akun dibatasi **10 / 15 menit per akun** (\`RATE_LIMITED\`); konfirmasi kode memakai batas verifikasi (20/jam).
+- Folder ini memakai **akun demo sendiri** (didaftarkan di request pertama, dihapus di request terakhir), jadi akun pelanggan utama tidak terpengaruh.
+- Semua respons yang mengubah akun mengembalikan \`{ user }\` terbaru: \`{ id, name, email, phone, role, created_at, email_verified, photo_url, has_password, google_linked }\`.`,
+    [
+      req({
+        name: 'Register Customer (akun demo)',
+        method: 'POST',
+        path: '/auth/register/customer',
+        status: 201,
+        body: { name: 'Dewi Profil', email: 'akun+{{run_id}}@example.com', phone: '081277778888', password: 'Akun12345' },
+        saves: { acct_token: 'data.access_token', acct_refresh_token: 'data.refresh_token' },
+        desc: 'Akun pelanggan khusus untuk folder ini (aturan sama dengan Register Customer).',
+      }),
+      req({
+        name: 'Update My Details',
+        method: 'PATCH',
+        path: '/auth/me',
+        token: 'acct_token',
+        body: { name: 'Dewi Profil Baru', phone: '085712345678' },
+        desc: `Ubah \`name\` (2–100 karakter) dan/atau \`phone\` (nomor WhatsApp Indonesia); minimal salah satu. **200** → \`{ user }\`. **400** \`VALIDATION_ERROR\`.`,
+      }),
+      req({
+        name: 'Upload Profile Photo',
+        method: 'PUT',
+        path: '/auth/me/photo',
+        token: 'acct_token',
+        form: [{ key: 'photo', file: 'sample-image.png', desc: 'JPEG/PNG/WEBP, maks 2MB' }],
+        desc: 'Foto profil (foto lama dihapus). Disimpan sebagai WebP maks. 256 px tanpa data lokasi kamera. **200** → `{ user }` dengan `photo_url` = `/auth/me/photo?v=…` (nilai `v` berubah setiap foto baru). **400** `INVALID_FILE_TYPE` / `FILE_TOO_LARGE`.',
+      }),
+      req({
+        name: 'Get Profile Photo',
+        method: 'GET',
+        path: '/auth/me/photo',
+        token: 'acct_token',
+        desc: 'Gambar foto profil milik sendiri (butuh login; `Cache-Control: private`). **404** bila belum ada foto.',
+      }),
+      req({
+        name: 'Delete Profile Photo',
+        method: 'DELETE',
+        path: '/auth/me/photo',
+        token: 'acct_token',
+        desc: 'Menghapus foto profil (avatar kembali ke huruf depan nama). **200** → `{ user }` dengan `photo_url: null`.',
+      }),
+      req({
+        name: 'List Signed-in Devices',
+        method: 'GET',
+        path: '/auth/me/sessions',
+        token: 'acct_token',
+        saves: { acct_session_id: 'data.0.id' },
+        desc: '`[{ id, user_agent, signed_in_at, last_active_at, current }]`, terakhir aktif dulu. Satu baris = satu perangkat (satu rangkaian refresh token). `current` dikenali dari cookie `bengkel_rt`.',
+      }),
+      req({
+        name: 'Sign Out Other Devices',
+        method: 'POST',
+        path: '/auth/me/sessions/revoke-others',
+        token: 'acct_token',
+        body: { refresh_token: '{{acct_refresh_token}}' },
+        desc: 'Mengeluarkan semua perangkat lain; perangkat ini (cookie, atau `refresh_token` di body untuk klien non-browser) tetap masuk. **200** → `{ signed_out_devices }`.',
+      }),
+      req({
+        name: 'Change Password',
+        method: 'PUT',
+        path: '/auth/me/password',
+        token: 'acct_token',
+        body: { current_password: 'Akun12345', new_password: 'AkunBaru123', refresh_token: '{{acct_refresh_token}}' },
+        desc: `\`current_password\` wajib bila akun sudah punya password; akun Google tanpa password cukup \`new_password\` (membuat password pertama). Perangkat lain dikeluarkan, perangkat ini tetap masuk, email pemberitahuan dikirim. **200** → \`{ user, signed_out_devices }\`. **422** \`WRONG_PASSWORD\` / \`PASSWORD_REQUIRED\`; **400** bila password baru lemah.`,
+      }),
+      req({
+        name: 'Request Email Change',
+        method: 'POST',
+        path: '/auth/me/email-change',
+        token: 'acct_token',
+        body: { email: 'akun.baru+{{run_id}}@example.com', password: 'AkunBaru123' },
+        desc: `Kirim kode 6 angka ke **email baru** (berlaku 15 menit); email akun belum berubah. \`password\` wajib bila akun punya password. **200** → \`{ new_email, expires_in_minutes }\`. **409** \`EMAIL_TAKEN\`, **422** \`SAME_EMAIL\` / \`WRONG_PASSWORD\` / \`PASSWORD_REQUIRED\`, **429** \`VERIFICATION_RESEND_TOO_SOON\` (kirim ulang ke alamat yang sama < 1 menit).`,
+      }),
+      req({
+        name: 'Pending Email Change',
+        method: 'GET',
+        path: '/auth/me/email-change',
+        token: 'acct_token',
+        desc: 'Ganti email yang sedang menunggu kode: `{ new_email, sent_at, expires_at }`, atau `null`.',
+      }),
+      req({
+        name: 'Confirm Email Change (code from new inbox)',
+        method: 'POST',
+        path: '/auth/me/email-change/confirm',
+        token: 'acct_token',
+        status: 422,
+        body: { code: '000000' },
+        desc: `Masukkan kode dari email baru. **200** → \`{ user }\` dengan email baru dan \`email_verified: true\`; email lama menerima pemberitahuan; tercatat di audit log (\`USER_EMAIL_CHANGED\`).
+
+Saat dijalankan otomatis request ini **sengaja gagal** (kode contoh): **422** \`VERIFICATION_CODE_INVALID\`. Error lain: \`VERIFICATION_CODE_EXPIRED\`, \`VERIFICATION_TOO_MANY_ATTEMPTS\` (5× salah), **409** \`EMAIL_TAKEN\` (alamat keburu dipakai akun lain).`,
+      }),
+      req({
+        name: 'Cancel Email Change',
+        method: 'DELETE',
+        path: '/auth/me/email-change',
+        token: 'acct_token',
+        desc: 'Membatalkan ganti email yang menunggu kode. **200** → `{ cancelled: true }`.',
+      }),
+      req({
+        name: 'Sign Out One Device',
+        method: 'DELETE',
+        path: '/auth/me/sessions/{{acct_session_id}}',
+        token: 'acct_token',
+        desc: 'Mengeluarkan satu perangkat (id dari List Signed-in Devices). **200** → `{ id, revoked: true }`; **404** bila perangkat itu sudah keluar.',
+      }),
+      req({
+        name: 'Delete My Account (customer)',
+        method: 'POST',
+        path: '/auth/me/delete',
+        token: 'acct_token',
+        body: { password: 'AkunBaru123' },
+        desc: `Khusus **CUSTOMER**. Konfirmasi dengan \`password\` (atau \`confirm: "HAPUS"\` untuk akun Google tanpa password). Syarat: tidak ada pesanan yang belum selesai. Data pribadi dianonimkan (nama "Pengguna dihapus", email/WA/password/foto/notifikasi dihapus, plat kendaraan dikosongkan), semua sesi dicabut, email konfirmasi dikirim, tercatat di audit log (\`USER_DELETED\`). Riwayat pesanan & ulasan tetap untuk catatan bengkel; email bisa dipakai daftar lagi. **200** → \`{ deleted: true }\`.
+
+Error: **403** \`ACCOUNT_DELETE_NOT_ALLOWED\` (pemilik bengkel/admin), **409** \`ACCOUNT_HAS_OPEN_ORDERS\`, **422** \`PASSWORD_REQUIRED\` / \`WRONG_PASSWORD\` / \`DELETE_CONFIRMATION_REQUIRED\`.`,
+      }),
+    ],
+  ),
+
+  folder('13. Session End', 'Ditaruh terakhir agar alur Runner tidak terganggu.', [
     req({
       name: 'Logout',
       method: 'POST',
@@ -1100,7 +1225,7 @@ const collection = {
     'run_id', 'customer_email', 'owner_email', 'customer_token', 'customer_refresh_token', 'customer_id',
     'owner_token', 'guest_token', 'admin_token', 'workshop_id', 'service_id', 'mechanic_id', 'mechanic_id_2',
     'emergency_order_id', 'booking_order_id', 'booking_date', 'ws_lat', 'ws_lng',
-    'temp_service_id', 'review_id', 'vehicle_id', 'booking2_order_id', 'holiday_date', 'holiday_id', 'photo_id', 'admin2_id',
+    'temp_service_id', 'review_id', 'vehicle_id', 'booking2_order_id', 'holiday_date', 'holiday_id', 'photo_id', 'admin2_id', 'acct_token', 'acct_refresh_token', 'acct_session_id',
   ].map((key) => ({ key, value: '', type: 'string' })),
 };
 

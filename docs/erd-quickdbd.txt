@@ -1,4 +1,4 @@
-# BengkelGo database (PostgreSQL + PostGIS), generated from migrations 001-008
+# BengkelGo database (PostgreSQL + PostGIS), generated from migrations 001-010
 # Paste into https://app.quickdatabasediagrams.com
 #
 # Enum types:
@@ -23,6 +23,8 @@ is_active boolean default=true
 created_at timestamptz default=now()
 updated_at timestamptz default=now()
 email_verified_at timestamptz NULL
+photo_path text NULL
+deleted_at timestamptz NULL
 
 refresh_tokens
 -
@@ -117,6 +119,8 @@ path text
 is_cover boolean default=false
 sort_order smallint default=0
 created_at timestamptz default=now()
+thumb_path text NULL
+optimized boolean default=false
 
 vehicles
 -
@@ -244,6 +248,15 @@ entity varchar
 entity_id uuid NULL
 details jsonb default='{}'
 created_at timestamptz default=now()
+
+email_changes
+-
+user_id uuid PK FK >- users.id
+new_email varchar
+code_hash text
+expires_at timestamptz
+attempts smallint default=0
+sent_at timestamptz default=now()
 
 email_outbox
 -

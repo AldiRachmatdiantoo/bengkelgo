@@ -19,9 +19,27 @@ export interface AuthResult {
   refreshExpiresAt: Date;
 }
 
-export type PublicUser = Pick<UserRow, 'id' | 'name' | 'email' | 'phone' | 'role'> & { email_verified: boolean };
+export type PublicUser = Pick<UserRow, 'id' | 'name' | 'email' | 'phone' | 'role' | 'created_at'> & {
+  email_verified: boolean;
+  /** Own profile photo (needs the login); the query changes with every new photo so browsers never show an old one. */
+  photo_url: string | null;
+  /** False for accounts made with Google that never set a password. */
+  has_password: boolean;
+  google_linked: boolean;
+};
 
-const toPublic = (u: UserRow): PublicUser => ({ id: u.id, name: u.name, email: u.email, phone: u.phone, role: u.role, email_verified: Boolean(u.email && u.email_verified_at) });
+export const toPublic = (u: UserRow): PublicUser => ({
+  id: u.id,
+  name: u.name,
+  email: u.email,
+  phone: u.phone,
+  role: u.role,
+  created_at: u.created_at,
+  email_verified: Boolean(u.email && u.email_verified_at),
+  photo_url: u.photo_path ? `/auth/me/photo?v=${sha256(u.photo_path).slice(0, 10)}` : null,
+  has_password: Boolean(u.password_hash),
+  google_linked: Boolean(u.google_sub),
+});
 
 // ---------- email verification (6-digit code) ----------
 const CODE_TTL_MINUTES = 15;

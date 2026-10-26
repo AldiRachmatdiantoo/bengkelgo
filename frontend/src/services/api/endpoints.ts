@@ -1,6 +1,8 @@
 // One function per backend endpoint, grouped by feature. Pages never call axios directly.
 import { API_URL, call, http, tokenStore } from './client';
 import type {
+  AccountSession,
+  PendingEmailChange,
   AdminSearchResult,
   AdminUser,
   Place,
@@ -79,6 +81,35 @@ export const authApi = {
   resendVerification: () => call<{ sent: boolean; already_verified: boolean }>(http.post('/auth/email/resend', {})),
   forgotPassword: (email: string) => call<{ sent: boolean }>(http.post('/auth/password/forgot', { email })),
   resetPassword: (token: string, password: string) => call<{ reset: boolean }>(http.post('/auth/password/reset', { token, password })),
+};
+
+/** "Akun saya": own details, photo, password, email, devices, deleting the account. */
+const withUser = async (p: Promise<{ user: User }>) => {
+  const { user } = await p;
+  tokenStore.updateUser(user);
+  return user;
+};
+export const accountApi = {
+  update: (b: { name?: string; phone?: string }) => withUser(call(http.patch('/auth/me', b))),
+  setPhoto: (file: File) => {
+    const fd = new FormData();
+    fd.append('photo', file);
+    return withUser(call(http.put('/auth/me/photo', fd)));
+  },
+  removePhoto: () => withUser(call(http.delete('/auth/me/photo'))),
+  changePassword: async (b: { current_password?: string; new_password: string }) => {
+    const r = await call<{ user: User; signed_out_devices: number }>(http.put('/auth/me/password', b));
+    tokenStore.updateUser(r.user);
+    return r;
+  },
+  pendingEmail: () => call<PendingEmailChange | null>(http.get('/auth/me/email-change')),
+  requestEmail: (b: { email: string; password?: string }) => call<{ new_email: string; expires_in_minutes: number }>(http.post('/auth/me/email-change', b)),
+  confirmEmail: (code: string) => withUser(call(http.post('/auth/me/email-change/confirm', { code }))),
+  cancelEmail: () => call<{ cancelled: boolean }>(http.delete('/auth/me/email-change')),
+  sessions: () => call<AccountSession[]>(http.get('/auth/me/sessions')),
+  revokeSession: (id: string) => call<{ id: string }>(http.delete(`/auth/me/sessions/${id}`)),
+  revokeOthers: () => call<{ signed_out_devices: number }>(http.post('/auth/me/sessions/revoke-others', {})),
+  deleteAccount: (b: { password?: string; confirm?: string }) => call<{ deleted: boolean }>(http.post('/auth/me/delete', b)),
 };
 
 export const workshopApi = {

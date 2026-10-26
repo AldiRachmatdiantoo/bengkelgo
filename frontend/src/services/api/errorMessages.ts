@@ -23,6 +23,13 @@ export const ERROR_MESSAGES: Record<string, string> = {
   VERIFICATION_TOO_MANY_ATTEMPTS: 'Terlalu sering salah memasukkan kode. Tekan "Kirim ulang kode" untuk mendapat kode baru.',
   VERIFICATION_RESEND_TOO_SOON: 'Kode baru saja dikirim. Tunggu sebentar sebelum meminta lagi.',
   NO_EMAIL: 'Akun ini tidak memakai email.',
+  WRONG_PASSWORD: 'Password saat ini salah.',
+  PASSWORD_REQUIRED: 'Masukkan password Anda saat ini.',
+  SAME_EMAIL: 'Itu sudah email akun Anda sekarang.',
+  ACCOUNT_DELETE_NOT_ALLOWED: 'Akun pemilik bengkel dan admin tidak bisa dihapus sendiri. Hubungi admin BengkelGo.',
+  DELETE_CONFIRMATION_REQUIRED: 'Ketik HAPUS untuk mengonfirmasi.',
+  ACCOUNT_HAS_OPEN_ORDERS: 'Masih ada pesanan yang belum selesai. Selesaikan atau batalkan dulu, lalu coba lagi.',
+  ACCOUNT_DELETED: 'Akun ini sudah dihapus pemiliknya dan tidak bisa diaktifkan lagi.',
   GEOCODE_UNAVAILABLE: 'Pencarian lokasi sedang tidak tersedia. Tandai lokasi langsung di peta.',
 
   // Uploads

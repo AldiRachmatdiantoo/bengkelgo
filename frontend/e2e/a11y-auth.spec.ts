@@ -49,7 +49,7 @@ test('a11y customer pages', async ({ page }) => {
     data: { name: 'Pelanggan A11y', email: `cust.a11y.${run}@example.test`, phone: `0816${digits()}`, password: `E2eCust${run}A1` },
   });
   expect(res.ok(), await res.text()).toBeTruthy();
-  await audit(page, ['/orders', '/vehicles', '/notifications']);
+  await audit(page, ['/orders', '/vehicles', '/notifications', '/akun']);
 });
 
 test('a11y workshop owner portal', async ({ page }) => {
@@ -75,11 +75,12 @@ test('a11y workshop owner portal', async ({ page }) => {
     '/owner/profile#foto',
     '/owner/profile#qris',
     '/owner/notifications',
+    '/owner/akun',
   ]);
 });
 
 test('a11y admin portal', async ({ page }) => {
   const res = await page.request.post(`${API}/auth/login`, { data: { email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD } });
   expect(res.ok(), await res.text()).toBeTruthy();
-  await audit(page, ['/admin', '/admin/workshops', '/admin/reports', '/admin/users', '/admin/search?q=Bengkel', '/admin/audit', '/admin/health', '/admin/notifications']);
+  await audit(page, ['/admin', '/admin/workshops', '/admin/reports', '/admin/users', '/admin/search?q=Bengkel', '/admin/audit', '/admin/health', '/admin/notifications', '/admin/akun']);
 });

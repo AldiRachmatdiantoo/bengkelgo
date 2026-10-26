@@ -7,6 +7,8 @@ export function useProtectedImage(path: string | null) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // A new (or no) image: never keep showing the previous one, whose URL is revoked below.
+    setUrl(null);
     if (!path) return;
     let objectUrl: string | null = null;
     let cancelled = false;

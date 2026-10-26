@@ -1,6 +1,6 @@
 # ERD Database BengkelGo
 
-Dibuat otomatis dari skema database yang berjalan (`backend/scripts/erd/build-erd.py`). 20 tabel, 29 relasi. Migrasi: `001_init` s/d `008_password_reset`.
+Dibuat otomatis dari skema database yang berjalan (`backend/scripts/erd/build-erd.py`). 21 tabel, 30 relasi. Migrasi: `001_init` s/d `010_user_profile`.
 
 Versi teks untuk **QuickDBD** (app.quickdatabasediagrams.com): [erd-quickdbd.txt](erd-quickdbd.txt), dibuat dengan `backend/scripts/erd/build-quickdbd.py` dari ekspor kolom (dengan `column_default`), relasi, dan enum database lokal.
 
@@ -13,6 +13,7 @@ erDiagram
     users |o--o{ audit_logs : "actor_id"
     orders ||--o| booking_details : "order_id"
     services ||--o{ booking_details : "service_id"
+    users ||--o| email_changes : "user_id"
     users ||--o| email_verifications : "user_id"
     orders ||--o| emergency_details : "order_id"
     workshops ||--o{ mechanics : "workshop_id"
@@ -43,7 +44,7 @@ erDiagram
 
 ## Akun & pelanggan
 
-Pengguna semua peran, sesi login, verifikasi email, reset password, notifikasi, dan kendaraan tersimpan.
+Pengguna semua peran, sesi login, verifikasi & ganti email, reset password, notifikasi, dan kendaraan tersimpan.
 
 ```mermaid
 erDiagram
@@ -60,6 +61,8 @@ erDiagram
         timestamptz created_at
         timestamptz updated_at
         timestamptz email_verified_at
+        text photo_path
+        timestamptz deleted_at
     }
     refresh_tokens {
         uuid id PK
@@ -74,6 +77,14 @@ erDiagram
     }
     email_verifications {
         uuid user_id PK,FK
+        text code_hash
+        timestamptz expires_at
+        smallint attempts
+        timestamptz sent_at
+    }
+    email_changes {
+        uuid user_id PK,FK
+        varchar new_email
         text code_hash
         timestamptz expires_at
         smallint attempts
@@ -108,6 +119,7 @@ erDiagram
         timestamptz created_at
         timestamptz updated_at
     }
+    users ||--o| email_changes : "user_id"
     users ||--o| email_verifications : "user_id"
     users ||--o{ notifications : "user_id"
     users ||--o| password_resets : "user_id"
@@ -118,9 +130,10 @@ erDiagram
 
 | Tabel | Isi |
 |---|---|
-| `users` | Semua peran: CUSTOMER, GUEST, WORKSHOP_OWNER, ADMIN. |
+| `users` | Semua peran: CUSTOMER, GUEST, WORKSHOP_OWNER, ADMIN. Foto profil dan tanda akun dihapus (data dianonimkan) sejak migrasi 010. |
 | `refresh_tokens` | Hanya hash SHA-256 yang disimpan; satu family dicabut bila token dipakai ulang. |
 | `email_verifications` | Kode 6 angka (hanya HMAC-nya), berlaku 15 menit, maks. 5 kali salah. *(baru, migrasi 007)* |
+| `email_changes` | Ganti email yang menunggu kode 6 angka dari email baru (hanya HMAC-nya), berlaku 15 menit, maks. 5 kali salah. *(baru, migrasi 010)* |
 | `password_resets` | Tautan "lupa password" (hanya hash-nya), sekali pakai, berlaku 30 menit. *(baru, migrasi 008)* |
 | `notifications` | Notifikasi di dalam aplikasi per pengguna. *(baru, migrasi 004)* |
 | `vehicles` | Kendaraan tersimpan pelanggan (soft delete). *(baru, migrasi 004)* |
@@ -206,6 +219,8 @@ erDiagram
         boolean is_cover
         smallint sort_order
         timestamptz created_at
+        text thumb_path
+        boolean optimized
     }
     users {
         uuid id PK
@@ -419,6 +434,7 @@ erDiagram
 | `audit_logs.actor_id` | `users.id` | SET NULL |
 | `booking_details.order_id` | `orders.id` | CASCADE |
 | `booking_details.service_id` | `services.id` | RESTRICT |
+| `email_changes.user_id` | `users.id` | CASCADE |
 | `email_verifications.user_id` | `users.id` | CASCADE |
 | `emergency_details.order_id` | `orders.id` | CASCADE |
 | `mechanics.workshop_id` | `workshops.id` | CASCADE |

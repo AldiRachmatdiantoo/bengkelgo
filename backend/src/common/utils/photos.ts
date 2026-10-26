@@ -24,3 +24,6 @@ export async function workshopPhotoVariants(input: Buffer) {
 
 /** Mechanic photo: only ever shown as a small portrait. */
 export const mechanicPhoto = (input: Buffer) => webp(input, 480, 78);
+
+/** Profile photo: a small square-ish portrait for the avatar (max 256 px). */
+export const profilePhoto = (input: Buffer) => webp(input, 256, 80);

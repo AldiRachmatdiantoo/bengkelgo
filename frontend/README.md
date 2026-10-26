@@ -58,6 +58,7 @@ src/
 | `/emergency` | publik / customer | **SOS**: lokasi (GPS atau klik peta), scan 5 km, kirim permintaan. Tanpa akun → otomatis masuk sebagai tamu |
 | `/login`, `/register`, `/register/workshop` | publik | autentikasi; daftar bengkel dengan map picker |
 | `/orders`, `/orders/:id` | customer / tamu | riwayat; status booking (digital pass ber-QR, e-receipt cetak/PDF, kalender .ics, bagikan) atau tracking SOS (auto-refresh 5 detik), ulasan, batal |
+| `/akun`, `/owner/akun`, `/admin/akun` | semua yang login | **Akun Saya**: foto profil, nama & WhatsApp, ganti email (kode ke email baru), ganti/buat password, perangkat yang sedang masuk, hapus akun (pelanggan). Tamu hanya data diri |
 | `/orders/:id/pay` | customer | langkah 4: bayar QRIS + unggah bukti (drag & drop). Dibuka otomatis setelah booking terkonfirmasi |
 | `/owner`, `/owner/emergency`, `/owner/quotas`, `/owner/mechanics`, `/owner/payments`, `/owner/profile`, `/owner/orders` | pemilik bengkel | tab: Ringkasan, Panggilan Darurat (auto-refresh 5 detik), Kalender & Kuota Slot, Kelola Mekanik, Verifikasi Pembayaran QRIS, Pengaturan Bengkel (profil + layanan + QRIS); semua pesanan lewat menu akun |
 | `/admin`, `/admin/workshops`, `/admin/reports` | admin | Dashboard Overview (KPI + pipeline persetujuan), Persetujuan Mitra (coverage 5 km), Audit Transaksi (periode + ekspor CSV). Admin mendarat di `/admin` setelah login |

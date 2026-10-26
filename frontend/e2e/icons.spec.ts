@@ -36,7 +36,7 @@ test('every icon renders as a glyph on public, customer, owner and admin pages',
   const customer = await browser.newPage();
   const c = await customer.request.post(`${API}/auth/register/customer`, { data: { name: 'Pelanggan Ikon', email: `cust.icon.${run}@example.test`, phone: `0816${digits()}`, password: `E2eIcon${run}A1` } });
   expect(c.ok(), await c.text()).toBeTruthy();
-  for (const path of ['/orders', '/vehicles', '/notifications', '/verifikasi-email']) missing.push(...(await iconsShownAsText(customer, path)));
+  for (const path of ['/orders', '/vehicles', '/notifications', '/verifikasi-email', '/akun']) missing.push(...(await iconsShownAsText(customer, path)));
   await customer.close();
 
   const owner = await browser.newPage();
@@ -48,7 +48,7 @@ test('every icon renders as a glyph on public, customer, owner and admin pages',
   });
   expect(o.ok(), await o.text()).toBeTruthy();
   const workshopId = (await o.json()).data.workshop.id as string;
-  for (const path of ['/owner', '/owner/emergency', '/owner/orders', '/owner/quotas', '/owner/mechanics', '/owner/payments', '/owner/reviews', '/owner/notifications', '/owner/profile', '/owner/profile#layanan', '/owner/profile#jadwal', '/owner/profile#foto', '/owner/profile#qris']) {
+  for (const path of ['/owner', '/owner/emergency', '/owner/orders', '/owner/quotas', '/owner/mechanics', '/owner/payments', '/owner/reviews', '/owner/notifications', '/owner/akun', '/owner/profile', '/owner/profile#layanan', '/owner/profile#jadwal', '/owner/profile#foto', '/owner/profile#qris']) {
     missing.push(...(await iconsShownAsText(owner, path)));
   }
   await owner.close();
@@ -56,7 +56,7 @@ test('every icon renders as a glyph on public, customer, owner and admin pages',
   const admin = await browser.newPage();
   const a = await admin.request.post(`${API}/auth/login`, { data: { email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD } });
   expect(a.ok(), await a.text()).toBeTruthy();
-  for (const path of ['/admin', '/admin/workshops', '/admin/reports', '/admin/users', '/admin/search?q=ikon', '/admin/audit', '/admin/health', '/admin/notifications']) {
+  for (const path of ['/admin', '/admin/workshops', '/admin/reports', '/admin/users', '/admin/search?q=ikon', '/admin/audit', '/admin/health', '/admin/notifications', '/admin/akun']) {
     missing.push(...(await iconsShownAsText(admin, path)));
   }
   // Leave no test workshop waiting for approval.

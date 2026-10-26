@@ -151,6 +151,13 @@ export const verificationLimiter = rateLimit({
   limit: 20,
   keyGenerator: (req) => req.user?.id ?? req.ip ?? 'unknown',
 });
+/** Password-checked account changes (change password / email, delete account) per account: caps password guessing. */
+export const accountLimiter = rateLimit({
+  name: 'account',
+  windowMs: 15 * 60_000,
+  limit: 10,
+  keyGenerator: (req) => req.user?.id ?? req.ip ?? 'unknown',
+});
 /** Booking attempts per customer account (not per IP: shared networks must not block each other). */
 export const bookingLimiter = rateLimit({
   name: 'booking',

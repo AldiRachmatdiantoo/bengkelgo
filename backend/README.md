@@ -58,7 +58,7 @@ src/
 
 Database diagram: [../docs/erd.md](../docs/erd.md) (regenerate with `scripts/erd/build-erd.py`).
 
-Full Postman documentation (92 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
+Full Postman documentation (106 requests, runnable end-to-end, with real response examples) is in [docs/postman](docs/postman/README.md).
 
 | Endpoint | Method | Access |
 | --- | --- | --- |
@@ -66,6 +66,7 @@ Full Postman documentation (92 requests, runnable end-to-end, with real response
 | `/auth/login` · `/auth/google` · `/auth/guest` | POST | Public |
 | `/auth/refresh` · `/auth/logout` | POST | Refresh cookie/body |
 | `/auth/me` | GET | Any authenticated user |
+| `/auth/me` (PATCH name/phone) · `/auth/me/photo` (GET/PUT/DELETE) · `/auth/me/password` (PUT) · `/auth/me/email-change` (GET/POST/DELETE, `/confirm` with the code sent to the new address) · `/auth/me/sessions` (GET, DELETE `/:id`, POST `/revoke-others`) · `/auth/me/delete` (POST, customers only: anonymises the account) | | Signed-in user ("Akun saya"; guests: name/phone and devices only) |
 | `/auth/email/verify` · `/auth/email/resend` (6-digit code mailed at sign-up; booking needs a verified email) | POST | Signed-in user |
 | `/auth/password/forgot` · `/auth/password/reset` (single-use emailed link, 30 min; same answer for unknown emails; ends all sessions) | POST | Public |
 | `/emergency/scan` | POST | Public (rate limited) |

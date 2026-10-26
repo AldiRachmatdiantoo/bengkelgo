@@ -24,6 +24,28 @@ export interface User {
   role: Role;
   /** False until the code mailed at sign-up is entered (older accounts and Google sign-ins are already true). */
   email_verified?: boolean;
+  created_at?: string;
+  /** Own profile photo (API path, needs the login); null = initial letter. */
+  photo_url?: string | null;
+  /** False for accounts made with Google that never set a password. */
+  has_password?: boolean;
+  google_linked?: boolean;
+}
+
+/** A signed-in device ("Akun saya" → Perangkat yang sedang masuk). */
+export interface AccountSession {
+  id: string;
+  user_agent: string | null;
+  signed_in_at: string;
+  last_active_at: string;
+  current: boolean;
+}
+
+/** A change of email waiting for the code sent to the new address. */
+export interface PendingEmailChange {
+  new_email: string;
+  sent_at: string;
+  expires_at: string;
 }
 
 export interface AuthPayload {

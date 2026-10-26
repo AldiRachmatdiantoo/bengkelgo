@@ -54,6 +54,8 @@ async function resetDatabase(onlyAdmin: string | null) {
         cols.map((c) => a[c]),
       );
     }
+    // Every uploaded file is deleted below, profile photos of the admins included.
+    await client.query('UPDATE users SET photo_path = NULL WHERE photo_path IS NOT NULL');
     await client.query('COMMIT');
     return admins.length;
   } catch (err) {

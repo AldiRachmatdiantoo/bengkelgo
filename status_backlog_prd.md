@@ -71,6 +71,25 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 - ✅ **"Web terasa berat" (dicek 21 Okt):** API Render cepat (±0,15–0,2 dtk per permintaan); halaman di HP simulasi (CPU 4× lebih lambat, 4G) termuat 1,2–4,2 dtk dan scroll 60 fps. Yang diperbaiki untuk HP sungguhan: denyut tombol SOS kini animasi GPU (sebelumnya digambar ulang tiap frame selama halaman terbuka, ditandai PageSpeed) dan mati bila "kurangi gerakan" aktif; efek blur kaca di header dan bilah kirim SOS hanya di layar besar (di HP latar putih solid). Catatan: halaman berpeta (Cari Bengkel, SOS) memuat library peta ±153 KB + tile OpenStreetMap ±140–220 KB; portal owner memeriksa SOS & notifikasi tiap 5 dtk (±27 permintaan/menit).
 - ✅ **Warna SOS** diganti `#CC4410` (hover `#B33B0E`) atas persetujuan tim: tulisan putih 4,8:1 (lolos WCAG AA, sebelumnya 3,4:1); pengecualian aksesibilitas dihapus. Badge tab aktif di Cari Bengkel kini putih bertulisan biru.
 
+## Fitur Akun Saya / profil pengguna (26 Okt 2026)
+
+Permintaan tim 26 Okt: fitur profil pengguna. Dikerjakan di branch `main`. ✅ **Selesai 26 Okt** (belum di-push).
+
+| # | Bagian | Isi | Status |
+|---|---|---|---|
+| 1 | Halaman **Akun Saya** | Pelanggan `/akun`, pemilik bengkel `/owner/akun`, admin `/admin/akun`; menu "Akun saya" di menu avatar (dan sidebar portal). Akun tamu hanya bagian data diri. | ✅ |
+| 2 | Data diri | Ubah nama dan nomor WhatsApp (aturan sama dengan daftar). | ✅ |
+| 3 | Foto profil | Unggah/ganti/hapus; dikecilkan di browser lalu disimpan WebP 256 px tanpa data lokasi; tampil di avatar header. Hanya pemilik akun yang bisa membukanya. | ✅ |
+| 4 | Ganti email | Kode 6 angka dikirim ke **email baru** (15 menit, maks. 5 kali salah); butuh password saat ini bila akun punya password; email lama diberi tahu. Juga jalan keluar untuk yang salah ketik email saat daftar (kode tidak pernah sampai). | ✅ |
+| 5 | Password | Ganti password (wajib password lama) atau **buat password** untuk akun yang daftar lewat Google; perangkat lain dikeluarkan, email pemberitahuan dikirim. | ✅ |
+| 6 | Perangkat yang sedang masuk | Daftar perangkat (browser & sistem, terakhir aktif), keluarkan satu perangkat atau semua perangkat lain. | ✅ |
+| 7 | Info akun | Bergabung sejak, status email, tersambung dengan Google atau tidak. | ✅ |
+| 8 | Hapus akun (pelanggan) | Sesuai hak di Kebijakan Privasi. Syarat: tidak ada pesanan yang belum selesai; konfirmasi password (atau ketik `HAPUS` untuk akun Google). Data pribadi dianonimkan (nama jadi "Pengguna dihapus", email/WA/password/foto/kendaraan/notifikasi dihapus); riwayat pesanan & ulasan tetap untuk catatan bengkel; email bisa dipakai daftar lagi. Pemilik bengkel & admin tidak bisa menghapus sendiri (hubungi admin). Tercatat di audit log. | ✅ |
+
+**Teknis:** migrasi `010_user_profile.sql` (`users.photo_path`, `users.deleted_at`, tabel `email_changes`); fitur backend baru `features/account` (schema → routes → controller → service → repository), dipasang di `/auth/me/...` agar cookie sesi ikut terkirim; batas `accountLimiter` 10/15 menit per akun untuk aksi berpassword. Frontend: `pages/shared/AccountPage.tsx`, avatar header memakai foto profil, tautan "Salah ketik email?" di halaman verifikasi. Keluar dengan sengaja (termasuk setelah hapus akun) kini selalu kembali ke beranda, bukan ke halaman masuk. Script `db:reset` ikut mengosongkan foto profil admin. Admin tidak bisa mengaktifkan lagi akun yang dihapus pemiliknya (`ACCOUNT_DELETED`).
+
+**Tes:** integration `account.int.test.ts` 7 (total backend 148/148), Vitest 44/44 (+ nama perangkat), E2E `account.spec.ts` 2 (alur lengkap pelanggan: data diri, foto, password, ganti email dengan kode dari antrean email lokal, perangkat, hapus akun; portal pemilik), a11y + ikon + layar 375px untuk 3 halaman baru, fitur backlog 6/6, visual 12/12; Postman/Newman **106/106** (folder baru "12. Akun Saya"). ERD: 21 tabel, 30 relasi.
+
 **Yang tersisa tanpa tim:** tidak ada pekerjaan kode yang tertunda. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).

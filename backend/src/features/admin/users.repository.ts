@@ -5,7 +5,7 @@ export const usersRepository = {
   /** Accounts with their workshop (owners) and order count; `like` is an already-escaped ILIKE pattern. */
   async list(q: Queryable, f: { role: UserRole | null; like: string | null; active: boolean | null; limit: number; offset: number }) {
     const { rows } = await q.query(
-      `SELECT u.id, u.name, u.email, u.phone, u.role, u.is_active, u.email_verified_at, u.created_at,
+      `SELECT u.id, u.name, u.email, u.phone, u.role, u.is_active, u.email_verified_at, u.deleted_at, u.created_at,
               w.id AS workshop_id, w.name AS workshop_name,
               (SELECT COUNT(*)::int FROM orders o WHERE o.customer_id = u.id) AS orders
        FROM users u LEFT JOIN workshops w ON w.owner_id = u.id
@@ -19,8 +19,8 @@ export const usersRepository = {
   },
 
   async lock(q: Queryable, userId: string) {
-    const { rows } = await q.query<{ id: string; role: UserRole; is_active: boolean; name: string }>(
-      'SELECT id, role, is_active, name FROM users WHERE id = $1 FOR UPDATE',
+    const { rows } = await q.query<{ id: string; role: UserRole; is_active: boolean; name: string; deleted_at: Date | null }>(
+      'SELECT id, role, is_active, name, deleted_at FROM users WHERE id = $1 FOR UPDATE',
       [userId],
     );
     return rows[0] ?? null;

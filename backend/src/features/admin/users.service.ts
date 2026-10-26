@@ -22,6 +22,8 @@ export const usersService = {
       const u = await usersRepository.lock(tx, userId);
       if (!u) throw AppError.notFound('User not found');
       if (u.is_active === active) return { id: u.id, is_active: active };
+      // A deleted account holds no personal data any more (no email, no password): nothing to switch back on.
+      if (active && u.deleted_at) throw AppError.unprocessable('This account was deleted by its owner', 'ACCOUNT_DELETED');
       if (!active && u.role === 'ADMIN') {
         await usersRepository.lockAdmins(tx);
         if ((await usersRepository.countOtherActiveAdmins(tx, userId)) === 0) throw AppError.unprocessable('At least one active admin must remain', 'LAST_ADMIN');

@@ -9,6 +9,7 @@ import { errorMessage } from '@/services/api/client';
 import type { Role, User } from '@/services/api/types';
 import { Icon, Loading, Toaster, cx, toast } from '@/components/ui';
 import { PageFade } from '@/components/ui/motion';
+import { useProtectedImage } from '@/hooks/useProtectedImage';
 import { NotificationProvider, useOptionalNotifications } from '@/services/notifications/NotificationCenter';
 import { NotificationRow } from '@/pages/shared/NotificationsPage';
 
@@ -50,18 +51,20 @@ function useLogout() {
   };
 }
 
+/** Profile photo (Akun saya) when there is one, otherwise the first letter of the name. */
 function Avatar({ user, size = 'md' }: { user: User; size?: 'sm' | 'md' }) {
+  const img = useProtectedImage(user.photo_url ?? null);
   return (
     <m.span
       whileHover={{ scale: 1.06 }}
       whileTap={{ scale: 0.96 }}
       transition={{ type: 'spring', stiffness: 400, damping: 22 }}
       className={cx(
-        'grid shrink-0 place-items-center rounded-full bg-navy font-label font-bold text-white ring-0 ring-primary/25 transition-shadow hover:ring-4',
+        'grid shrink-0 place-items-center overflow-hidden rounded-full bg-navy font-label font-bold text-white ring-0 ring-primary/25 transition-shadow hover:ring-4',
         size === 'sm' ? 'h-8 w-8 text-xs' : 'h-9 w-9 text-sm',
       )}
     >
-      {user.name.trim().charAt(0).toUpperCase() || '?'}
+      {user.photo_url && img.url ? <img src={img.url} alt="" className="h-full w-full object-cover" data-testid="header-avatar-photo" /> : user.name.trim().charAt(0).toUpperCase() || '?'}
     </m.span>
   );
 }
@@ -272,6 +275,9 @@ function PublicShell() {
                   </MenuItem>
                 ) : (
                   <>
+                    <MenuItem to="/akun" icon="account_circle">
+                      Akun saya
+                    </MenuItem>
                     <MenuItem to="/orders" icon="receipt_long">
                       Pesanan saya
                     </MenuItem>
@@ -313,6 +319,9 @@ function PublicShell() {
               <>
                 {!portal && (
                   <>
+                    <Link to="/akun" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-navy">
+                      <Icon name="account_circle" /> Akun saya
+                    </Link>
                     <Link to="/orders" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-navy">
                       <Icon name="receipt_long" /> Pesanan saya
                     </Link>
@@ -518,6 +527,7 @@ const OWNER_NAV: NavItem[] = [
   { to: '/owner/reviews', label: 'Ulasan', icon: 'reviews' },
   { to: '/owner/profile', label: 'Pengaturan Bengkel', icon: 'settings' },
   { to: '/owner/notifications', label: 'Notifikasi', icon: 'notifications' },
+  { to: '/owner/akun', label: 'Akun Saya', icon: 'account_circle' },
 ];
 
 function OwnerShell({ user }: { user: User }) {
@@ -645,6 +655,9 @@ function OwnerShell({ user }: { user: User }) {
                 </span>
               )}
             >
+              <MenuItem to={user.role === 'ADMIN' ? '/admin/akun' : '/owner/akun'} icon="account_circle">
+                Akun saya
+              </MenuItem>
               <MenuItem to="/" icon="public">
                 Lihat situs pelanggan
               </MenuItem>
@@ -676,6 +689,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: '/admin/audit', label: 'Audit Log', icon: 'policy' },
   { to: '/admin/health', label: 'Kesehatan Sistem', icon: 'monitor_heart' },
   { to: '/admin/notifications', label: 'Notifikasi', icon: 'notifications' },
+  { to: '/admin/akun', label: 'Akun Saya', icon: 'account_circle' },
 ];
 
 function AdminShell({ user }: { user: User }) {
@@ -756,6 +770,9 @@ function AdminShell({ user }: { user: User }) {
                 </span>
               )}
             >
+              <MenuItem to={user.role === 'ADMIN' ? '/admin/akun' : '/owner/akun'} icon="account_circle">
+                Akun saya
+              </MenuItem>
               <MenuItem to="/" icon="public">
                 Lihat situs pelanggan
               </MenuItem>
@@ -779,10 +796,11 @@ function AdminShell({ user }: { user: User }) {
 
 /** Route guard: requires login with one of `roles`; otherwise redirects to /login and comes back afterwards. */
 export function RequireRole({ roles }: { roles: Role[] }) {
-  const { user, loading } = useAuth();
+  const { user, loading, signedOut } = useAuth();
   const location = useLocation();
   if (loading) return <Loading />;
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  // Signed out on purpose: home page. Session ended by itself: sign in again and come back here.
+  if (!user) return signedOut ? <Navigate to="/" replace /> : <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   if (!roles.includes(user.role)) return <Navigate to="/" replace />;
   return <Outlet />;
 }

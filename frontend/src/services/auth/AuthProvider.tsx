@@ -10,6 +10,8 @@ interface AuthState {
   loading: boolean;
   hasRole: (...roles: Role[]) => boolean;
   logout: () => Promise<void>;
+  /** True after the user signed out on purpose (or deleted the account): guarded pages then go home, not to /login. */
+  signedOut: boolean;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -17,10 +19,14 @@ const AuthContext = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [signedOut, setSignedOut] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const unsubscribe = tokenStore.subscribe((s) => setUser(s?.user ?? null));
+    const unsubscribe = tokenStore.subscribe((s) => {
+      setUser(s?.user ?? null);
+      if (s) setSignedOut(false);
+    });
     // Restore the session after a page reload from the httpOnly refresh cookie.
     refreshSession().finally(() => setLoading(false));
     return () => {
@@ -29,14 +35,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    setSignedOut(true);
     await authApi.logout();
     // Wipe the previous user's cached data; queries still on screen refetch as anonymous.
     await queryClient.resetQueries();
   }, [queryClient]);
 
   const value = useMemo<AuthState>(
-    () => ({ user, loading, hasRole: (...roles) => !!user && roles.includes(user.role), logout }),
-    [user, loading, logout],
+    () => ({ user, loading, hasRole: (...roles) => !!user && roles.includes(user.role), logout, signedOut }),
+    [user, loading, logout, signedOut],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

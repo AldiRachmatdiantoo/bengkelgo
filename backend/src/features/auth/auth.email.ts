@@ -59,16 +59,23 @@ export function passwordResetEmail(to: string, name: string, token: string, minu
   };
 }
 
-/** Sent after the password was changed through a reset link. */
-export function passwordChangedEmail(to: string, name: string): Mail {
+/**
+ * Sent after the password changed: through a reset link (every device signed out), on the "Akun saya" page
+ * (the other devices signed out), or set for the first time by an account made with Google.
+ */
+export function passwordChangedEmail(to: string, name: string, how: 'reset' | 'changed' | 'created' = 'reset'): Mail {
+  const created = how === 'created';
+  const devices = how === 'reset' ? 'Semua perangkat yang sebelumnya masuk sudah dikeluarkan.' : 'Perangkat lain yang sedang masuk sudah dikeluarkan.';
   return {
     to,
     ...renderEmail({
-      subject: 'Password BengkelGo Anda sudah diganti',
+      subject: created ? 'Password BengkelGo Anda sudah dibuat' : 'Password BengkelGo Anda sudah diganti',
       tag: 'Keamanan akun',
-      preheader: 'Password akun BengkelGo Anda baru saja diganti.',
+      preheader: created ? 'Akun BengkelGo Anda kini juga bisa masuk dengan email dan password.' : 'Password akun BengkelGo Anda baru saja diganti.',
       name,
-      intro: 'Password akun BengkelGo Anda baru saja diganti. Semua perangkat yang sebelumnya masuk sudah dikeluarkan.',
+      intro: created
+        ? `Akun BengkelGo Anda kini punya password, jadi bisa masuk dengan email dan password selain lewat Google. ${devices}`
+        : `Password akun BengkelGo Anda baru saja diganti. ${devices}`,
       rows: [['Waktu', new Intl.DateTimeFormat('id-ID', { dateStyle: 'full', timeStyle: 'short', timeZone: env.CRON_TIMEZONE }).format(new Date()) + ' WIB']],
       button: { text: 'Masuk ke BengkelGo', url: appUrl('/login') },
       tips: ['Bukan Anda yang mengganti? Segera buat password baru lewat "Lupa password?" di halaman masuk.'],

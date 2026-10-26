@@ -470,6 +470,13 @@ export function VerifyEmailPage() {
           >
             {wait > 0 ? `Kirim ulang kode dalam ${wait} detik` : 'Kirim ulang kode'}
           </button>
+          {/* A typo in the email at sign-up means the code never arrives: the address can be changed on the account page. */}
+          <p className="text-center font-label text-xs text-ink-2">
+            Salah ketik email?{' '}
+            <Link to={user.role === 'WORKSHOP_OWNER' ? '/owner/akun' : '/akun'} className="font-semibold text-primary hover:underline" data-testid="verify-change-email">
+              Ganti email di Akun Saya
+            </Link>
+          </p>
         </form>
       )}
     </AuthShell>

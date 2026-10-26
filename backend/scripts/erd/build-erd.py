@@ -50,8 +50,8 @@ def ty(udt):
 
 # ---------- domains (what the reader thinks in) ----------
 DOMAINS = [
-    ('akun', 'Akun & pelanggan', 'Pengguna semua peran, sesi login, verifikasi email, reset password, notifikasi, dan kendaraan tersimpan.',
-     ['users', 'refresh_tokens', 'email_verifications', 'password_resets', 'notifications', 'vehicles']),
+    ('akun', 'Akun & pelanggan', 'Pengguna semua peran, sesi login, verifikasi & ganti email, reset password, notifikasi, dan kendaraan tersimpan.',
+     ['users', 'refresh_tokens', 'email_verifications', 'email_changes', 'password_resets', 'notifications', 'vehicles']),
     ('bengkel', 'Bengkel', 'Profil bengkel mitra beserta layanan, mekanik, kuota per jam, hari libur, dan foto.',
      ['workshops', 'services', 'mechanics', 'workshop_quotas', 'workshop_holidays', 'workshop_photos']),
     ('pesanan', 'Pesanan & pembayaran', 'Satu pesanan (booking atau SOS) dengan detailnya, pembayaran QRIS, ulasan, dan riwayat status.',
@@ -66,10 +66,10 @@ if missing:
 
 ORIGIN = {
     'notifications': '004', 'vehicles': '004', 'workshop_holidays': '004', 'workshop_photos': '004',
-    'order_status_history': '004', 'audit_logs': '004', 'email_outbox': '006', 'email_verifications': '007', 'password_resets': '008',
+    'order_status_history': '004', 'audit_logs': '004', 'email_outbox': '006', 'email_verifications': '007', 'password_resets': '008', 'email_changes': '010',
 }
 NOTES = {
-    'users': 'Semua peran: CUSTOMER, GUEST, WORKSHOP_OWNER, ADMIN.',
+    'users': 'Semua peran: CUSTOMER, GUEST, WORKSHOP_OWNER, ADMIN. Foto profil dan tanda akun dihapus (data dianonimkan) sejak migrasi 010.',
     'refresh_tokens': 'Hanya hash SHA-256 yang disimpan; satu family dicabut bila token dipakai ulang.',
     'notifications': 'Notifikasi di dalam aplikasi per pengguna.',
     'vehicles': 'Kendaraan tersimpan pelanggan (soft delete).',
@@ -89,6 +89,7 @@ NOTES = {
     'email_verifications': 'Kode 6 angka (hanya HMAC-nya), berlaku 15 menit, maks. 5 kali salah.',
     'email_outbox': 'Ditulis dalam transaksi yang sama dengan aksinya; dicoba ulang otomatis, dihapus setelah 30 hari.',
     'password_resets': 'Tautan "lupa password" (hanya hash-nya), sekali pakai, berlaku 30 menit.',
+    'email_changes': 'Ganti email yang menunggu kode 6 angka dari email baru (hanya HMAC-nya), berlaku 15 menit, maks. 5 kali salah.',
 }
 
 def unique_cols(t):
@@ -135,7 +136,7 @@ full = diagram(list(tables.keys()))
 # ---------- markdown ----------
 md = ['# ERD Database BengkelGo', '',
       'Dibuat otomatis dari skema database yang berjalan (`backend/scripts/erd/build-erd.py`). '
-      f'{len(tables)} tabel, {len(fks)} relasi. Migrasi: `001_init` s/d `008_password_reset`.', '',
+      f'{len(tables)} tabel, {len(fks)} relasi. Migrasi: `001_init` s/d `010_user_profile`.', '',
       'Versi teks untuk **QuickDBD** (app.quickdatabasediagrams.com): [erd-quickdbd.txt](erd-quickdbd.txt), dibuat dengan '
       '`backend/scripts/erd/build-quickdbd.py` dari ekspor kolom (dengan `column_default`), relasi, dan enum database lokal.', '',
       'Cara baca garis: `||` tepat satu, `|o` nol atau satu, `o{` nol atau banyak. Label garis = kolom foreign key.', '',

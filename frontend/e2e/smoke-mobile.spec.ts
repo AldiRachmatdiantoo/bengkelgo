@@ -43,7 +43,7 @@ test.afterAll(async ({ playwright, baseURL }) => {
 
 test('customer pages fit a 375px phone', async ({ page }) => {
   await post(page.request, '/auth/register/customer', { name: 'Pelanggan Mobile E2E', email: `cust.m.${run}@example.test`, phone: `0816${digits()}`, password: `E2eCust${run}A1` });
-  await noSideScroll(page, ['/', '/workshops', '/emergency', '/orders', '/vehicles', '/notifications']);
+  await noSideScroll(page, ['/', '/workshops', '/emergency', '/orders', '/vehicles', '/notifications', '/akun']);
 });
 
 test('owner portal fits a 375px phone', async ({ page }) => {
@@ -62,10 +62,10 @@ test('owner portal fits a 375px phone', async ({ page }) => {
     },
   });
   ownerWorkshopId = (await (await page.request.get(`${API}/workshops/me`, { headers: { Authorization: `Bearer ${s.access_token}` } })).json()).data.id;
-  await noSideScroll(page, ['/owner', '/owner/emergency', '/owner/orders', '/owner/quotas', '/owner/mechanics', '/owner/payments', '/owner/reviews', '/owner/profile', '/owner/profile#jadwal', '/owner/profile#foto', '/owner/notifications']);
+  await noSideScroll(page, ['/owner', '/owner/emergency', '/owner/orders', '/owner/quotas', '/owner/mechanics', '/owner/payments', '/owner/reviews', '/owner/profile', '/owner/profile#jadwal', '/owner/profile#foto', '/owner/notifications', '/owner/akun']);
 });
 
 test('admin portal fits a 375px phone', async ({ page }) => {
   await post(page.request, '/auth/login', { email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD });
-  await noSideScroll(page, ['/admin', '/admin/workshops', '/admin/reports', '/admin/users', '/admin/search?q=Bengkel', '/admin/audit', '/admin/health', '/admin/notifications']);
+  await noSideScroll(page, ['/admin', '/admin/workshops', '/admin/reports', '/admin/users', '/admin/search?q=Bengkel', '/admin/audit', '/admin/health', '/admin/notifications', '/admin/akun']);
 });

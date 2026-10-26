@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import adminRoutes from '../features/admin/admin.routes';
+import accountRoutes from '../features/account/account.routes';
 import authRoutes from '../features/auth/auth.routes';
 import bookingRoutes from '../features/booking/booking.routes';
 import emergencyRoutes from '../features/emergency/emergency.routes';
@@ -14,6 +15,8 @@ import workshopRoutes from '../features/workshop/workshop.routes';
 
 const router = Router();
 
+// /auth/me/... (Akun saya) before /auth: GET /auth/me falls through to the auth routes.
+router.use('/auth/me', accountRoutes);
 router.use('/auth', authRoutes);
 router.use('/emergency', emergencyRoutes);
 router.use('/booking', bookingRoutes);
