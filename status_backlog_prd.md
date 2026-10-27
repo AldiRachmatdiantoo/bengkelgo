@@ -91,6 +91,16 @@ Permintaan tim 26 Okt: fitur profil pengguna. Dikerjakan di branch `main`. ✅ *
 
 **Tes:** integration `account.int.test.ts` 8 (total backend 149/149), Vitest 44/44 (+ nama perangkat), E2E `account.spec.ts` 2 (alur lengkap pelanggan: data diri, foto, password, ganti email dengan kode dari antrean email lokal, perangkat, hapus akun; portal pemilik), a11y + ikon + layar 375px untuk 3 halaman baru, fitur backlog 7/7, visual 12/12; Postman/Newman **106/106** (folder baru "12. Akun Saya"). ERD: 21 tabel, 30 relasi.
 
+## Data demo Surabaya (27 Okt 2026)
+
+Permintaan tim: kosongkan semua pengguna, sisakan 1 admin, isi 20 bengkel dummy di Surabaya dan 3 pelanggan.
+
+- ✅ Script baru **`npm run db:demo`** (`backend/src/db/demo.ts`): memakai logika `db:reset` (semua data & file unggahan dihapus, hanya admin `--admin=<email>` / `SEED_ADMIN_EMAIL` yang tersisa), lalu menambah **20 bengkel APPROVED** di Surabaya (masing-masing akun pemilik, 3–6 layanan sesuai jenis kendaraan, 2–3 mekanik, jam buka bervariasi, sebagian tutup Minggu / istirahat siang) dan **3 pelanggan** (email terverifikasi, nomor WA, 1 kendaraan tersimpan). Tanpa `--confirm=<host>` hanya menampilkan rencana.
+- Titik peta = **lokasi bengkel nyata dari OpenStreetMap** (dicek 27 Okt: 13 bengkel + dealer motor/mobil dengan servis) beserta nama jalannya, tersebar di utara (Ampel, Kapasari, Kenjeran), pusat (Genteng, Tegalsari, Darmo), selatan (Jemursari, Ahmad Yani, Gayungan), timur (Rungkut, Wonorejo) dan barat (Lontar, Sambikerep, Manukan, Lidah Wetan). **Nama bengkel, orang, dan nomor telepon fiktif** (tidak memakai nama usaha asli, tidak sama dengan data lama); deskripsi bengkel diberi keterangan "Data contoh untuk demo BengkelGo". Tanpa ulasan/rating palsu dan tanpa QRIS.
+- Semua akun demo memakai satu password acak (atau `DEMO_PASSWORD`) yang **ditulis ke `demo-accounts.local.md` sebelum data dihapus** (tidak masuk git, tidak dicetak ke layar). Email `@bengkelgo.test` (domain cadangan) tidak pernah dikirimi email sungguhan.
+- ✅ **Database lokal** sudah diisi 27 Okt: 24 akun (1 admin, 20 pemilik, 3 pelanggan), 20 bengkel, 81 layanan, 50 mekanik. Dicek: daftar bengkel dari titik Tugu Pahlawan menampilkan 20 bengkel (1,2–12,8 km), login akun demo berhasil.
+- ⏳ **Database produksi** belum (kredensial Supabase hanya di Render). Jalankan dari laptop di folder `backend`: `DATABASE_URL="<pooler URI>" DATABASE_SSL=true STORAGE_DRIVER=supabase SUPABASE_URL="<url>" SUPABASE_SERVICE_ROLE_KEY="<key>" npm run db:demo -- --admin=<email admin>` (cek), lalu ulangi dengan tambahan `--confirm=<host>`. Tidak bisa dibatalkan.
+
 **Yang tersisa tanpa tim:** tidak ada pekerjaan kode yang tertunda. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).

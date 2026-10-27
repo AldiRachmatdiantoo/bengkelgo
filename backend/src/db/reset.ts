@@ -18,7 +18,7 @@ const KEEP_TABLES = ['spatial_ref_sys', 'schema_migrations', 'users'];
 const SEQUENCES = ['order_number_seq', 'invoice_number_seq'];
 const FOLDERS = ['qris', 'proofs', 'photos'];
 
-const host = (() => {
+export const host = (() => {
   try {
     return new URL(env.DATABASE_URL).hostname;
   } catch {
@@ -26,7 +26,7 @@ const host = (() => {
   }
 })();
 
-async function counts() {
+export async function counts() {
   const { rows } = await pool.query<{ users: number; admins: number; workshops: number; orders: number }>(
     `SELECT (SELECT COUNT(*)::int FROM users) AS users, (SELECT COUNT(*)::int FROM users WHERE role = 'ADMIN') AS admins,
             (SELECT COUNT(*)::int FROM workshops) AS workshops, (SELECT COUNT(*)::int FROM orders) AS orders`,
@@ -34,7 +34,7 @@ async function counts() {
   return rows[0];
 }
 
-async function resetDatabase(onlyAdmin: string | null) {
+export async function resetDatabase(onlyAdmin: string | null) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -67,7 +67,7 @@ async function resetDatabase(onlyAdmin: string | null) {
 }
 
 /** Deletes every stored upload; returns how many files were removed. */
-async function resetStorage(): Promise<number> {
+export async function resetStorage(): Promise<number> {
   if (env.STORAGE_DRIVER === 'supabase') {
     const base = `${env.SUPABASE_URL.replace(/\/$/, '')}/storage/v1/object`;
     const headers = { Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, apikey: env.SUPABASE_SERVICE_ROLE_KEY, 'Content-Type': 'application/json' };
@@ -121,9 +121,12 @@ async function main() {
   console.log(`Done: kept ${admins} admin account(s); ${after.users} accounts, ${after.workshops} workshops, ${after.orders} orders left; ${files} uploaded files deleted.`);
 }
 
-main()
-  .catch((err) => {
-    console.error(err.message);
-    process.exitCode = 1;
-  })
-  .finally(() => pool.end());
+// Also imported by the demo-data script (db/demo.ts): only runs when started directly.
+if (require.main === module) {
+  main()
+    .catch((err) => {
+      console.error(err.message);
+      process.exitCode = 1;
+    })
+    .finally(() => pool.end());
+}

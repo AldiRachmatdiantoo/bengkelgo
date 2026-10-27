@@ -6,3 +6,5 @@ uploads/*
 coverage/
 docs/postman/.newman-report.json
 tests/load/.generated/
+# Demo accounts written by `npm run db:demo` (contains the shared password)
+*.local.md
