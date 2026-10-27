@@ -8,3 +8,5 @@ docs/postman/.newman-report.json
 tests/load/.generated/
 # Demo accounts written by `npm run db:demo` (contains the shared password)
 *.local.md
+# Production values copied by hand for one-off scripts (npm run db:demo against Supabase). Never commit.
+.env.*.local
