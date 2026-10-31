@@ -380,14 +380,14 @@ export function SkeletonCards({
     <SkeletonGroup label={label} className={className}>
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="overflow-hidden rounded-xl border border-line bg-card shadow-sm">
-          {media && <Skeleton className="aspect-[16/8] w-full rounded-none" />}
-          <div className="space-y-3 p-5">
+          {media && <Skeleton className="aspect-[4/3] w-full rounded-none sm:aspect-[16/8]" />}
+          <div className="space-y-3 p-3 sm:p-5">
             <Skeleton className={cx('h-5', i % 2 ? 'w-1/2' : 'w-2/3')} />
             <SkeletonText lines={2} />
             <div className="flex items-center gap-2 pt-1">
-              <Skeleton className="h-7 w-16 rounded-full" />
-              <Skeleton className="h-7 w-20 rounded-full" />
-              <Skeleton className="ml-auto h-9 w-24 rounded-lg" />
+              <Skeleton className="hidden h-7 w-16 rounded-full sm:block" />
+              <Skeleton className="hidden h-7 w-20 rounded-full sm:block" />
+              <Skeleton className="h-9 w-full rounded-lg sm:ml-auto sm:w-24" />
             </div>
           </div>
         </div>
@@ -683,6 +683,58 @@ export function Table({ head, children }: { head: ReactNode[]; children: ReactNo
 }
 
 export const Td = ({ children, className }: { children: ReactNode; className?: string }) => <td className={cx('px-4 py-3 align-middle', className)}>{children}</td>;
+
+/** Page numbers with previous/next; "Menampilkan 1–10 dari 20" above them. */
+export function Pagination({
+  page,
+  pages,
+  total,
+  pageSize,
+  onChange,
+  className,
+}: {
+  page: number;
+  pages: number;
+  total: number;
+  pageSize: number;
+  onChange: (page: number) => void;
+  className?: string;
+}) {
+  if (pages <= 1) return null;
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+  const arrow = 'grid h-10 w-10 place-items-center rounded-lg border border-line bg-card text-navy transition hover:bg-sky disabled:pointer-events-none disabled:opacity-40';
+  return (
+    <nav aria-label="Halaman hasil" className={cx('flex flex-col items-center gap-3', className)} data-testid="pagination">
+      <p className="font-label text-xs text-ink-3">
+        Menampilkan {from}–{to} dari {total}
+      </p>
+      <div className="flex items-center gap-1.5">
+        <button type="button" className={arrow} disabled={page === 1} onClick={() => onChange(page - 1)} aria-label="Halaman sebelumnya">
+          <Icon name="chevron_left" />
+        </button>
+        {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+          <button
+            key={n}
+            type="button"
+            onClick={() => onChange(n)}
+            aria-current={n === page ? 'page' : undefined}
+            aria-label={`Halaman ${n}`}
+            className={cx(
+              'h-10 min-w-10 rounded-lg px-3 font-label text-sm font-bold transition',
+              n === page ? 'bg-primary text-white shadow-sm' : 'border border-line bg-card text-navy hover:bg-sky',
+            )}
+          >
+            {n}
+          </button>
+        ))}
+        <button type="button" className={arrow} disabled={page === pages} onClick={() => onChange(page + 1)} aria-label="Halaman berikutnya">
+          <Icon name="chevron_right" />
+        </button>
+      </div>
+    </nav>
+  );
+}
 
 /** Section title used on the landing page (eyebrow + headline + optional action). */
 export function SectionHeading({

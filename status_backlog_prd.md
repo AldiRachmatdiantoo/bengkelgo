@@ -109,6 +109,13 @@ Permintaan tim: kosongkan semua pengguna, sisakan 1 admin, isi 20 bengkel dummy 
 - Diperbaiki sekalian: tes E2E pengaturan bengkel gagal setiap hari Sabtu (tes menutup hari Minggu lalu memeriksa jadwal "besok"); kini memeriksa hari yang tidak jatuh di Minggu.
 - Tes: typecheck, Vitest 44/44, E2E a11y + a11y portal + visual (desktop & HP) + alur utama + Akun + fitur backlog + ikon + layar 375px lolos.
 
+## Daftar bengkel di HP: 2 kolom + pagination (31 Okt 2026)
+
+- ✅ Di HP (layar < 640 px) hasil Cari Bengkel tampil **2 kartu per baris** (sebelumnya 1 kartu memanjang ke bawah). Kartu dibuat ringkas khusus HP: foto 4:3, label "Rekomendasi"/"Mitra Resmi", wilayah + rating, nama (maks. 2 baris), jenis kendaraan + Siaga SOS, jam buka, tombol "Pilih Jadwal" selebar kartu; deskripsi, "booking/jam", dan tulisan kecil disembunyikan. Desktop/tablet tidak berubah.
+- ✅ **Pagination 10 bengkel per halaman** di HP ("Menampilkan 1–10 dari 20", tombol ‹ 1 2 ›); pindah halaman menggulir kembali ke atas daftar; kembali ke halaman 1 saat filter berubah. Desktop tetap menampilkan semua hasil sekaligus. Komponen baru `Pagination` (components/ui) dan hook `useMediaQuery`.
+- Diperbaiki: ikon mobil di kartu tanpa foto kini berukuran benar di semua layar (ukurannya diatur lewat pembungkus).
+- Tes: E2E baru di `smoke-mobile.spec.ts` (2 kartu berdampingan, 10 per halaman, halaman 2), semua tes HP 22/22 dan desktop (alur utama, lokasi, visual, a11y) lolos; dicek juga di build produksi.
+
 **Yang tersisa tanpa tim:** tidak ada pekerjaan kode yang tertunda. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).

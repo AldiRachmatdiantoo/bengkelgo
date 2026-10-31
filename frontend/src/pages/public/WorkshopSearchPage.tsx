@@ -5,15 +5,19 @@ import { workshopApi } from '@/services/api/endpoints';
 import { errorMessage } from '@/services/api/client';
 import type { VehicleType, Workshop } from '@/services/api/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { PHONE_QUERY, useMediaQuery } from '@/hooks/useMediaQuery';
 import { DEFAULT_CENTER, PointsMap } from '@/components/map/Maps';
 import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { useReverseAddress } from '@/components/map/AddressHint';
 import { WorkshopCard, friendlyDay, regionOf } from '@/components/workshop/WorkshopComponents';
-import { Alert, Button, EmptyState, Icon, SectionHeading, cx, SkeletonCards } from '@/components/ui';
+import { Alert, Button, EmptyState, Icon, Pagination, SectionHeading, cx, SkeletonCards } from '@/components/ui';
 import { distance, jakartaDate } from '@/utils/format';
 
 type Tab = 'booking' | 'sos' | 'cari';
 type Sort = 'near' | 'recommended' | 'rating';
+
+/** Workshop cards per page on phones. */
+const PAGE_SIZE = 10;
 
 /** Booking hours offered by the slot filter (workshops' own hours are checked by the API). */
 const SLOT_HOURS = Array.from({ length: 15 }, (_, i) => `${String(i + 7).padStart(2, '0')}:00`);
@@ -80,6 +84,17 @@ export default function WorkshopSearchPage() {
   const { data, isLoading, error } = useQuery({ queryKey: ['workshops', filters], queryFn: () => workshopApi.list(filters) });
   const list = useMemo(() => data ?? [], [data]);
   const showResults = () => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Phones: two cards per row and 10 per page; larger screens show the whole list.
+  const phone = useMediaQuery(PHONE_QUERY);
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [data]);
+  const pages = phone ? Math.ceil(list.length / PAGE_SIZE) : 1;
+  const current = Math.min(page, Math.max(pages, 1));
+  const shown = phone ? list.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE) : list;
+  const goToPage = (n: number) => {
+    setPage(n);
+    showResults();
+  };
 
   return (
     <div className="flex flex-col gap-12">
@@ -374,15 +389,18 @@ export default function WorkshopSearchPage() {
           action={data && <span className="font-label text-sm text-ink-3">{list.length} bengkel ditemukan</span>}
         />
         {isLoading ? (
-          <SkeletonCards media count={6} label="Mencari bengkel…" />
+          <SkeletonCards media count={6} label="Mencari bengkel…" className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3" />
         ) : error ? (
           <Alert tone="danger">{errorMessage(error)}</Alert>
         ) : list.length > 0 ? (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((w, i) => (
-              <WorkshopCard key={w.id} workshop={w} featured={i === 0} date={date} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+              {shown.map((w) => (
+                <WorkshopCard key={w.id} workshop={w} featured={w.id === list[0].id} date={date} />
+              ))}
+            </div>
+            <Pagination className="mt-6" page={current} pages={pages} total={list.length} pageSize={PAGE_SIZE} onChange={goToPage} />
+          </>
         ) : (
           <EmptyState icon="search_off">Tidak ada bengkel yang cocok dengan filter. Coba perluas radius atau ubah kata kunci.</EmptyState>
         )}

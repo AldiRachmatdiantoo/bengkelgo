@@ -41,16 +41,20 @@ export function friendlyDay(isoDate: string) {
 /** Last meaningful part of an address ("Gambir, Jakarta Pusat"). */
 export const regionOf = (address: string) => address.split(',').map((p) => p.trim()).filter(Boolean).slice(-2).join(', ');
 
+/**
+ * Workshop result card. On phones two cards sit side by side, so the card is compact there (no description or
+ * small print, full-width button); from the `sm` breakpoint up it is the full card.
+ */
 export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop; featured?: boolean; date?: string }) {
   const to = `/workshops/${workshop.id}${date ? `?date=${date}` : ''}`;
   return (
     <Link
       to={to}
       data-testid="workshop-card"
-      className="group flex h-full flex-col overflow-hidden rounded-xl border border-line bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lift"
+      className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lift"
     >
       {/* Cover photo when the workshop has one, otherwise an illustration; a dark fade keeps the name readable. */}
-      <div className="relative aspect-[16/8] overflow-hidden bg-gradient-to-br from-primary to-navy">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary to-navy sm:aspect-[16/8]">
         {workshop.cover_photo_url ? (
           <>
             <img
@@ -66,53 +70,60 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
         ) : (
           <>
             <div className="absolute inset-0 opacity-15 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:16px_16px]" />
-            <Icon name="car_repair" className="absolute -right-4 -bottom-6 text-[140px] text-white/15" />
+            {/* The icon is 1.25em of its parent, so the size is set on this wrapper: ~88px on phones, 140px from sm up. */}
+            <span aria-hidden className="absolute -right-3 -bottom-4 text-[70px] leading-none text-white/15 sm:-right-4 sm:-bottom-6 sm:text-[112px]">
+              <Icon name="car_repair" />
+            </span>
           </>
         )}
-        <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 font-label text-[11px] font-bold text-navy shadow-sm">
-          <Icon name="verified" filled className="text-[14px] text-primary" /> {featured ? 'Rekomendasi BengkelGo' : 'Mitra Resmi BengkelGo'}
+        <span className="absolute top-2 left-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-card/95 px-2 py-0.5 font-label text-[10px] font-bold text-navy shadow-sm sm:top-3 sm:left-3 sm:px-2.5 sm:py-1 sm:text-[11px]">
+          <Icon name="verified" filled className="text-[13px] text-primary sm:text-[14px]" />
+          <span className="truncate sm:hidden">{featured ? 'Rekomendasi' : 'Mitra Resmi'}</span>
+          <span className="hidden sm:inline">{featured ? 'Rekomendasi BengkelGo' : 'Mitra Resmi BengkelGo'}</span>
         </span>
-        <span className="absolute bottom-3 left-3 max-w-[70%] truncate text-lg font-bold text-white drop-shadow">{workshop.name}</span>
+        <span className="absolute bottom-3 left-3 hidden max-w-[70%] truncate text-lg font-bold text-white drop-shadow sm:block">{workshop.name}</span>
         {workshop.distance_meters != null && (
-          <span className="absolute right-3 bottom-3 inline-flex items-center gap-1 rounded-full bg-navy/80 px-2.5 py-1 font-label text-[11px] font-bold text-white backdrop-blur">
-            <Icon name="pin_drop" className="text-[14px]" /> {distance(workshop.distance_meters)} dari Anda
+          <span className="absolute right-2 bottom-2 inline-flex items-center gap-1 rounded-full bg-navy/80 px-2 py-0.5 font-label text-[10px] font-bold text-white sm:right-3 sm:bottom-3 sm:px-2.5 sm:py-1 sm:text-[11px] sm:backdrop-blur">
+            <Icon name="pin_drop" className="text-[13px] sm:text-[14px]" /> {distance(workshop.distance_meters)}
+            <span className="hidden sm:inline">dari Anda</span>
           </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-3 p-5">
+      <div className="flex flex-1 flex-col gap-2 p-3 sm:gap-3 sm:p-5">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">{regionOf(workshop.address)}</span>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning-soft px-1.5 py-0.5 font-label text-xs font-bold text-warning-ink">
-            <Icon name="star" filled className="text-[14px] text-warning" />
-            {workshop.avg_rating > 0 ? workshop.avg_rating.toFixed(1) : 'Baru'} ({workshop.total_reviews})
+          <span className="min-w-0 truncate font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase sm:text-[11px]">{regionOf(workshop.address)}</span>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning-soft px-1.5 py-0.5 font-label text-[11px] font-bold text-warning-ink sm:text-xs">
+            <Icon name="star" filled className="text-[13px] text-warning sm:text-[14px]" />
+            {workshop.avg_rating > 0 ? workshop.avg_rating.toFixed(1) : 'Baru'}
+            <span className="hidden sm:inline">({workshop.total_reviews})</span>
           </span>
         </div>
-        <h3 className="text-headline-sm leading-snug text-navy group-hover:text-primary">{workshop.name}</h3>
-        <p className="line-clamp-2 text-sm text-ink-2">{workshop.description || workshop.address}</p>
-        <div className="flex flex-wrap gap-1.5">
+        <h3 className="line-clamp-2 text-sm leading-snug font-bold text-navy group-hover:text-primary sm:text-headline-sm sm:font-semibold">{workshop.name}</h3>
+        <p className="line-clamp-2 hidden text-sm text-ink-2 sm:block">{workshop.description || workshop.address}</p>
+        <div className="flex flex-wrap gap-1 sm:gap-1.5">
           {workshop.vehicle_types.map((v) => (
-            <span key={v} className="inline-flex items-center gap-1 rounded-md bg-surface-low px-2 py-1 font-label text-[11px] font-semibold text-ink-2">
-              <Icon name={vehicleIcon(v)} className="text-[14px]" /> {vehicleLabel(v)}
+            <span key={v} className="inline-flex items-center gap-1 rounded-md bg-surface-low px-1.5 py-0.5 font-label text-[10px] font-semibold text-ink-2 sm:px-2 sm:py-1 sm:text-[11px]">
+              <Icon name={vehicleIcon(v)} className="text-[13px] sm:text-[14px]" /> {vehicleLabel(v)}
             </span>
           ))}
-          {workshop.accepts_emergency && <span className="rounded-md bg-surface-low px-2 py-1 font-label text-[11px] font-semibold text-ink-2">Siaga SOS</span>}
-          {workshop.has_qris && <span className="rounded-md bg-surface-low px-2 py-1 font-label text-[11px] font-semibold text-ink-2">QRIS Ready</span>}
+          {workshop.accepts_emergency && <span className="rounded-md bg-surface-low px-1.5 py-0.5 font-label text-[10px] font-semibold text-ink-2 sm:px-2 sm:py-1 sm:text-[11px]">Siaga SOS</span>}
+          {workshop.has_qris && <span className="hidden rounded-md bg-surface-low px-2 py-1 font-label text-[11px] font-semibold text-ink-2 sm:inline">QRIS Ready</span>}
         </div>
         <div
           className={cx(
-            'flex items-center justify-between gap-2 rounded-lg px-3 py-2 font-label text-xs font-semibold',
+            'flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 font-label text-[11px] font-semibold sm:px-3 sm:py-2 sm:text-xs',
             workshop.is_open ? 'bg-success-soft text-success' : 'bg-surface-low text-ink-3',
           )}
         >
-          <span className="inline-flex items-center gap-1.5">
-            <Icon name="event_available" className="text-[16px]" />
-            {workshop.is_open ? `Buka ${workshop.open_time}–${workshop.close_time}` : 'Sedang tutup'}
+          <span className="inline-flex min-w-0 items-center gap-1 sm:gap-1.5">
+            <Icon name="event_available" className="text-[14px] sm:text-[16px]" />
+            <span className="truncate">{workshop.is_open ? `${workshop.open_time}–${workshop.close_time}` : 'Sedang tutup'}</span>
           </span>
-          <span className="text-[11px] text-ink-3">{workshop.max_slot_per_hour} booking/jam</span>
+          <span className="hidden text-[11px] text-ink-3 sm:inline">{workshop.max_slot_per_hour} booking/jam</span>
         </div>
         <div className="mt-auto flex items-end justify-between gap-3 pt-1">
-          <span className="font-label text-xs text-ink-3">Jadwal per jam, tidak bentrok</span>
-          <span className="inline-flex h-10 shrink-0 items-center rounded-lg bg-primary px-5 font-label text-sm font-semibold text-white transition group-hover:bg-primary-dark">
+          <span className="hidden font-label text-xs text-ink-3 sm:inline">Jadwal per jam, tidak bentrok</span>
+          <span className="inline-flex h-9 w-full shrink-0 items-center justify-center rounded-lg bg-primary px-3 font-label text-xs font-semibold text-white transition group-hover:bg-primary-dark sm:h-10 sm:w-auto sm:px-5 sm:text-sm">
             Pilih Jadwal
           </span>
         </div>

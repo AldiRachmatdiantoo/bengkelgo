@@ -69,3 +69,23 @@ test('admin portal fits a 375px phone', async ({ page }) => {
   await post(page.request, '/auth/login', { email: process.env.E2E_ADMIN_EMAIL, password: process.env.E2E_ADMIN_PASSWORD });
   await noSideScroll(page, ['/admin', '/admin/workshops', '/admin/reports', '/admin/users', '/admin/search?q=Bengkel', '/admin/audit', '/admin/health', '/admin/notifications', '/admin/akun']);
 });
+
+test('workshop results on a phone: two cards per row, 10 per page', async ({ page }) => {
+  const total = ((await (await page.request.get(`${API}/workshops`)).json()).data as unknown[]).length;
+  await page.goto('/workshops?tab=cari');
+  const cards = page.getByTestId('workshop-card');
+  await expect(cards.first()).toBeVisible();
+  await expect(cards).toHaveCount(Math.min(total, 10));
+  if (total > 1) {
+    const [a, b] = await Promise.all([cards.nth(0).boundingBox(), cards.nth(1).boundingBox()]);
+    expect(Math.round(a!.y)).toBe(Math.round(b!.y)); // side by side, not one under the other
+  }
+  if (total > 10) {
+    await expect(page.getByTestId('pagination')).toContainText(`Menampilkan 1–10 dari ${total}`);
+    await page.getByRole('button', { name: 'Halaman 2' }).click();
+    await expect(cards).toHaveCount(Math.min(total - 10, 10));
+    await expect(page.getByTestId('pagination')).toContainText(`Menampilkan 11–${Math.min(total, 20)} dari ${total}`);
+  } else {
+    await expect(page.getByTestId('pagination')).toHaveCount(0);
+  }
+});
