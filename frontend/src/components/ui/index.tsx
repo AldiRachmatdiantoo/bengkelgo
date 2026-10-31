@@ -380,14 +380,14 @@ export function SkeletonCards({
     <SkeletonGroup label={label} className={className}>
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="overflow-hidden rounded-xl border border-line bg-card shadow-sm">
-          {media && <Skeleton className="aspect-[4/3] w-full rounded-none sm:aspect-[16/8]" />}
-          <div className="space-y-3 p-3 sm:p-5">
+          {media && <Skeleton className="aspect-[16/10] w-full rounded-none sm:aspect-[16/8]" />}
+          <div className="space-y-2 p-2.5 sm:space-y-3 sm:p-5">
             <Skeleton className={cx('h-5', i % 2 ? 'w-1/2' : 'w-2/3')} />
             <SkeletonText lines={2} />
             <div className="flex items-center gap-2 pt-1">
               <Skeleton className="hidden h-7 w-16 rounded-full sm:block" />
               <Skeleton className="hidden h-7 w-20 rounded-full sm:block" />
-              <Skeleton className="h-9 w-full rounded-lg sm:ml-auto sm:w-24" />
+              <Skeleton className="h-8 w-full rounded-lg sm:ml-auto sm:h-9 sm:w-24" />
             </div>
           </div>
         </div>

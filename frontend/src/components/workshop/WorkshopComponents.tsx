@@ -42,19 +42,21 @@ export function friendlyDay(isoDate: string) {
 export const regionOf = (address: string) => address.split(',').map((p) => p.trim()).filter(Boolean).slice(-2).join(', ');
 
 /**
- * Workshop result card. On phones two cards sit side by side, so the card is compact there (no description or
- * small print, full-width button); from the `sm` breakpoint up it is the full card.
+ * Workshop result card. On phones two cards sit side by side, so the card is short there: rating and area sit at
+ * the bottom of the picture, vehicle types are icons, the hours are one line and the button is small; from `sm` up it is the
+ * full card with description and small print.
  */
 export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop; featured?: boolean; date?: string }) {
   const to = `/workshops/${workshop.id}${date ? `?date=${date}` : ''}`;
+  const rating = workshop.avg_rating > 0 ? workshop.avg_rating.toFixed(1) : 'Baru';
   return (
     <Link
       to={to}
       data-testid="workshop-card"
       className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lift"
     >
-      {/* Cover photo when the workshop has one, otherwise an illustration; a dark fade keeps the name readable. */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-primary to-navy sm:aspect-[16/8]">
+      {/* Cover photo when the workshop has one, otherwise an illustration; a dark fade keeps the text readable. */}
+      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-primary to-navy sm:aspect-[16/8]">
         {workshop.cover_photo_url ? (
           <>
             <img
@@ -70,48 +72,69 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
         ) : (
           <>
             <div className="absolute inset-0 opacity-15 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:16px_16px]" />
-            {/* The icon is 1.25em of its parent, so the size is set on this wrapper: ~88px on phones, 140px from sm up. */}
-            <span aria-hidden className="absolute -right-3 -bottom-4 text-[70px] leading-none text-white/15 sm:-right-4 sm:-bottom-6 sm:text-[112px]">
+            {/* The icon is 1.25em of its parent, so the size is set on this wrapper: ~70px on phones, 140px from sm up. */}
+            <span aria-hidden className="absolute -right-2 -bottom-3 text-[56px] leading-none text-white/15 sm:-right-4 sm:-bottom-6 sm:text-[112px]">
               <Icon name="car_repair" />
             </span>
           </>
         )}
-        <span className="absolute top-2 left-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-card/95 px-2 py-0.5 font-label text-[10px] font-bold text-navy shadow-sm sm:top-3 sm:left-3 sm:px-2.5 sm:py-1 sm:text-[11px]">
+        {/* Phones show only the "recommended" label; every listed workshop is a verified partner anyway. */}
+        <span
+          className={cx(
+            'absolute top-2 left-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-card/95 px-2 py-0.5 font-label text-[10px] font-bold text-navy shadow-sm sm:top-3 sm:left-3 sm:max-w-none sm:px-2.5 sm:py-1 sm:text-[11px]',
+            !featured && 'max-sm:hidden',
+          )}
+        >
           <Icon name="verified" filled className="text-[13px] text-primary sm:text-[14px]" />
-          <span className="truncate sm:hidden">{featured ? 'Rekomendasi' : 'Mitra Resmi'}</span>
+          <span className="truncate sm:hidden">Rekomendasi</span>
           <span className="hidden sm:inline">{featured ? 'Rekomendasi BengkelGo' : 'Mitra Resmi BengkelGo'}</span>
+        </span>
+        {/* Phones: rating, and the area unless the distance is shown (no room for both), on the picture. */}
+        <span className="absolute bottom-1.5 left-2 flex max-w-[calc(100%-1rem)] items-center gap-1.5 sm:hidden">
+          <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-card/95 px-1.5 py-0.5 font-label text-[10px] font-bold text-warning-ink shadow-sm">
+            <Icon name="star" filled className="text-[12px] text-warning" />
+            {rating}
+          </span>
+          {workshop.distance_meters == null && (
+            <span className="min-w-0 truncate font-label text-[10px] font-bold tracking-[0.04em] text-white uppercase drop-shadow">{regionOf(workshop.address).split(',')[0]}</span>
+          )}
         </span>
         <span className="absolute bottom-3 left-3 hidden max-w-[70%] truncate text-lg font-bold text-white drop-shadow sm:block">{workshop.name}</span>
         {workshop.distance_meters != null && (
-          <span className="absolute right-2 bottom-2 inline-flex items-center gap-1 rounded-full bg-navy/80 px-2 py-0.5 font-label text-[10px] font-bold text-white sm:right-3 sm:bottom-3 sm:px-2.5 sm:py-1 sm:text-[11px] sm:backdrop-blur">
-            <Icon name="pin_drop" className="text-[13px] sm:text-[14px]" /> {distance(workshop.distance_meters)}
+          <span className="absolute right-2 bottom-1.5 inline-flex items-center gap-0.5 rounded-full bg-navy/80 px-1.5 py-0.5 font-label text-[10px] font-bold text-white sm:right-3 sm:bottom-3 sm:gap-1 sm:px-2.5 sm:py-1 sm:text-[11px] sm:backdrop-blur">
+            <Icon name="pin_drop" className="text-[12px] sm:text-[14px]" /> {distance(workshop.distance_meters)}
             <span className="hidden sm:inline">dari Anda</span>
           </span>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-3 sm:gap-3 sm:p-5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="min-w-0 truncate font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase sm:text-[11px]">{regionOf(workshop.address)}</span>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning-soft px-1.5 py-0.5 font-label text-[11px] font-bold text-warning-ink sm:text-xs">
-            <Icon name="star" filled className="text-[13px] text-warning sm:text-[14px]" />
-            {workshop.avg_rating > 0 ? workshop.avg_rating.toFixed(1) : 'Baru'}
-            <span className="hidden sm:inline">({workshop.total_reviews})</span>
+      <div className="flex flex-1 flex-col gap-1.5 p-2.5 sm:gap-3 sm:p-5">
+        <div className="hidden items-center justify-between gap-2 sm:flex">
+          <span className="min-w-0 truncate font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">{regionOf(workshop.address)}</span>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning-soft px-1.5 py-0.5 font-label text-xs font-bold text-warning-ink">
+            <Icon name="star" filled className="text-[14px] text-warning" />
+            {rating} ({workshop.total_reviews})
           </span>
         </div>
-        <h3 className="line-clamp-2 text-sm leading-snug font-bold text-navy group-hover:text-primary sm:text-headline-sm sm:font-semibold">{workshop.name}</h3>
+        <h3 className="line-clamp-2 text-[13px] leading-snug font-bold text-navy group-hover:text-primary sm:text-headline-sm sm:font-semibold">{workshop.name}</h3>
         <p className="line-clamp-2 hidden text-sm text-ink-2 sm:block">{workshop.description || workshop.address}</p>
-        <div className="flex flex-wrap gap-1 sm:gap-1.5">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
           {workshop.vehicle_types.map((v) => (
-            <span key={v} className="inline-flex items-center gap-1 rounded-md bg-surface-low px-1.5 py-0.5 font-label text-[10px] font-semibold text-ink-2 sm:px-2 sm:py-1 sm:text-[11px]">
-              <Icon name={vehicleIcon(v)} className="text-[13px] sm:text-[14px]" /> {vehicleLabel(v)}
+            <span key={v} title={vehicleLabel(v)} className="inline-flex items-center gap-1 rounded-md bg-surface-low px-1 py-0.5 font-label text-[11px] font-semibold text-ink-2 sm:px-2 sm:py-1">
+              <Icon name={vehicleIcon(v)} className="text-[14px]" />
+              <span className="max-sm:sr-only">{vehicleLabel(v)}</span>
             </span>
           ))}
-          {workshop.accepts_emergency && <span className="rounded-md bg-surface-low px-1.5 py-0.5 font-label text-[10px] font-semibold text-ink-2 sm:px-2 sm:py-1 sm:text-[11px]">Siaga SOS</span>}
+          {workshop.accepts_emergency && (
+            <span className="rounded-md bg-surface-low px-1.5 py-0.5 font-label text-[10px] font-semibold text-ink-2 sm:px-2 sm:py-1 sm:text-[11px]">
+              <span className="sm:hidden">SOS</span>
+              <span className="hidden sm:inline">Siaga SOS</span>
+            </span>
+          )}
           {workshop.has_qris && <span className="hidden rounded-md bg-surface-low px-2 py-1 font-label text-[11px] font-semibold text-ink-2 sm:inline">QRIS Ready</span>}
         </div>
         <div
           className={cx(
-            'flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 font-label text-[11px] font-semibold sm:px-3 sm:py-2 sm:text-xs',
+            'flex items-center justify-between gap-2 rounded-lg px-3 py-2 font-label text-xs font-semibold max-sm:bg-transparent max-sm:p-0 max-sm:text-[11px]',
             workshop.is_open ? 'bg-success-soft text-success' : 'bg-surface-low text-ink-3',
           )}
         >
@@ -121,9 +144,9 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
           </span>
           <span className="hidden text-[11px] text-ink-3 sm:inline">{workshop.max_slot_per_hour} booking/jam</span>
         </div>
-        <div className="mt-auto flex items-end justify-between gap-3 pt-1">
+        <div className="mt-auto flex items-end justify-between gap-3 sm:pt-1">
           <span className="hidden font-label text-xs text-ink-3 sm:inline">Jadwal per jam, tidak bentrok</span>
-          <span className="inline-flex h-9 w-full shrink-0 items-center justify-center rounded-lg bg-primary px-3 font-label text-xs font-semibold text-white transition group-hover:bg-primary-dark sm:h-10 sm:w-auto sm:px-5 sm:text-sm">
+          <span className="inline-flex h-8 w-full shrink-0 items-center justify-center rounded-lg bg-primary px-3 font-label text-xs font-semibold text-white transition group-hover:bg-primary-dark sm:h-10 sm:w-auto sm:px-5 sm:text-sm">
             Pilih Jadwal
           </span>
         </div>
