@@ -9,7 +9,7 @@ import { usePreparedImage } from '@/hooks/usePreparedImage';
 import { ACCEPT_IMAGES, fileSize } from '@/utils/imageUpload';
 import { PointsMap, directionsUrl } from '@/components/map/Maps';
 import { DateStrip, SlotPicker, addMinutes, slotRange, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, Badge, Button, Card, CopyButton, Icon, Input, Loading, MissingFields, Modal, QrCode, Select, TextArea, cx, toast } from '@/components/ui';
+import { Alert, Badge, Button, Card, CopyButton, Icon, Input, MissingFields, Modal, QrCode, Select, TextArea, cx, toast, SkeletonSlots, SkeletonTimeline } from '@/components/ui';
 import { ORDER_STATUS, PAYMENT_STATUS, PROBLEM_CATEGORY, dateTime, distance, longDate, rupiah, vehicleName } from '@/utils/format';
 import { NEGOTIABLE, customerRange, emergencyPrice, splitPriceRange } from '@/utils/priceRange';
 
@@ -1533,7 +1533,7 @@ export function StatusHistoryCard({ order }: { order: Order }) {
   return (
     <Card title="Riwayat Status" icon="history" subtitle="Dicatat otomatis setiap kali status pesanan atau pembayaran berubah.">
       {isLoading ? (
-        <Loading />
+        <SkeletonTimeline />
       ) : error ? (
         <Alert tone="danger">{errorMessage(error)}</Alert>
       ) : (
@@ -1605,7 +1605,7 @@ export function RescheduleModal({ order, open, onClose }: { order: Order; open: 
           Jadwal sekarang: <b className="text-navy">{order.booking && `${longDate(order.booking.booking_date)}, ${order.booking.time_slot}`}</b>. Slot lama dilepas untuk pelanggan lain. Jika jam baru penuh, Anda masuk daftar tunggu.
         </p>
         <DateStrip value={date} onChange={(d) => { setDate(d); setSlot(''); }} days={14} />
-        {slots.isLoading ? <Loading /> : <SlotPicker slots={slots.data ?? []} value={slot} onChange={setSlot} />}
+        {slots.isLoading ? <SkeletonSlots /> : <SlotPicker slots={slots.data ?? []} value={slot} onChange={setSlot} />}
         {move.error && <Alert tone="danger">{errorMessage(move.error)}</Alert>}
       </div>
     </Modal>

@@ -9,7 +9,7 @@ import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { AddressHint } from '@/components/map/AddressHint';
 import { OrderCard, OrderStatusBadge, ProofVerifyPanel, ResponseCountdown } from '@/components/orders/OrderComponents';
 import { DateStrip, StarRow, friendlyDay, slotRange, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, Badge, Button, Card, EmptyState, Icon, Input, Loading, MissingFields, Modal, PageHeader, ProgressBar, Segmented, Select, StatCard, Stars, Table, Td, TextArea, cx, toast } from '@/components/ui';
+import { Alert, Badge, Button, Card, EmptyState, Icon, Input, MissingFields, Modal, PageHeader, ProgressBar, Segmented, Select, StatCard, Stars, Table, Td, TextArea, cx, toast, SkeletonCards, SkeletonForm, SkeletonList, SkeletonPage, SkeletonSlots, SkeletonTable } from '@/components/ui';
 import { isIdPhone } from '@/utils/formChecks';
 import { ORDER_STATUS, WORKSHOP_STATUS, dateTime, distance, jakartaDate, longDate, rupiah } from '@/utils/format';
 import { NEGOTIABLE, customerRange, splitPriceRange } from '@/utils/priceRange';
@@ -60,7 +60,7 @@ export function OwnerDashboardPage() {
   const quotas = useQuery({ queryKey: ['owner-quotas', today], queryFn: () => ownerApi.quotas(today), enabled: approved });
   const mechanics = useQuery({ queryKey: ['owner-mechanics'], queryFn: ownerApi.mechanics });
 
-  if (ws.isLoading) return <Loading />;
+  if (ws.isLoading) return <SkeletonPage stats />;
   if (ws.error || !ws.data) return <Alert tone="danger">{errorMessage(ws.error)}</Alert>;
   const w = ws.data;
 
@@ -157,7 +157,7 @@ export function OwnerDashboardPage() {
             {!approved ? (
               <EmptyState icon="pending_actions">Jadwal booking aktif setelah bengkel diverifikasi admin.</EmptyState>
             ) : quotas.isLoading ? (
-              <Loading />
+              <SkeletonSlots label="Memuat jadwal hari ini…" />
             ) : (
               <SlotBoard date={today} slots={quotas.data ?? []} bookings={bookings.data ?? []} highlightHour={jakartaHour()} />
             )}
@@ -525,7 +525,7 @@ export function OwnerEmergencyPage() {
       </Card>
       <Card title="Riwayat panggilan" icon="history">
         {all.isLoading ? (
-          <Loading />
+          <SkeletonList rows={3} />
         ) : history.length ? (
           <div className="grid gap-3">
             {history.map((o) => (
@@ -561,7 +561,7 @@ export function OwnerPaymentsPage() {
         ]}
       />
       {recent.isLoading ? (
-        <Loading />
+        <SkeletonCards count={2} className="grid gap-4 lg:grid-cols-2" />
       ) : list.length ? (
         <div className="grid gap-4 lg:grid-cols-2">
           {list.map((o) => (
@@ -666,7 +666,7 @@ export function OwnerOrdersPage() {
         )
       )}
       {isLoading ? (
-        <Loading />
+        <SkeletonList rows={4} />
       ) : error ? (
         <Alert tone="danger">{errorMessage(error)}</Alert>
       ) : shown.length ? (
@@ -768,7 +768,7 @@ export function OwnerServicesPage({ embedded }: { embedded?: boolean } = {}) {
         )}
       </Card>
       {list.isLoading ? (
-        <Loading />
+        <SkeletonTable rows={4} cols={6} />
       ) : list.data?.length ? (
         <Table head={['Layanan', 'Kendaraan', 'Harga', 'Durasi', 'Status', '']}>
           {list.data.map((s) => (
@@ -1003,7 +1003,7 @@ export function OwnerMechanicsPage() {
         )}
       </Card>
       {list.isLoading ? (
-        <Loading />
+        <SkeletonCards count={3} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" />
       ) : list.error ? (
         <Alert tone="danger">{errorMessage(list.error)}</Alert>
       ) : active.length ? (
@@ -1193,7 +1193,7 @@ export function OwnerQuotasPage() {
           Kapasitas bisa diatur setelah bengkel diverifikasi admin. Status saat ini: <b>{WORKSHOP_STATUS[ws.data.status].label}</b>.
         </EmptyState>
       ) : ws.isLoading || slots.isLoading ? (
-        <Loading />
+        <SkeletonSlots count={12} />
       ) : slots.error ? (
         <Alert tone="danger">{errorMessage(slots.error)}</Alert>
       ) : (
@@ -1263,7 +1263,7 @@ export function OwnerProfilePage() {
     },
   });
 
-  if (ws.isLoading || !f.id) return <Loading />;
+  if (ws.isLoading || !f.id) return <SkeletonForm fields={6} />;
   const quota = Number(f.max_slot_per_hour);
   const profileIssues = [
     (f.name ?? '').trim().length < 3 && { label: 'Nama bengkel (min. 3 karakter)', target: 'prof-name' },
@@ -1443,7 +1443,7 @@ export function OwnerReviewsPage() {
         actions={ws.data && <Stars value={ws.data.avg_rating} count={ws.data.total_reviews} />}
       />
       {list.isLoading ? (
-        <Loading />
+        <SkeletonList rows={3} />
       ) : list.error ? (
         <Alert tone="danger">{errorMessage(list.error)}</Alert>
       ) : reviews.length ? (

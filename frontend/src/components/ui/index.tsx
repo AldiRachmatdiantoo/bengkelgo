@@ -295,11 +295,238 @@ export function Spinner({ small }: { small?: boolean }) {
   );
 }
 
-export function Loading({ text = 'Memuat…' }: { text?: string }) {
+// ---------------------------------------------------------------- skeleton loading
+// Grey placeholders shaped like the content that is on its way (cards, rows, slots...), instead of a spinner.
+// Each group tells screen readers "Memuat…" once; the blocks themselves are hidden from them.
+
+/** One placeholder block; size and shape come from the className (h-*, w-*, rounded-*). */
+export function Skeleton({ className }: { className?: string }) {
+  return <span aria-hidden className={cx('block rounded-md bg-surface motion-safe:animate-pulse', className)} />;
+}
+
+function SkeletonGroup({ label = 'Memuat…', className, children }: { label?: string; className?: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-center gap-3 py-12 text-ink-2">
-      <Spinner /> {text}
+    <div role="status" aria-busy="true" className={className} data-testid="skeleton">
+      <span className="sr-only">{label}</span>
+      {children}
     </div>
+  );
+}
+
+const LINE_WIDTHS = ['w-11/12', 'w-3/4', 'w-5/6', 'w-2/3', 'w-1/2'];
+
+/** A few lines of text. */
+export function SkeletonText({ lines = 3, className }: { lines?: number; className?: string }) {
+  return (
+    <div className={cx('space-y-2', className)}>
+      {Array.from({ length: lines }, (_, i) => (
+        <Skeleton key={i} className={cx('h-3', i === lines - 1 ? 'w-1/2' : LINE_WIDTHS[i % LINE_WIDTHS.length])} />
+      ))}
+    </div>
+  );
+}
+
+/** Rows of cards (orders, reviews, search results, devices...). */
+export function SkeletonList({ rows = 4, avatar = true, label }: { rows?: number; avatar?: boolean; label?: string }) {
+  return (
+    <SkeletonGroup label={label} className="grid gap-3">
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="flex items-center gap-4 rounded-xl border border-line bg-card p-4 shadow-sm sm:p-5">
+          {avatar && <Skeleton className="h-11 w-11 shrink-0 rounded-lg" />}
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className={cx('h-4', i % 2 ? 'w-2/5' : 'w-1/3')} />
+            <Skeleton className={cx('h-3', i % 2 ? 'w-3/5' : 'w-2/3')} />
+          </div>
+          <Skeleton className="hidden h-7 w-20 rounded-full sm:block" />
+        </div>
+      ))}
+    </SkeletonGroup>
+  );
+}
+
+/** A table: header plus rows; columns after the third only show on wider screens. */
+export function SkeletonTable({ rows = 6, cols = 5, label }: { rows?: number; cols?: number; label?: string }) {
+  const cells = (row: number, head = false) =>
+    Array.from({ length: cols }, (_, c) => (
+      <div key={c} className={cx('min-w-0', c === 0 ? 'flex-[2]' : 'flex-1', c >= 3 && 'hidden md:block')}>
+        <Skeleton className={cx(head ? 'h-3 w-16' : 'h-4', !head && (c === 0 ? (row % 2 ? 'w-3/4' : 'w-2/3') : 'w-1/2'))} />
+      </div>
+    ));
+  return (
+    <SkeletonGroup label={label} className="overflow-hidden rounded-xl border border-line bg-card shadow-sm">
+      <div className="flex gap-4 border-b border-line bg-surface-low px-4 py-3">{cells(0, true)}</div>
+      {Array.from({ length: rows }, (_, r) => (
+        <div key={r} className="flex items-center gap-4 border-b border-line px-4 py-4 last:border-b-0">
+          {cells(r)}
+        </div>
+      ))}
+    </SkeletonGroup>
+  );
+}
+
+/** A grid of cards; `media` adds the photo area of a workshop card. */
+export function SkeletonCards({
+  count = 6,
+  media = false,
+  className = 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3',
+  label,
+}: {
+  count?: number;
+  media?: boolean;
+  className?: string;
+  label?: string;
+}) {
+  return (
+    <SkeletonGroup label={label} className={className}>
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="overflow-hidden rounded-xl border border-line bg-card shadow-sm">
+          {media && <Skeleton className="aspect-[16/8] w-full rounded-none" />}
+          <div className="space-y-3 p-5">
+            <Skeleton className={cx('h-5', i % 2 ? 'w-1/2' : 'w-2/3')} />
+            <SkeletonText lines={2} />
+            <div className="flex items-center gap-2 pt-1">
+              <Skeleton className="h-7 w-16 rounded-full" />
+              <Skeleton className="h-7 w-20 rounded-full" />
+              <Skeleton className="ml-auto h-9 w-24 rounded-lg" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </SkeletonGroup>
+  );
+}
+
+function StatTiles({ count }: { count: number }) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="space-y-3 rounded-xl border border-line bg-card p-5 shadow-sm">
+          <Skeleton className="h-10 w-10 rounded-lg" />
+          <Skeleton className="h-3 w-1/2" />
+          <Skeleton className="h-7 w-1/3" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** A row of number tiles (dashboards, reports). */
+export function SkeletonStats({ count = 4, label }: { count?: number; label?: string }) {
+  return (
+    <SkeletonGroup label={label}>
+      <StatTiles count={count} />
+    </SkeletonGroup>
+  );
+}
+
+/** A status timeline (order history). */
+export function SkeletonTimeline({ rows = 4, label }: { rows?: number; label?: string }) {
+  return (
+    <SkeletonGroup label={label} className="relative flex flex-col gap-5 border-l border-line pl-5">
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="relative space-y-2">
+          <Skeleton className="absolute top-0.5 -left-[27px] h-3 w-3 rounded-full" />
+          <Skeleton className={cx('h-4', i % 2 ? 'w-1/3' : 'w-2/5')} />
+          <Skeleton className="h-3 w-1/4" />
+        </div>
+      ))}
+    </SkeletonGroup>
+  );
+}
+
+/** Hour buttons of a booking day. */
+export function SkeletonSlots({ count = 8, label = 'Memuat jam tersedia…' }: { count?: number; label?: string }) {
+  return (
+    <SkeletonGroup label={label} className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {Array.from({ length: count }, (_, i) => (
+        <Skeleton key={i} className="h-14 rounded-lg" />
+      ))}
+    </SkeletonGroup>
+  );
+}
+
+/** Horizontal bars with labels (status breakdowns). */
+export function SkeletonBars({ rows = 4, label }: { rows?: number; label?: string }) {
+  const widths = ['w-4/5', 'w-1/2', 'w-2/3', 'w-1/3', 'w-3/5'];
+  return (
+    <SkeletonGroup label={label} className="space-y-4">
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="space-y-2">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className={cx('h-3 rounded-full', widths[i % widths.length])} />
+        </div>
+      ))}
+    </SkeletonGroup>
+  );
+}
+
+/** A form card: labelled fields and a button. */
+export function SkeletonForm({ fields = 4, label }: { fields?: number; label?: string }) {
+  return (
+    <SkeletonGroup label={label} className="space-y-5 rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
+      <Skeleton className="h-5 w-1/3" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        {Array.from({ length: fields }, (_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-12 w-full rounded-lg" />
+          </div>
+        ))}
+      </div>
+      <Skeleton className="h-12 w-32 rounded-lg" />
+    </SkeletonGroup>
+  );
+}
+
+/** A whole page while it (or the sign-in check) loads: heading, optional number tiles, then content cards. */
+export function SkeletonPage({ stats = false, label }: { stats?: boolean; label?: string }) {
+  return (
+    <SkeletonGroup label={label} className="flex flex-col gap-6">
+      <div className="space-y-3">
+        <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-7 w-64 max-w-full" />
+        <Skeleton className="h-4 w-96 max-w-full" />
+      </div>
+      {stats && <StatTiles count={4} />}
+      {Array.from({ length: 2 }, (_, i) => (
+        <div key={i} className="space-y-4 rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
+          <Skeleton className="h-5 w-1/3" />
+          <SkeletonText lines={3} />
+        </div>
+      ))}
+    </SkeletonGroup>
+  );
+}
+
+/** Workshop detail / booking page: steps bar, the workshop with its photo, and the order summary. */
+export function SkeletonDetail({ label = 'Memuat bengkel…' }: { label?: string }) {
+  return (
+    <SkeletonGroup label={label} className="flex flex-col gap-6">
+      <Skeleton className="h-16 w-full rounded-xl" />
+      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+        <div className="overflow-hidden rounded-xl border border-line bg-card shadow-sm">
+          <Skeleton className="aspect-[16/9] w-full rounded-none sm:aspect-[21/8]" />
+          <div className="space-y-3 p-5 sm:p-6">
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="h-3 w-2/3" />
+            <div className="flex gap-2 pt-1">
+              <Skeleton className="h-6 w-20 rounded-full" />
+              <Skeleton className="h-6 w-28 rounded-full" />
+            </div>
+            <div className="grid gap-3 pt-4 sm:grid-cols-2">
+              <Skeleton className="h-20 rounded-lg" />
+              <Skeleton className="h-20 rounded-lg" />
+            </div>
+          </div>
+        </div>
+        <div className="h-fit space-y-4 rounded-xl border border-line bg-card p-5 shadow-sm">
+          <Skeleton className="h-5 w-1/2" />
+          <Skeleton className="h-16 w-full rounded-lg" />
+          <SkeletonText lines={3} />
+          <Skeleton className="h-14 w-full rounded-lg" />
+        </div>
+      </div>
+    </SkeletonGroup>
   );
 }
 

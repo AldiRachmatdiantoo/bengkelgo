@@ -7,7 +7,7 @@ import { useAuth } from '@/services/auth/AuthProvider';
 import { adminApi, orderApi, ownerApi } from '@/services/api/endpoints';
 import { errorMessage } from '@/services/api/client';
 import type { Role, User } from '@/services/api/types';
-import { Icon, Loading, Toaster, cx, toast } from '@/components/ui';
+import { Icon, Toaster, cx, toast, Skeleton, SkeletonPage } from '@/components/ui';
 import { PageFade } from '@/components/ui/motion';
 import { useProtectedImage } from '@/hooks/useProtectedImage';
 import { NotificationProvider, useOptionalNotifications } from '@/services/notifications/NotificationCenter';
@@ -188,8 +188,18 @@ export function AppLayout() {
 
   if (loading) {
     return (
-      <div className="grid min-h-screen place-items-center">
-        <Loading text="Menyiapkan BengkelGo…" />
+      // Sign-in check on first load: the outline of a page (top bar + content), not a spinner.
+      <div className="min-h-screen">
+        <div className="border-b border-line bg-card">
+          <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-5 sm:h-16 sm:px-8 lg:px-20">
+            <Skeleton className="h-9 w-9 rounded-lg" />
+            <Skeleton className="h-5 w-28" />
+            <Skeleton className="ml-auto h-9 w-9 rounded-full" />
+          </div>
+        </div>
+        <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:px-20">
+          <SkeletonPage label="Menyiapkan BengkelGo…" />
+        </div>
       </div>
     );
   }
@@ -815,7 +825,7 @@ function AdminShell({ user }: { user: User }) {
 export function RequireRole({ roles }: { roles: Role[] }) {
   const { user, loading, signedOut } = useAuth();
   const location = useLocation();
-  if (loading) return <Loading />;
+  if (loading) return <SkeletonPage />;
   // Signed out on purpose: home page. Session ended by itself: sign in again and come back here.
   if (!user) return signedOut ? <Navigate to="/" replace /> : <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
   if (!roles.includes(user.role)) return <Navigate to="/" replace />;

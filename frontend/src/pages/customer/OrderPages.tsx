@@ -34,7 +34,7 @@ import {
 } from '@/components/orders/OrderComponents';
 import { PointsMap } from '@/components/map/Maps';
 import { slotRange, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, CopyButton, EmptyState, Icon, Loading, PageHeader, Segmented, Stepper, toast } from '@/components/ui';
+import { Alert, CopyButton, EmptyState, Icon, PageHeader, Segmented, Stepper, toast, SkeletonList, SkeletonPage } from '@/components/ui';
 import { longDate, rupiah } from '@/utils/format';
 
 const LIVE: OrderStatus[] = ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'CONFIRMED', 'IN_QUEUE'];
@@ -75,7 +75,7 @@ export function MyOrdersPage() {
         />
       </div>
       {isLoading ? (
-        <Loading />
+        <SkeletonList rows={4} />
       ) : error ? (
         <Alert tone="danger">{errorMessage(error)}</Alert>
       ) : shown.length ? (
@@ -116,7 +116,7 @@ export function PaymentPage() {
   const navigate = useNavigate();
   const { data: order, isLoading, error } = useOrder(id);
 
-  if (isLoading) return <Loading />;
+  if (isLoading) return <SkeletonPage />;
   if (error || !order) return <Alert tone="danger">{errorMessage(error)}</Alert>;
   if (user?.id !== order.customer_id || !canUploadProof(order)) return <Navigate to={`/orders/${order.id}`} replace />;
   const b = order.booking;
@@ -267,7 +267,7 @@ export function OrderDetailPage() {
     },
   });
 
-  if (isLoading) return <Loading />;
+  if (isLoading) return <SkeletonPage />;
   if (error || !order) return <Alert tone="danger">{errorMessage(error)}</Alert>;
 
   const isOwner = user?.role === 'WORKSHOP_OWNER';

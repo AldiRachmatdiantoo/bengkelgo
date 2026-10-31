@@ -4,7 +4,7 @@ import { vehicleApi } from '@/services/api/endpoints';
 import { errorMessage } from '@/services/api/client';
 import type { Vehicle, VehicleType } from '@/services/api/types';
 import { vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, Button, Card, EmptyState, Icon, Input, Loading, MissingFields, Modal, PageHeader, Segmented, toast } from '@/components/ui';
+import { Alert, Button, Card, EmptyState, Icon, Input, MissingFields, Modal, PageHeader, Segmented, toast, SkeletonCards } from '@/components/ui';
 import { vehicleName } from '@/utils/format';
 
 type Form = { vehicle_type: VehicleType; brand: string; model: string; year: string; color: string; plate: string };
@@ -49,7 +49,7 @@ export default function VehiclesPage() {
         }
       />
       {list.isLoading ? (
-        <Loading />
+        <SkeletonCards count={2} className="grid gap-4 sm:grid-cols-2" />
       ) : list.error ? (
         <Alert tone="danger">{errorMessage(list.error)}</Alert>
       ) : vehicles.length ? (

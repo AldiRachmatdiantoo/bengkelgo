@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import RouteErrorPage from '@/pages/public/RouteErrorPage';
 import { AppLayout, RequireRole } from '@/components/layout/AppLayout';
 import HomePage from '@/pages/public/HomePage';
-import { Loading } from '@/components/ui';
+import { SkeletonPage } from '@/components/ui';
 // Small and already used by the header bell, so it stays in the main bundle.
 import NotificationsPage from '@/pages/shared/NotificationsPage';
 
@@ -49,7 +49,7 @@ const AdminAuditPage = named(adminTools, 'AdminAuditPage');
 const AdminHealthPage = named(adminTools, 'AdminHealthPage');
 const AdminUsersPage = named(adminTools, 'AdminUsersPage');
 
-const page = (node: ReactNode) => <Suspense fallback={<Loading />}>{node}</Suspense>;
+const page = (node: ReactNode) => <Suspense fallback={<SkeletonPage />}>{node}</Suspense>;
 
 const router = createBrowserRouter([
   {

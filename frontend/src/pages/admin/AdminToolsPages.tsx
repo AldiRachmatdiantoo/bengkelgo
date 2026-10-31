@@ -6,7 +6,7 @@ import { adminApi } from '@/services/api/endpoints';
 import { errorMessage } from '@/services/api/client';
 import type { AdminUser, AuditLog, Role } from '@/services/api/types';
 import { useAuth } from '@/services/auth/AuthProvider';
-import { Alert, Badge, Button, Card, EmptyState, Input, Loading, MissingFields, Modal, PageHeader, Select, StatCard, Table, Td, TextArea, toast } from '@/components/ui';
+import { Alert, Badge, Button, Card, EmptyState, Input, MissingFields, Modal, PageHeader, Select, StatCard, Table, Td, TextArea, toast, SkeletonCards, SkeletonList, SkeletonTable } from '@/components/ui';
 import { ORDER_STATUS, PAYMENT_STATUS, WORKSHOP_STATUS, dateTime, jakartaDate, rupiah } from '@/utils/format';
 import { isEmail, isIdPhone, isStrongPassword } from '@/utils/formChecks';
 
@@ -60,7 +60,7 @@ export function AdminSearchPage() {
       {q.trim().length < 2 ? (
         <EmptyState icon="search">Ketik minimal 2 huruf.</EmptyState>
       ) : isLoading ? (
-        <Loading />
+        <SkeletonList rows={3} />
       ) : error ? (
         <Alert tone="danger">{errorMessage(error)}</Alert>
       ) : (
@@ -176,7 +176,7 @@ export function AdminAuditPage() {
         <Input label="Sejak" type="date" value={from} max={jakartaDate(0)} onChange={(e) => e.target.value && setFrom(e.target.value)} />
       </div>
       {isLoading ? (
-        <Loading />
+        <SkeletonTable rows={8} />
       ) : error ? (
         <Alert tone="danger">{errorMessage(error)}</Alert>
       ) : data?.length ? (
@@ -236,7 +236,7 @@ export function AdminHealthPage() {
         }
       />
       {isLoading ? (
-        <Loading />
+        <SkeletonCards count={6} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" />
       ) : error ? (
         <Alert tone="danger">{errorMessage(error)}</Alert>
       ) : (
@@ -381,7 +381,7 @@ export function AdminUsersPage() {
         </Button>
       </form>
       {list.isLoading ? (
-        <Loading />
+        <SkeletonTable rows={8} cols={6} />
       ) : list.error ? (
         <Alert tone="danger">{errorMessage(list.error)}</Alert>
       ) : users.length ? (

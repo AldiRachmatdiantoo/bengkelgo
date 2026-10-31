@@ -18,7 +18,7 @@ import {
   vehicleIcon,
   vehicleLabel,
 } from '@/components/workshop/WorkshopComponents';
-import { Alert, Badge, Button, Card, Icon, Input, Loading, MissingFields, Select, Stars, Stepper, TextArea, cx } from '@/components/ui';
+import { Alert, Badge, Button, Card, Icon, Input, MissingFields, Select, Stars, Stepper, TextArea, cx, SkeletonDetail, SkeletonList, SkeletonSlots } from '@/components/ui';
 import { distance, jakartaDate, longDate, rupiah, vehicleName } from '@/utils/format';
 import { isIdPhone } from '@/utils/formChecks';
 
@@ -113,7 +113,7 @@ export default function WorkshopDetailPage() {
     },
   });
 
-  if (detail.isLoading) return <Loading />;
+  if (detail.isLoading) return <SkeletonDetail />;
   if (detail.error || !detail.data) return <Alert tone="danger">{errorMessage(detail.error)}</Alert>;
   const w = detail.data;
   const service = w.services.find((s) => s.id === serviceId);
@@ -324,7 +324,7 @@ export default function WorkshopDetailPage() {
             }
           >
             {slots.isLoading ? (
-              <Loading />
+              <SkeletonSlots />
             ) : slots.error ? (
               <Alert tone="danger">{errorMessage(slots.error)}</Alert>
             ) : (
@@ -507,7 +507,7 @@ export default function WorkshopDetailPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <Card title="Ulasan pelanggan" icon="reviews" actions={<Badge tone="info">{w.total_reviews} ulasan</Badge>}>
-          {reviews.data ? <ReviewList reviews={reviews.data} /> : <Loading />}
+          {reviews.data ? <ReviewList reviews={reviews.data} /> : <SkeletonList rows={3} />}
         </Card>
         <Card title="Tim mekanik" icon="engineering">
           <MechanicList mechanics={w.mechanics} />

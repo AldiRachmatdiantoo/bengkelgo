@@ -101,6 +101,14 @@ Permintaan tim: kosongkan semua pengguna, sisakan 1 admin, isi 20 bengkel dummy 
 - ✅ **Database lokal** sudah diisi 27 Okt: 24 akun (1 admin, 20 pemilik, 3 pelanggan), 20 bengkel, 81 layanan, 50 mekanik. Dicek: daftar bengkel dari titik Tugu Pahlawan menampilkan 20 bengkel (1,2–12,8 km), login akun demo berhasil.
 - ✅ **Database produksi** diisi 27 Okt atas persetujuan tim (dijalankan dari laptop dengan nilai dari Render di file sementara `.env.production.local`, lalu file dihapus). Sebelum: 14 akun (2 admin), 3 bengkel, 7 pesanan, 11 file unggahan; sesudah: 24 akun (1 admin `aldirachmatdianto7@gmail.com`, 20 pemilik, 3 pelanggan), 20 bengkel, 50 mekanik. Dicek di API live: `/stats/public` 20 bengkel / 3 pelanggan, daftar bengkel Surabaya tampil, login akun demo berhasil. Daftar akun produksi: `backend/demo-accounts.production.local.md` (tidak masuk git). Cara ulang: `node --env-file=.env.production.local -r ts-node/register src/db/demo.ts [--confirm=<host>] --out=demo-accounts.production.local.md`.
 
+## Skeleton loading (31 Okt 2026)
+
+- ✅ Semua tampilan "Memuat…" + spinner saat halaman/data dimuat diganti **skeleton** (kotak abu-abu berdenyut berbentuk isi yang akan muncul), 37 tempat di semua portal: kartu bengkel (dengan area foto) di Cari Bengkel, halaman detail/booking bengkel, jam tersedia, riwayat status pesanan, daftar pesanan/ulasan/perangkat, tabel (layanan, audit log, pengguna), angka laporan, formulir Pengaturan Bengkel, dan kerangka halaman saat halaman dibuka atau saat cek login pertama.
+- Komponen di `components/ui`: `Skeleton`, `SkeletonText`, `SkeletonList`, `SkeletonTable`, `SkeletonCards`, `SkeletonStats`, `SkeletonTimeline`, `SkeletonSlots`, `SkeletonBars`, `SkeletonForm`, `SkeletonPage`, `SkeletonDetail`. Pembaca layar tetap mendengar "Memuat…" satu kali per bagian (`role="status"`); denyut mati bila "kurangi gerakan" aktif; warna ikut mode gelap portal.
+- Spinner kecil **tetap** di dalam tombol dan kotak cari (mis. "Cari", tombol Google, tombol simpan), karena itu tanda proses setelah ditekan, bukan isi yang dimuat.
+- Diperbaiki sekalian: tes E2E pengaturan bengkel gagal setiap hari Sabtu (tes menutup hari Minggu lalu memeriksa jadwal "besok"); kini memeriksa hari yang tidak jatuh di Minggu.
+- Tes: typecheck, Vitest 44/44, E2E a11y + a11y portal + visual (desktop & HP) + alur utama + Akun + fitur backlog + ikon + layar 375px lolos.
+
 **Yang tersisa tanpa tim:** tidak ada pekerjaan kode yang tertunda. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).

@@ -7,7 +7,7 @@ import type { AdminWorkshop, TransactionReport, WorkshopStatus } from '@/service
 import { PointsMap } from '@/components/map/Maps';
 import { AdminLiveStats } from './AdminToolsPages';
 import { regionOf, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, Badge, Button, EmptyState, Icon, InfoRow, Input, Loading, Modal, PageHeader, ProgressBar, Segmented, StatCard, Table, Td, cx, toast } from '@/components/ui';
+import { Alert, Badge, Button, EmptyState, Icon, InfoRow, Input, Modal, PageHeader, ProgressBar, Segmented, StatCard, Table, Td, cx, toast, SkeletonBars, SkeletonList, SkeletonStats, SkeletonTable } from '@/components/ui';
 import { ORDER_STATUS, WORKSHOP_STATUS, dateTime, jakartaDate, rupiah } from '@/utils/format';
 
 type Action = 'APPROVE' | 'REJECT' | 'SUSPEND';
@@ -264,7 +264,7 @@ export function AdminDashboardPage() {
             )}
           </div>
           {pending.isLoading ? (
-            <Loading />
+            <SkeletonList rows={2} />
           ) : queue.length ? (
             <>
               <WorkshopApprovalCard
@@ -313,7 +313,7 @@ export function AdminDashboardPage() {
             <h2 className="mb-4 flex items-center gap-2 text-headline-sm text-navy">
               <Icon name="donut_small" className="text-primary" /> Status Pesanan
             </h2>
-            {report.data ? <StatusBars r={report.data} /> : <Loading />}
+            {report.data ? <StatusBars r={report.data} /> : <SkeletonBars />}
           </section>
           <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between gap-2">
@@ -396,7 +396,7 @@ export function AdminWorkshopsPage() {
         />
       </div>
       {list.isLoading ? (
-        <Loading />
+        <SkeletonList rows={4} />
       ) : list.error ? (
         <Alert tone="danger">{errorMessage(list.error)}</Alert>
       ) : list.data?.length ? (
@@ -596,7 +596,7 @@ export function AdminReportsPage() {
         )}
       </div>
       {report.isLoading ? (
-        <Loading />
+        <div className="flex flex-col gap-6"><SkeletonStats /><SkeletonTable /></div>
       ) : report.error || !r ? (
         <Alert tone="danger">{errorMessage(report.error)}</Alert>
       ) : (

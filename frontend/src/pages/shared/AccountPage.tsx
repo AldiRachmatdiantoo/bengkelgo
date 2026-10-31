@@ -6,7 +6,7 @@ import { errorMessage } from '@/services/api/client';
 import type { Role, User } from '@/services/api/types';
 import { useAuth } from '@/services/auth/AuthProvider';
 import { UserAvatar } from '@/components/account/UserAvatar';
-import { Alert, Badge, Button, Card, Icon, Input, Loading, MissingFields, Modal, PageHeader, cx, toast } from '@/components/ui';
+import { Alert, Badge, Button, Card, Icon, Input, MissingFields, Modal, PageHeader, cx, toast, SkeletonList, SkeletonPage } from '@/components/ui';
 import { isEmail, isIdPhone, isStrongPassword } from '@/utils/formChecks';
 import { ACCEPT_IMAGES, ImageCheckError, prepareImage } from '@/utils/imageUpload';
 import { deviceLabel } from '@/utils/device';
@@ -30,7 +30,7 @@ function ago(iso: string) {
 /** "Akun saya": own details, photo, email, password, signed-in devices and (customers) deleting the account. */
 export default function AccountPage() {
   const { user } = useAuth();
-  if (!user) return <Loading />;
+  if (!user) return <SkeletonPage />;
   const registered = user.role !== 'GUEST';
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -437,7 +437,7 @@ function SessionsCard() {
       }
     >
       {list.isLoading ? (
-        <Loading />
+        <SkeletonList rows={2} />
       ) : list.error ? (
         <Alert tone="danger">{errorMessage(list.error)}</Alert>
       ) : (

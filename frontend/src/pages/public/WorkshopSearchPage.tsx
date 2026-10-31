@@ -9,7 +9,7 @@ import { DEFAULT_CENTER, PointsMap } from '@/components/map/Maps';
 import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { useReverseAddress } from '@/components/map/AddressHint';
 import { WorkshopCard, friendlyDay, regionOf } from '@/components/workshop/WorkshopComponents';
-import { Alert, Button, EmptyState, Icon, Loading, SectionHeading, cx } from '@/components/ui';
+import { Alert, Button, EmptyState, Icon, SectionHeading, cx, SkeletonCards } from '@/components/ui';
 import { distance, jakartaDate } from '@/utils/format';
 
 type Tab = 'booking' | 'sos' | 'cari';
@@ -374,7 +374,7 @@ export default function WorkshopSearchPage() {
           action={data && <span className="font-label text-sm text-ink-3">{list.length} bengkel ditemukan</span>}
         />
         {isLoading ? (
-          <Loading text="Mencari bengkel…" />
+          <SkeletonCards media count={6} label="Mencari bengkel…" />
         ) : error ? (
           <Alert tone="danger">{errorMessage(error)}</Alert>
         ) : list.length > 0 ? (

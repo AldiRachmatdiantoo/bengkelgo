@@ -13,6 +13,12 @@ const PHOTO = path.resolve(import.meta.dirname, '../../backend/docs/postman/samp
 const run = Date.now().toString(36);
 const digits = () => String(Math.floor(10_000_000 + Math.random() * 89_999_999));
 const tomorrow = () => new Date(Date.now() + 7 * 3600e3 + 864e5).toISOString().slice(0, 10);
+/** Tomorrow, or the day after when tomorrow is a Sunday (the owner test closes Sundays). */
+const tomorrowNotSunday = () => {
+  const d = new Date(Date.now() + 7 * 3600e3 + 864e5);
+  if (d.getUTCDay() === 0) d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+};
 const LOC = { lat: -6.17, lng: 106.79 };
 const workshopName = `Bengkel Fitur E2E ${run}`;
 const owner = { name: 'Pemilik Fitur', email: `owner.f.${run}@example.test`, phone: `0812${digits()}`, password: `E2eOwner${run}A1` };
@@ -211,8 +217,8 @@ test('owner: schedule, holiday, photos, mechanic photo and deleting a service', 
   await o.getByTestId('holiday-date').fill(new Date(Date.now() + 7 * 3600e3 + 10 * 864e5).toISOString().slice(0, 10));
   await o.getByTestId('holiday-add').click();
   await expect(o.getByTestId('holiday-list')).not.toContainText('Belum ada hari libur');
-  // The public availability now marks the break as not bookable.
-  const slots = await (await o.request.get(`${API}/workshops/${workshopId}/availability`, { params: { date: tomorrow() } })).json();
+  // The public availability now marks the break as not bookable (on a day that is still open).
+  const slots = await (await o.request.get(`${API}/workshops/${workshopId}/availability`, { params: { date: tomorrowNotSunday() } })).json();
   expect(slots.data.find((s: { time_slot: string }) => s.time_slot === '12:00')).toMatchObject({ bookable: false, unavailable_reason: 'DURING_BREAK' });
 
   await o.goto('/owner/profile#foto');

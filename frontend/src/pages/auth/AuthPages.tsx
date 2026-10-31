@@ -9,7 +9,7 @@ import { checkCallback, googleEnabled, startGoogleLogin, takePendingGoogleLogin 
 import { MapPicker, type LatLng } from '@/components/map/Maps';
 import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { AddressHint } from '@/components/map/AddressHint';
-import { Alert, Button, Card, Icon, Input, Loading, MissingFields, Segmented, Spinner, TextArea } from '@/components/ui';
+import { Alert, Button, Card, Icon, Input, MissingFields, Segmented, Spinner, TextArea, SkeletonPage } from '@/components/ui';
 import { fieldIssue, isEmail, isIdPhone, isStrongPassword } from '@/utils/formChecks';
 
 /** After auth, go back to where the user came from (e.g. the workshop they were booking), else role home. */
@@ -201,7 +201,7 @@ export function GoogleCallbackPage() {
           </Link>
         </>
       ) : (
-        <Loading text="Menyelesaikan login Google…" />
+        <SkeletonPage label="Menyelesaikan login Google…" />
       )}
     </div>
   );
@@ -414,7 +414,7 @@ export function VerifyEmailPage() {
     },
   });
 
-  if (loading) return <Loading />;
+  if (loading) return <SkeletonPage />;
   if (!user) return <Navigate to="/login" replace state={{ from: '/verifikasi-email' }} />;
 
   return (
