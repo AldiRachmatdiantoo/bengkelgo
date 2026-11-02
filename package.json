@@ -1,0 +1,13 @@
+{
+  "name": "bengkelgo",
+  "private": true,
+  "description": "Azure App Service entry point: one Node web app serving the React build and the Express API (see docs/deploy-azure-appservice.md)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm ci --prefix frontend && npm run build --prefix frontend && npm ci --prefix backend && npm run build --prefix backend",
+    "postbuild": "node -e \"if (process.env.CI) { require('child_process').execSync('npm prune --omit=dev --prefix backend', { stdio: 'inherit' }); require('fs').rmSync('frontend/node_modules', { recursive: true, force: true }); }\"",
+    "start": "node backend/dist/server.js"
+  }
+}

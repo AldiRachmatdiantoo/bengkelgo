@@ -12,6 +12,8 @@ const schema = z.object({
   API_PREFIX: z.string().default('/api/v1'),
   CORS_ORIGINS: z.string().default('http://localhost:5173'),
   TRUST_PROXY: z.coerce.number().int().min(0).default(1),
+  /** Folder of the React build (frontend/dist) to serve next to the API, for one-host deploys like Azure App Service. */
+  WEB_DIST_DIR: z.string().optional().default(''),
 
   DATABASE_URL: z.string().min(1),
   DATABASE_SSL: bool,
