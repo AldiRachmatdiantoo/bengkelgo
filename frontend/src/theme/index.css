@@ -28,10 +28,10 @@
   --color-art: #263d33;
   --color-art-line: #3e5847;
   /* SOS / emergency: Warm Safety Orange, white bold text on the fill; -ink is the readable shade on dark surfaces. */
-  --color-emergency: #cc4410;
-  --color-emergency-dark: #b33b0e;
-  --color-emergency-soft: #3d2116;
-  --color-emergency-ink: #ff9f73;
+  --color-emergency: #d92d20;
+  --color-emergency-dark: #b42318;
+  --color-emergency-soft: #3d1a18;
+  --color-emergency-ink: #ff8a80;
   --color-success: #baf48f;
   --color-success-soft: #263c2b;
   --color-warning: #ffd19b;
@@ -172,7 +172,7 @@
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  box-shadow: 0 0 0 7px rgb(204 68 16 / 0.45);
+  box-shadow: 0 0 0 7px rgb(217 45 32 / 0.45);
   opacity: 0;
   pointer-events: none;
   animation: beacon-ring 1.8s ease-out infinite;
