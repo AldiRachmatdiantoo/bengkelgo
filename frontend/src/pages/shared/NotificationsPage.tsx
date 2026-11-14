@@ -98,7 +98,7 @@ export function NotificationRow({ n, onOpen, compact }: { n: AppNotification; on
         <Icon name={n.icon} className="text-[18px]" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className={cx('block text-sm text-navy', n.read ? 'font-semibold' : 'font-bold')}>{n.title}</span>
+        <span className={cx('block text-sm text-ink', n.read ? 'font-semibold' : 'font-bold')}>{n.title}</span>
         {n.text && <span className={cx('block text-xs text-ink-2', compact && 'line-clamp-1')}>{n.text}</span>}
         <span className="mt-0.5 block font-label text-[11px] text-ink-3">{dateTime(n.at)}</span>
       </span>

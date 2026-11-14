@@ -184,11 +184,11 @@ export function AdminDashboardPage() {
           <p className="flex flex-wrap items-center gap-2 font-label text-xs font-semibold text-ink-2">
             <span className="rounded-full bg-sky px-2.5 py-1 font-bold text-primary">Pusat kendali admin</span>
           </p>
-          <h1 className="mt-2 text-[21px] leading-tight font-bold tracking-[-0.02em] text-navy sm:text-headline-lg">Admin Platform &amp; Analitik Operasional</h1>
+          <h1 className="mt-2 text-[21px] leading-tight font-bold tracking-[-0.02em] text-ink sm:text-headline-lg">Admin Platform &amp; Analitik Operasional</h1>
           <p className="mt-1 max-w-2xl text-subtitle text-ink-2">Pusat verifikasi mitra bengkel UMKM, ringkasan transaksi QRIS, dan aktivitas panggilan darurat.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="relative inline-flex h-11 items-center gap-2 rounded-full border border-line bg-card pr-9 pl-4 font-label text-sm font-semibold text-navy">
+          <label className="relative inline-flex h-11 items-center gap-2 rounded-full border border-line bg-card pr-9 pl-4 font-label text-sm font-semibold text-ink">
             <Icon name="calendar_month" className="text-primary" />
             <select value={period} onChange={(e) => setPeriod(e.target.value as Period)} className="appearance-none bg-transparent focus:outline-none" aria-label="Periode">
               {PERIODS.map((p) => (
@@ -205,7 +205,7 @@ export function AdminDashboardPage() {
           <Button variant="ghost" icon="picture_as_pdf" className="border border-line bg-card" disabled={!report.data} onClick={() => report.data && exportReportPdf(report.data)}>
             Export PDF
           </Button>
-          <Link to="/admin/reports" className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-white hover:bg-primary-dark">
+          <Link to="/admin/reports" className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-on-primary hover:bg-primary-dark">
             <Icon name="account_balance_wallet" /> Audit Transaksi
           </Link>
         </div>
@@ -253,7 +253,7 @@ export function AdminDashboardPage() {
                 <Icon name="how_to_reg" />
               </span>
               <div className="min-w-0">
-                <h2 className="text-headline-sm text-navy">Pipeline Persetujuan Kemitraan Bengkel Baru</h2>
+                <h2 className="text-headline-sm text-ink">Pipeline Persetujuan Kemitraan Bengkel Baru</h2>
                 <p className="text-xs text-ink-3">Bengkel baru yang menunggu diperiksa dan disetujui.</p>
               </div>
             </div>
@@ -280,7 +280,7 @@ export function AdminDashboardPage() {
                   <ul className="flex flex-col gap-2">
                     {queue.slice(1, 6).map((w) => (
                       <li key={w.id} className="flex items-center gap-3 rounded-lg bg-surface-low p-3">
-                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-card font-label text-sm font-bold text-navy">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-card font-label text-sm font-bold text-ink">
                           {w.name
                             .split(' ')
                             .map((p) => p[0])
@@ -289,7 +289,7 @@ export function AdminDashboardPage() {
                             .toUpperCase()}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-bold text-navy">{w.name}</p>
+                          <p className="truncate text-sm font-bold text-ink">{w.name}</p>
                           <p className="truncate font-label text-xs text-ink-2">
                             {regionOf(w.address)} • daftar {dateTime(w.created_at)}
                           </p>
@@ -310,14 +310,14 @@ export function AdminDashboardPage() {
 
         <div className="flex min-w-0 flex-col gap-6">
           <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
-            <h2 className="mb-4 flex items-center gap-2 text-headline-sm text-navy">
+            <h2 className="mb-4 flex items-center gap-2 text-headline-sm text-ink">
               <Icon name="donut_small" className="text-primary" /> Status Pesanan
             </h2>
             {report.data ? <StatusBars r={report.data} /> : <SkeletonBars />}
           </section>
           <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between gap-2">
-              <h2 className="flex items-center gap-2 text-headline-sm text-navy">
+              <h2 className="flex items-center gap-2 text-headline-sm text-ink">
                 <Icon name="leaderboard" className="text-primary" /> Bengkel Teratas
               </h2>
               <Link to="/admin/reports" className="font-label text-xs font-bold text-primary hover:underline">
@@ -329,9 +329,9 @@ export function AdminDashboardPage() {
                 {report.data.top_workshops.slice(0, 5).map((w, i) => (
                   <li key={w.id} className="flex items-center gap-3 text-sm">
                     <span className="w-5 font-label font-bold text-ink-3">{i + 1}</span>
-                    <span className="min-w-0 flex-1 truncate font-semibold text-navy">{w.name}</span>
+                    <span className="min-w-0 flex-1 truncate font-semibold text-ink">{w.name}</span>
                     <span className="font-label text-xs text-ink-2">{w.orders} pesanan</span>
-                    <span className="font-bold text-navy">{rupiah(w.verified_revenue)}</span>
+                    <span className="font-bold text-ink">{rupiah(w.verified_revenue)}</span>
                   </li>
                 ))}
               </ol>
@@ -361,7 +361,7 @@ function StatusBars({ r }: { r: TransactionReport }) {
         <div key={s.status}>
           <div className="mb-1 flex justify-between text-sm">
             <Badge tone={ORDER_STATUS[s.status].tone}>{ORDER_STATUS[s.status].label}</Badge>
-            <span className="font-bold text-navy">{s.orders}</span>
+            <span className="font-bold text-ink">{s.orders}</span>
           </div>
           <ProgressBar value={r.summary.total_orders ? (s.orders / r.summary.total_orders) * 100 : 0} tone={ORDER_STATUS[s.status].tone} label={`Porsi pesanan ${ORDER_STATUS[s.status].label}`} />
         </div>
@@ -454,14 +454,14 @@ function WorkshopApprovalCard({
           </span>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-headline-sm text-navy">{w.name}</h3>
+              <h3 className="text-headline-sm text-ink">{w.name}</h3>
               <Badge tone={s.tone}>{s.label}</Badge>
             </div>
             <p className="mt-1 flex items-start gap-1.5 text-sm text-ink-2">
               <Icon name="pin_drop" className="text-primary" /> {w.address}
             </p>
             <p className="mt-1 font-label text-xs text-ink-2">
-              Pemilik: <b className="text-navy">{w.owner_name}</b> • daftar {dateTime(w.created_at)}
+              Pemilik: <b className="text-ink">{w.owner_name}</b> • daftar {dateTime(w.created_at)}
             </p>
             {w.status_reason && (
               <p className="mt-2 rounded-lg bg-surface-low px-3 py-2 text-sm text-ink-2">
@@ -535,7 +535,7 @@ function WorkshopApprovalCard({
             href={`https://www.openstreetmap.org/?mlat=${w.latitude}&mlon=${w.longitude}#map=16/${w.latitude}/${w.longitude}`}
             target="_blank"
             rel="noreferrer"
-            className="absolute right-2 bottom-2 z-[500] inline-flex items-center gap-1 rounded-md bg-card/95 px-2 py-1 font-label text-[11px] font-bold text-navy shadow-sm"
+            className="absolute right-2 bottom-2 z-[500] inline-flex items-center gap-1 rounded-md bg-card/95 px-2 py-1 font-label text-[11px] font-bold text-ink shadow-sm"
           >
             Coverage 5 km <Icon name="open_in_new" className="text-[14px]" />
           </a>
@@ -617,7 +617,7 @@ export function AdminReportsPage() {
           <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-headline-sm text-navy">Tren Harian</h2>
+                <h2 className="text-headline-sm text-ink">Tren Harian</h2>
                 <p className="text-sm text-ink-2">Tinggi batang: jumlah pesanan · isi gelap: pendapatan terverifikasi</p>
               </div>
             </div>
@@ -642,7 +642,7 @@ export function AdminReportsPage() {
 
           <div className="grid gap-6 lg:grid-cols-2">
             <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
-              <h2 className="mb-4 flex items-center gap-2 text-headline-sm text-navy">
+              <h2 className="mb-4 flex items-center gap-2 text-headline-sm text-ink">
                 <Icon name="category" className="text-primary" /> Per Tipe Layanan
               </h2>
               <div className="flex flex-col gap-3">
@@ -662,7 +662,7 @@ export function AdminReportsPage() {
               </div>
             </section>
             <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
-              <h2 className="mb-4 flex items-center gap-2 text-headline-sm text-navy">
+              <h2 className="mb-4 flex items-center gap-2 text-headline-sm text-ink">
                 <Icon name="donut_small" className="text-primary" /> Per Status
               </h2>
               <StatusBars r={r} />
@@ -670,7 +670,7 @@ export function AdminReportsPage() {
           </div>
 
           <section>
-            <h2 className="mb-3 flex items-center gap-2 text-headline-sm text-navy">
+            <h2 className="mb-3 flex items-center gap-2 text-headline-sm text-ink">
               <Icon name="leaderboard" className="text-primary" /> Bengkel Teratas
             </h2>
             {r.top_workshops.length ? (

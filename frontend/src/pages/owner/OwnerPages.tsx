@@ -145,12 +145,12 @@ export function OwnerDashboardPage() {
           <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="flex items-center gap-2 text-headline-sm text-navy">
+                <h2 className="flex items-center gap-2 text-headline-sm text-ink">
                   <Icon name="alt_route" className="text-primary" /> Kapasitas &amp; Antrean Hari Ini
                 </h2>
                 <p className="text-sm text-ink-2">Booking tidak akan melebihi kapasitas per jam. Tambah kapasitas agar pelanggan di daftar tunggu ikut terlayani.</p>
               </div>
-              <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-low px-3 py-2 font-label text-xs font-bold text-navy">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-low px-3 py-2 font-label text-xs font-bold text-ink">
                 <Icon name="calendar_today" className="text-[16px] text-primary" /> Hari ini: {longDate(today)}
               </span>
             </div>
@@ -179,14 +179,14 @@ export function OwnerDashboardPage() {
         <div className="flex min-w-0 flex-col gap-6">
           <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between gap-2">
-              <h3 className="flex items-center gap-2 text-headline-sm text-navy">
+              <h3 className="flex items-center gap-2 text-headline-sm text-ink">
                 <Icon name="qr_code_scanner" className="text-primary" /> Verifikasi Pembayaran QRIS
               </h3>
               {toVerify.length > 0 && <span className="rounded-full bg-warning-soft px-2 py-0.5 font-label text-[11px] font-bold text-warning-ink">{toVerify.length} menunggu validasi</span>}
             </div>
             {toVerify.length ? (
               <div className="rounded-lg bg-surface-low p-3">
-                <p className="mb-2 text-sm font-bold text-navy">
+                <p className="mb-2 text-sm font-bold text-ink">
                   {toVerify[0].booking ? `Booking: ${toVerify[0].booking.service_name}` : 'Panggilan darurat'}
                   {toVerify[0].vehicle_plate && <span className="ml-1 font-normal text-ink-2">({toVerify[0].vehicle_plate})</span>}
                 </p>
@@ -208,7 +208,7 @@ export function OwnerDashboardPage() {
           <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-start justify-between gap-2">
               <div>
-                <h3 className="flex items-center gap-2 text-headline-sm text-navy">
+                <h3 className="flex items-center gap-2 text-headline-sm text-ink">
                   <Icon name="engineering" className="text-primary" /> Tim Mekanik &amp; Penugasan
                 </h3>
                 <p className="text-xs text-ink-2">Status penugasan dari pesanan yang sedang berjalan.</p>
@@ -226,7 +226,7 @@ export function OwnerDashboardPage() {
               <Icon name="satellite_alt" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="font-bold text-navy">Siaga SOS (radius 5 km)</p>
+              <p className="font-bold text-ink">Siaga SOS (radius 5 km)</p>
               <p className="text-xs text-ink-2">{w.accepts_emergency ? 'Menerima panggilan darurat otomatis dari radius 5 km.' : 'Nonaktif. Aktifkan lewat tombol status di header.'}</p>
             </div>
             <span className={cx('inline-flex items-center gap-1.5 font-label text-xs font-bold', w.accepts_emergency ? 'text-success' : 'text-ink-3')}>
@@ -276,9 +276,9 @@ function SlotBoard({ date, slots, bookings, highlightHour }: { date: string; slo
         return (
           <div key={s.time_slot} className={cx('grid gap-3 rounded-lg border p-3 sm:grid-cols-[150px_1fr_auto] sm:items-center', now ? 'border-primary/40 bg-sky/50' : 'border-line bg-card')}>
             <div>
-              <p className="flex items-center gap-2 font-mono text-sm font-bold text-navy">
+              <p className="flex items-center gap-2 font-mono text-sm font-bold text-ink">
                 {slotRange(s.time_slot)}
-                {now && <span className="rounded-md bg-primary px-1.5 py-0.5 font-label text-[10px] text-white">KINI</span>}
+                {now && <span className="rounded-md bg-primary px-1.5 py-0.5 font-label text-[10px] text-on-primary">KINI</span>}
               </p>
               <div className="mt-1.5 flex items-center gap-2">
                 <div className="flex-1">
@@ -302,7 +302,7 @@ function SlotBoard({ date, slots, bookings, highlightHour }: { date: string; slo
                       <span>Antrean #{o.booking?.queue_number}</span>
                       <span>{o.payment.status === 'PENDING_VERIFICATION' ? 'Tunggu verifikasi' : ORDER_STATUS[o.status].label}</span>
                     </p>
-                    <p className="truncate text-sm font-bold text-navy">
+                    <p className="truncate text-sm font-bold text-ink">
                       {o.customer.name}
                       {o.vehicle_plate && <span className="font-normal text-ink-2"> ({o.vehicle_plate})</span>}
                     </p>
@@ -350,11 +350,11 @@ function ThroughputChart({ slots }: { slots: SlotAvailability[] }) {
     <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-headline-sm text-navy">Keterisian per Jam</h3>
+          <h3 className="text-headline-sm text-ink">Keterisian per Jam</h3>
           <p className="text-sm text-ink-2">Booking terisi dibanding kapasitas di setiap jam operasional hari ini.</p>
         </div>
         {peak && peak.current_booked > 0 && (
-          <span className="rounded-md bg-surface-low px-2 py-1 font-mono text-xs font-bold text-navy">Puncak: {slotRange(peak.time_slot)}</span>
+          <span className="rounded-md bg-surface-low px-2 py-1 font-mono text-xs font-bold text-ink">Puncak: {slotRange(peak.time_slot)}</span>
         )}
       </div>
       <div className="flex h-44 items-end gap-2">
@@ -389,7 +389,7 @@ function TeamList({ mechanics, tasks }: { mechanics: Mechanic[]; tasks: Map<stri
           <li key={m.id} className={cx('flex items-center gap-3 rounded-lg p-2.5', task?.type === 'EMERGENCY' ? 'bg-emergency-soft' : 'bg-surface-low', !m.is_active && 'opacity-50')}>
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-navy font-bold text-white">{m.name.charAt(0).toUpperCase()}</span>
             <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1.5 text-sm font-bold text-navy">
+              <p className="flex items-center gap-1.5 text-sm font-bold text-ink">
                 <span className="truncate">{m.name}</span>
                 {m.specializations[0] && <span className="shrink-0 rounded-md bg-card px-1.5 py-0.5 font-label text-[10px] font-semibold text-ink-2">{m.specializations[0]}</span>}
               </p>
@@ -398,7 +398,7 @@ function TeamList({ mechanics, tasks }: { mechanics: Mechanic[]; tasks: Map<stri
               </p>
             </div>
             <div className="text-right">
-              <p className="inline-flex items-center gap-0.5 font-label text-xs font-bold text-navy">
+              <p className="inline-flex items-center gap-0.5 font-label text-xs font-bold text-ink">
                 <Icon name="star" filled className="text-[14px] text-warning" /> {m.avg_rating > 0 ? m.avg_rating.toFixed(2) : 'Baru'}
               </p>
               <p className={cx('font-label text-[11px] font-bold', task ? 'text-primary' : m.is_active ? 'text-success' : 'text-ink-3')}>{task ? 'Bertugas' : m.is_active ? 'Tersedia' : '-'}</p>
@@ -433,8 +433,8 @@ function IncomingEmergency({ order }: { order: Order }) {
             <span className="font-mono text-xs text-ink-2">#{order.order_number}</span>
           </p>
           <p className="mt-1 inline-flex rounded-md bg-card px-2 py-0.5 font-label text-xs font-semibold text-emergency-ink">{p.text}</p>
-          <p className="mt-1 ml-2 inline-flex rounded-md bg-card px-2 py-0.5 font-label text-xs font-semibold text-navy">Kisaran biaya: {customerRange(e) ?? NEGOTIABLE}</p>
-          <h3 className="mt-1 text-headline-sm text-navy">
+          <p className="mt-1 ml-2 inline-flex rounded-md bg-card px-2 py-0.5 font-label text-xs font-semibold text-ink">Kisaran biaya: {customerRange(e) ?? NEGOTIABLE}</p>
+          <h3 className="mt-1 text-headline-sm text-ink">
             {order.customer.name}
             <span className="ml-2 font-label text-sm font-normal text-ink-2">
               • {vehicleLabel(order.vehicle_type)}
@@ -478,7 +478,7 @@ function IncomingEmergency({ order }: { order: Order }) {
             <Button variant="secondary" className="flex-1 bg-card" loading={respond.isPending} onClick={() => respond.mutate('DECLINE')}>
               Tolak / Alihkan
             </Button>
-            <Link to={`/orders/${order.id}`} className="grid h-12 w-12 place-items-center rounded-lg bg-card text-navy shadow-sm hover:bg-sky" aria-label="Detail & estimasi biaya">
+            <Link to={`/orders/${order.id}`} className="grid h-12 w-12 place-items-center rounded-lg bg-card text-ink shadow-sm hover:bg-sky" aria-label="Detail & estimasi biaya">
               <Icon name="open_in_new" />
             </Link>
           </div>
@@ -567,7 +567,7 @@ export function OwnerPaymentsPage() {
           {list.map((o) => (
             <section key={o.id} className="rounded-xl border border-line bg-card p-5 shadow-sm">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <Link to={`/orders/${o.id}`} className="font-bold text-navy hover:text-primary">
+                <Link to={`/orders/${o.id}`} className="font-bold text-ink hover:text-primary">
                   {o.booking ? o.booking.service_name : 'Panggilan darurat'}
                 </Link>
                 <OrderStatusBadge order={o} />
@@ -641,7 +641,7 @@ export function OwnerOrdersPage() {
       {/* Cancelled orders sit above the list (not below up to 100 cards), with a way back. */}
       {status === 'CANCELLED' ? (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-surface-low px-4 py-2.5" data-testid="cancelled-history-bar">
-          <span className="inline-flex items-center gap-1.5 font-label text-sm font-semibold text-navy">
+          <span className="inline-flex items-center gap-1.5 font-label text-sm font-semibold text-ink">
             <Icon name="history" className="text-primary" /> Riwayat dibatalkan{data ? ` (${data.length})` : ''}
           </span>
           <button type="button" onClick={() => setStatus('')} className="inline-flex items-center gap-1.5 font-label text-sm font-semibold text-primary hover:underline">
@@ -1489,7 +1489,7 @@ function ReviewReplyCard({ review: r }: { review: Review }) {
     <li className="rounded-xl border border-line bg-card p-5 shadow-sm" data-testid="owner-review">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-bold text-navy">{r.customer_name}</p>
+          <p className="font-bold text-ink">{r.customer_name}</p>
           <p className="font-label text-xs text-ink-3">
             {dateTime(r.created_at)}
             {r.mechanic_name && ` · Mekanik: ${r.mechanic_name}`}
@@ -1497,7 +1497,7 @@ function ReviewReplyCard({ review: r }: { review: Review }) {
         </div>
         <StarRow rating={r.rating} />
       </div>
-      {r.comment ? <p className="mt-2 text-sm text-navy">{r.comment}</p> : <p className="mt-2 text-sm text-ink-3">Tanpa komentar.</p>}
+      {r.comment ? <p className="mt-2 text-sm text-ink">{r.comment}</p> : <p className="mt-2 text-sm text-ink-3">Tanpa komentar.</p>}
       {editing ? (
         <form
           className="mt-4 flex flex-col gap-2"
@@ -1522,7 +1522,7 @@ function ReviewReplyCard({ review: r }: { review: Review }) {
       ) : (
         <div className="mt-4 rounded-lg border-l-2 border-primary bg-sky/60 px-3 py-2">
           <p className="font-label text-[11px] font-bold text-primary">Balasan Anda{r.replied_at && ` · ${dateTime(r.replied_at)}`}</p>
-          <p className="text-sm text-navy">{r.owner_reply}</p>
+          <p className="text-sm text-ink">{r.owner_reply}</p>
           <div className="mt-2 flex gap-2">
             <Button size="sm" variant="ghost" icon="edit" onClick={() => setEditing(true)}>
               Ubah
@@ -1590,7 +1590,7 @@ function OwnerScheduleSection({ w }: { w: OwnWorkshop }) {
                     type="button"
                     aria-pressed={on}
                     onClick={() => setClosed(on ? closed.filter((x) => x !== i) : [...closed, i].sort())}
-                    className={cx('h-9 rounded-lg border px-3 font-label text-xs font-semibold transition', on ? 'border-emergency bg-emergency-soft text-emergency-ink' : 'border-line bg-card text-navy hover:border-primary/50')}
+                    className={cx('h-9 rounded-lg border px-3 font-label text-xs font-semibold transition', on ? 'border-emergency bg-emergency-soft text-emergency-ink' : 'border-line bg-card text-ink hover:border-primary/50')}
                     data-testid={`closed-day-${i}`}
                   >
                     {d}
@@ -1601,7 +1601,7 @@ function OwnerScheduleSection({ w }: { w: OwnWorkshop }) {
             <p className="mt-2 text-xs text-ink-3">{closed.length ? `Tutup setiap ${closed.map((i) => WEEKDAYS[i]).join(', ')}.` : 'Buka setiap hari.'}</p>
           </fieldset>
           <div className="flex flex-col gap-3">
-            <label className="flex items-center gap-2 text-sm font-semibold text-navy">
+            <label className="flex items-center gap-2 text-sm font-semibold text-ink">
               <input type="checkbox" checked={hasBreak} onChange={(e) => setHasBreak(e.target.checked)} className="h-4 w-4 accent-[var(--color-primary)]" data-testid="break-toggle" />
               Ada jam istirahat
             </label>
@@ -1646,7 +1646,7 @@ function OwnerScheduleSection({ w }: { w: OwnWorkshop }) {
             upcoming.map((h) => (
               <li key={h.id} className="flex items-center justify-between gap-3 py-2.5">
                 <span>
-                  <span className="font-semibold text-navy">{longDate(h.holiday_date)}</span>
+                  <span className="font-semibold text-ink">{longDate(h.holiday_date)}</span>
                   {h.note && <span className="ml-2 text-sm text-ink-2">{h.note}</span>}
                 </span>
                 <Button
@@ -1832,7 +1832,7 @@ function OwnerTodayStrip() {
         <li key={i.label} className="flex items-center gap-2">
           <Icon name={i.icon} className="text-[18px] text-primary" />
           <span className="text-ink-2">{i.label}:</span>
-          <b className="text-navy tabular-nums">{i.value}</b>
+          <b className="text-ink tabular-nums">{i.value}</b>
         </li>
       ))}
     </ul>

@@ -17,7 +17,7 @@ export default function RouteErrorPage() {
         <span className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-sky text-primary">
           <Icon name={staleBuild ? 'system_update' : 'error'} className="text-[40px]" />
         </span>
-        <h1 className="mt-6 text-headline-md text-balance text-navy">{staleBuild ? 'BengkelGo baru saja diperbarui' : 'Halaman gagal dimuat'}</h1>
+        <h1 className="mt-6 text-headline-md text-balance text-ink">{staleBuild ? 'BengkelGo baru saja diperbarui' : 'Halaman gagal dimuat'}</h1>
         <p className="mt-3 text-ink-2">
           {staleBuild
             ? 'Muat ulang halaman untuk memakai versi terbaru. Bila tetap muncul, periksa koneksi internet Anda.'
@@ -27,7 +27,7 @@ export default function RouteErrorPage() {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-6 font-label text-sm font-bold text-white shadow-sm hover:bg-primary-dark"
+            className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-6 font-label text-sm font-bold text-on-primary shadow-sm hover:bg-primary-dark"
             data-testid="route-error-reload"
           >
             <Icon name="refresh" /> Muat ulang

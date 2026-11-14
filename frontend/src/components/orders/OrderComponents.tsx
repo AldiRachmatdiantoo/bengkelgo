@@ -37,7 +37,7 @@ export function OrderCard({ order, to }: { order: Order; to: string }) {
             <OrderStatusBadge order={order} />
           </span>
         </div>
-        <p className="mt-1 font-bold text-navy group-hover:text-primary">{order.workshop?.name ?? 'Mencari bengkel…'}</p>
+        <p className="mt-1 font-bold text-ink group-hover:text-primary">{order.workshop?.name ?? 'Mencari bengkel…'}</p>
         <p className="mt-0.5 line-clamp-1 text-sm text-ink-2">
           {order.booking
             ? `${order.booking.service_name} · ${longDate(order.booking.booking_date)}, ${order.booking.time_slot} · Antrean #${order.booking.queue_number}`
@@ -52,7 +52,7 @@ export function OrderCard({ order, to }: { order: Order; to: string }) {
             {order.vehicle_plate && ` · ${order.vehicle_plate}`}
           </span>
           <span>{dateTime(order.created_at)}</span>
-          {order.total_amount > 0 ? <span className="font-semibold text-navy">{rupiah(order.total_amount)}</span> : emergency && order.status !== 'CANCELLED' && <span className="font-semibold text-ink-2">Harga {NEGOTIABLE.toLowerCase()}</span>}
+          {order.total_amount > 0 ? <span className="font-semibold text-ink">{rupiah(order.total_amount)}</span> : emergency && order.status !== 'CANCELLED' && <span className="font-semibold text-ink-2">Harga {NEGOTIABLE.toLowerCase()}</span>}
         </p>
       </div>
       <Icon name="chevron_right" className="self-center text-ink-3 group-hover:text-primary" />
@@ -125,7 +125,6 @@ export function BookingHero({ order }: { order: Order }) {
   const ps = PAYMENT_STATUS[order.payment.status];
   return (
     <section className="relative overflow-hidden rounded-xl border border-line bg-card p-6 shadow-sm sm:p-8" data-print-hide>
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(50%_90%_at_100%_0%,#f0f3ff_0%,rgba(255,255,255,0)_70%)]" />
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center">
         <span className={cx('grid h-16 w-16 shrink-0 place-items-center rounded-full', HERO_TONE[h.tone])}>
           <Icon name={h.icon} className="text-[36px]" />
@@ -135,7 +134,7 @@ export function BookingHero({ order }: { order: Order }) {
             <span className={cx('h-1.5 w-1.5 rounded-full', order.payment.status === 'VERIFIED' ? 'bg-success' : 'bg-ink-3')} />
             {order.payment.status === 'VERIFIED' ? 'Pembayaran terverifikasi (QRIS)' : `Pembayaran: ${ps.label}`}
           </span>
-          <h1 className="mt-2 text-[21px] leading-tight font-bold tracking-[-0.02em] text-navy sm:text-headline-lg">{h.title}</h1>
+          <h1 className="mt-2 text-[21px] leading-tight font-bold tracking-[-0.02em] text-ink sm:text-headline-lg">{h.title}</h1>
           <p className="mt-2 max-w-xl text-subtitle text-ink-2" data-testid="booking-hero-text">{order.status === 'CANCELLED' ? cancellationText(order) : h.text}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -172,7 +171,7 @@ function HeroFact({ label, value, mono }: { label: string; value: string; mono?:
   return (
     <div className="sm:border-r sm:border-line sm:pr-6">
       <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">{label}</p>
-      <p className={cx('text-sm font-bold text-navy', mono && 'font-mono')}>{value}</p>
+      <p className={cx('text-sm font-bold text-ink', mono && 'font-mono')}>{value}</p>
     </div>
   );
 }
@@ -188,7 +187,7 @@ export function BookingPass({ order }: { order: Order }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <span className="rounded-full bg-sky px-2.5 py-1 font-label text-[11px] font-bold text-primary uppercase">Digital Pass</span>
-            <h2 className="mt-2 text-headline-md text-navy">Check-In di Bengkel</h2>
+            <h2 className="mt-2 text-headline-md text-ink">Check-In di Bengkel</h2>
             <p className="text-sm text-ink-2">Tunjukkan kode QR atau nomor pesanan ini kepada petugas bengkel.</p>
           </div>
           <OrderStatusBadge order={order} />
@@ -196,7 +195,7 @@ export function BookingPass({ order }: { order: Order }) {
         <div className="mt-5 grid gap-5 rounded-xl bg-surface-low p-4 sm:grid-cols-[auto_1fr]">
           <div className="flex flex-col items-center gap-2 rounded-lg bg-card p-4 shadow-sm">
             <QrCode value={order.order_number} size={132} />
-            <span className="font-mono text-xs font-bold text-navy">{order.order_number}</span>
+            <span className="font-mono text-xs font-bold text-ink">{order.order_number}</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-lg bg-card p-4 shadow-sm sm:col-span-2">
@@ -207,7 +206,7 @@ export function BookingPass({ order }: { order: Order }) {
             </div>
             <div className="rounded-lg bg-card p-3 shadow-sm">
               <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Jadwal servis</p>
-              <p className="text-sm font-bold text-navy">{longDate(b.booking_date)}</p>
+              <p className="text-sm font-bold text-ink">{longDate(b.booking_date)}</p>
               <p className="font-label text-xs text-ink-2">{slotRange(b.time_slot)} WIB</p>
             </div>
             <div className="rounded-lg bg-card p-3 shadow-sm">
@@ -219,12 +218,12 @@ export function BookingPass({ order }: { order: Order }) {
               <Icon name="engineering" className="text-primary" />
               <div>
                 <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Mekanik ditugaskan</p>
-                <p className="text-sm font-bold text-navy">{order.mechanic ? order.mechanic.name : 'Ditugaskan saat jadwal terkonfirmasi'}</p>
+                <p className="text-sm font-bold text-ink">{order.mechanic ? order.mechanic.name : 'Ditugaskan saat jadwal terkonfirmasi'}</p>
               </div>
             </div>
           </div>
         </div>
-        <h3 className="mt-6 mb-3 flex items-center gap-2 font-bold text-navy">
+        <h3 className="mt-6 mb-3 flex items-center gap-2 font-bold text-ink">
           <Icon name="how_to_reg" className="text-primary" /> Alur Kedatangan
         </h3>
         <ol className="grid gap-3 sm:grid-cols-3">
@@ -234,8 +233,8 @@ export function BookingPass({ order }: { order: Order }) {
             ['Dikerjakan sesuai antrean', `Kendaraan dikerjakan sesuai nomor antrean #${b.queue_number}.`],
           ].map(([t, d], i) => (
             <li key={t} className="rounded-lg bg-surface-low p-4">
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-primary font-label text-xs font-bold text-white">{i + 1}</span>
-              <p className="mt-2 text-sm font-bold text-navy">{t}</p>
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-primary font-label text-xs font-bold text-on-primary">{i + 1}</span>
+              <p className="mt-2 text-sm font-bold text-ink">{t}</p>
               <p className="text-xs text-ink-2">{d}</p>
             </li>
           ))}
@@ -254,7 +253,7 @@ export function WorkshopContactCard({ order, title = 'Bengkel Mitra Resmi' }: { 
       <p className="flex items-center gap-1.5 font-label text-[11px] font-bold tracking-[0.04em] text-primary uppercase">
         <Icon name="storefront" className="text-[16px]" /> {title}
       </p>
-      <h3 className="mt-2 text-headline-sm text-navy">{w.name}</h3>
+      <h3 className="mt-2 text-headline-sm text-ink">{w.name}</h3>
       <p className="mt-3 flex items-start gap-2 rounded-lg bg-surface-low p-3 text-sm text-ink-2">
         <Icon name="location_on" className="text-primary" /> {w.address}
       </p>
@@ -264,11 +263,11 @@ export function WorkshopContactCard({ order, title = 'Bengkel Mitra Resmi' }: { 
           href={directionsUrl({ lat: w.latitude, lng: w.longitude })}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 font-label text-sm font-semibold text-white hover:bg-primary-dark"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 font-label text-sm font-semibold text-on-primary hover:bg-primary-dark"
         >
           <Icon name="near_me" /> Buka Rute Navigasi
         </a>
-        <a href={`tel:${w.phone}`} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-surface-low px-4 font-label text-sm font-semibold text-navy hover:bg-surface">
+        <a href={`tel:${w.phone}`} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-surface-low px-4 font-label text-sm font-semibold text-ink hover:bg-surface">
           <Icon name="call" /> Hubungi Bengkel
         </a>
       </div>
@@ -284,10 +283,10 @@ export function OrderReceipt({ order }: { order: Order }) {
       <div className="flex items-start justify-between gap-3 border-b border-line bg-surface-low px-5 py-4">
         <div>
           <p className="font-label text-[10px] font-bold tracking-[0.06em] text-ink-3 uppercase">Kuitansi elektronik</p>
-          <h3 className="text-headline-sm text-navy">E-Receipt BengkelGo</h3>
+          <h3 className="text-headline-sm text-ink">E-Receipt BengkelGo</h3>
         </div>
         <div className="text-right font-label text-xs text-ink-2">
-          <p className="font-mono font-bold text-navy">{order.order_number}</p>
+          <p className="font-mono font-bold text-ink">{order.order_number}</p>
           {order.payment.invoice_number && (
             <p className="font-mono text-[11px] font-semibold text-primary" data-testid="invoice-number">
               {order.payment.invoice_number}
@@ -300,18 +299,18 @@ export function OrderReceipt({ order }: { order: Order }) {
         <dl className="grid gap-3 text-sm">
           <div className="flex justify-between gap-3">
             <dt className="text-ink-3">Pemilik kendaraan</dt>
-            <dd className="font-bold text-navy">{order.customer.name}</dd>
+            <dd className="font-bold text-ink">{order.customer.name}</dd>
           </div>
           {order.customer.phone && (
             <div className="flex justify-between gap-3">
               <dt className="text-ink-3">No. handphone</dt>
-              <dd className="font-semibold text-navy">{order.customer.phone}</dd>
+              <dd className="font-semibold text-ink">{order.customer.phone}</dd>
             </div>
           )}
           {order.workshop && (
             <div className="flex justify-between gap-3">
               <dt className="text-ink-3">Bengkel</dt>
-              <dd className="text-right font-semibold text-navy">{order.workshop.name}</dd>
+              <dd className="text-right font-semibold text-ink">{order.workshop.name}</dd>
             </div>
           )}
         </dl>
@@ -320,13 +319,13 @@ export function OrderReceipt({ order }: { order: Order }) {
             <p className="font-label text-[10px] font-bold tracking-[0.04em] text-primary uppercase">Kendaraan</p>
             {order.vehicle_plate && <span className="rounded-md bg-navy px-2 py-0.5 font-mono text-[11px] font-bold text-white">{order.vehicle_plate}</span>}
           </div>
-          <p className="mt-1 flex items-center gap-1.5 font-bold text-navy">
+          <p className="mt-1 flex items-center gap-1.5 font-bold text-ink">
             <Icon name={vehicleIcon(order.vehicle_type)} className="text-primary" /> {vehicleLabel(order.vehicle_type)}
             {order.vehicle && <span className="font-normal text-ink-2">· {vehicleName(order.vehicle)}</span>}
           </p>
           {order.notes && (
             <div className="mt-2 rounded-md bg-surface-low p-2.5 text-xs text-ink-2">
-              <b className="text-navy">Keluhan pemilik:</b> “{order.notes}”
+              <b className="text-ink">Keluhan pemilik:</b> “{order.notes}”
             </div>
           )}
         </div>
@@ -336,24 +335,24 @@ export function OrderReceipt({ order }: { order: Order }) {
             <span>Subtotal</span>
           </div>
           <div className="flex justify-between gap-3 rounded-md bg-surface-low p-3 text-sm">
-            <span className="font-semibold text-navy">{order.booking ? order.booking.service_name : `Bantuan darurat · ${splitPriceRange(order.emergency?.problem_description).text}`}</span>
-            <span className="shrink-0 font-bold text-navy">{order.booking ? rupiah(order.total_amount) : emergencyPrice(order.total_amount)}</span>
+            <span className="font-semibold text-ink">{order.booking ? order.booking.service_name : `Bantuan darurat · ${splitPriceRange(order.emergency?.problem_description).text}`}</span>
+            <span className="shrink-0 font-bold text-ink">{order.booking ? rupiah(order.total_amount) : emergencyPrice(order.total_amount)}</span>
           </div>
           <div className="mt-2 flex justify-between px-3 text-sm">
             <span className="text-ink-2">Biaya layanan platform</span>
             <span className="font-semibold text-ink-2">Rp0</span>
           </div>
         </div>
-        <div className={cx('flex items-end justify-between gap-3 rounded-lg p-4 text-white', paid ? 'bg-primary' : 'bg-navy')}>
+        <div className={cx('flex items-end justify-between gap-3 rounded-lg p-4', paid ? 'bg-success-soft text-primary' : 'bg-surface text-ink')}>
           <div>
-            <p className="font-label text-[10px] font-bold tracking-[0.04em] text-white/80 uppercase">{paid ? 'Total pembayaran (Lunas)' : 'Total tagihan'}</p>
+            <p className="font-label text-xs font-bold text-ink-2">{paid ? 'Total pembayaran (Lunas)' : 'Total tagihan'}</p>
             <p className="text-[21px] leading-tight font-extrabold">{order.total_amount > 0 ? rupiah(order.total_amount) : order.type === 'EMERGENCY' ? NEGOTIABLE : 'Menunggu harga'}</p>
           </div>
           <div className="text-right">
-            <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-0.5 font-label text-[10px] font-bold uppercase">
+            <span className="inline-flex items-center gap-1 rounded-md bg-card px-2 py-0.5 font-label text-xs font-bold">
               <Icon name="qr_code_2" className="text-[14px]" /> QRIS
             </span>
-            <p className="mt-1 font-label text-[11px] text-white/80">{PAYMENT_STATUS[order.payment.status].label}</p>
+            <p className="mt-1 font-label text-xs text-ink-2">{PAYMENT_STATUS[order.payment.status].label}</p>
           </div>
         </div>
         <ul className="space-y-1.5 rounded-lg bg-surface-low p-3 text-xs text-ink-2">
@@ -379,17 +378,17 @@ export function CalendarSyncCard({ order }: { order: Order }) {
         <Icon name="calendar_add_on" />
       </span>
       <div className="min-w-0 flex-1">
-        <h4 className="font-bold text-navy">Simpan ke Kalender</h4>
+        <h4 className="font-bold text-ink">Simpan ke Kalender</h4>
         <p className="text-sm text-ink-2">Dapatkan pengingat 2 jam sebelum jadwal servis langsung di ponsel Anda.</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        <a href={gcal} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-surface-low px-4 font-label text-sm font-semibold text-navy hover:bg-surface">
+        <a href={gcal} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-surface-low px-4 font-label text-sm font-semibold text-ink hover:bg-surface">
           <Icon name="event" /> Google Calendar
         </a>
         <a
           href={`data:text/calendar;charset=utf-8,${encodeURIComponent(ics.text)}`}
           download={`${order.order_number}.ics`}
-          className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-surface-low px-4 font-label text-sm font-semibold text-navy hover:bg-surface"
+          className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-surface-low px-4 font-label text-sm font-semibold text-ink hover:bg-surface"
         >
           <Icon name="mail" /> Outlook / Apple iCal
         </a>
@@ -434,19 +433,19 @@ export function EmergencyHeader({ order }: { order: Order }) {
   const st = EMERGENCY_STATUS[order.status] ?? { label: ORDER_STATUS[order.status].label, tone: 'bg-surface-low text-ink-2' };
   return (
     <section className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-card px-5 py-4 shadow-sm sm:px-6">
-      <span className={cx('relative grid h-12 w-12 shrink-0 place-items-center rounded-full text-white', live ? 'animate-beacon bg-emergency' : order.status === 'COMPLETED' ? 'bg-success' : 'bg-navy')}>
+      <span className={cx('relative grid h-12 w-12 shrink-0 place-items-center rounded-full', live ? 'animate-beacon bg-emergency text-white' : order.status === 'COMPLETED' ? 'bg-success text-on-primary' : 'bg-navy text-white')}>
         <Icon name={order.status === 'COMPLETED' ? 'task_alt' : 'crisis_alert'} />
-        {live && <span className="absolute top-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-success" />}
+        {live && <span className="absolute top-0 right-0 h-3 w-3 rounded-full border-2 border-card bg-success" />}
       </span>
       <div className="min-w-0 flex-1">
-        <h1 className="flex flex-wrap items-center gap-2 text-headline-sm text-navy">
+        <h1 className="flex flex-wrap items-center gap-2 text-headline-sm text-ink">
           Layanan Darurat SOS 24 Jam <span className="font-normal text-ink-3">(Roadside Breakdown)</span>
           <span className={cx('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-label text-[11px] font-bold uppercase', st.tone)}>
             {live && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />} {st.label}
           </span>
         </h1>
         <p className="font-label text-xs text-ink-2">
-          ID Laporan: <b className="font-mono text-navy">{order.order_number}</b> • Waktu panggil: {timeOnly(order.created_at)} WIB
+          ID Laporan: <b className="font-mono text-ink">{order.order_number}</b> • Waktu panggil: {timeOnly(order.created_at)} WIB
           {e.routing_attempts > 1 && <> • Percobaan pengalihan ke-{e.routing_attempts}</>}
         </p>
       </div>
@@ -455,12 +454,12 @@ export function EmergencyHeader({ order }: { order: Order }) {
           <Icon name="radar" className="text-primary" />
           <span className="leading-tight">
             <span className="block font-label text-[10px] font-bold text-ink-3 uppercase">Pencarian radius 5 km</span>
-            <span className="block text-xs font-bold text-navy">Pengalihan otomatis aktif</span>
+            <span className="block text-xs font-bold text-ink">Pengalihan otomatis aktif</span>
           </span>
         </span>
         {countdown && (
           <span className="flex items-center gap-1.5 border-l border-line pl-3 font-label text-xs text-ink-2">
-            <Icon name="timer" className="text-warning" /> Batas respons bengkel: <b className="font-mono text-sm text-navy tabular-nums">{countdown}</b>
+            <Icon name="timer" className="text-warning" /> Batas respons bengkel: <b className="font-mono text-sm text-ink tabular-nums">{countdown}</b>
           </span>
         )}
         {live && <span className="border-l border-line pl-3 font-label text-[11px] text-ink-3">Diperbarui otomatis setiap 5 detik</span>}
@@ -494,9 +493,9 @@ export function EmergencyMapCard({ order }: { order: Order }) {
           </span>
           <div className="min-w-0 flex-1">
             <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Lokasi Anda</p>
-            <p className="truncate text-sm font-bold text-navy">{e.address_note || 'Titik di peta (buka di Google Maps)'}</p>
+            <p className="truncate text-sm font-bold text-ink">{e.address_note || 'Titik di peta (buka di Google Maps)'}</p>
           </div>
-          <a href={`https://www.google.com/maps?q=${e.latitude},${e.longitude}`} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1 rounded-lg bg-surface-low px-3 font-label text-xs font-bold text-navy hover:bg-surface">
+          <a href={`https://www.google.com/maps?q=${e.latitude},${e.longitude}`} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1 rounded-lg bg-surface-low px-3 font-label text-xs font-bold text-ink hover:bg-surface">
             <Icon name="open_in_new" className="text-[14px]" /> G-Maps
           </a>
         </div>
@@ -521,7 +520,7 @@ function MapStat({ icon, label, value }: { icon: string; label: string; value: s
       </span>
       <div className="min-w-0">
         <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">{label}</p>
-        <p className="truncate font-bold text-navy">{value}</p>
+        <p className="truncate font-bold text-ink">{value}</p>
       </div>
     </div>
   );
@@ -553,7 +552,7 @@ export function EmergencyTimeline({ order }: { order: Order }) {
     <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-headline-sm text-navy">Status Penanganan Darurat</h3>
+          <h3 className="text-headline-sm text-ink">Status Penanganan Darurat</h3>
           <p className="text-sm text-ink-2">Status diperbarui otomatis oleh bengkel yang menangani.</p>
         </div>
         {live ? (
@@ -582,14 +581,14 @@ export function EmergencyTimeline({ order }: { order: Order }) {
           return (
             <li key={s.key} className="relative flex gap-4 pb-5 last:pb-0">
               {i < TIMELINE.length - 1 && <span className={cx('absolute top-8 left-[13px] h-[calc(100%-28px)] w-0.5', done ? 'bg-success' : 'bg-line')} />}
-              <span className={cx('relative z-10 grid h-7 w-7 shrink-0 place-items-center rounded-full', done ? 'bg-success text-white' : active ? 'bg-primary text-white ring-4 ring-primary-fixed' : 'bg-surface-low text-ink-3')}>
+              <span className={cx('relative z-10 grid h-7 w-7 shrink-0 place-items-center rounded-full', done ? 'bg-success text-on-primary' : active ? 'bg-primary text-on-primary ring-4 ring-primary-fixed' : 'bg-surface-low text-ink-3')}>
                 <Icon name={done ? 'check' : active ? 'more_horiz' : 'radio_button_unchecked'} className="text-[16px]" />
               </span>
               <div className={cx('min-w-0 flex-1', active && '-mt-1 rounded-lg border border-primary/30 bg-sky p-3')}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className={cx('text-sm font-bold', done || active ? 'text-navy' : 'text-ink-3')}>
+                  <p className={cx('text-sm font-bold', done || active ? 'text-ink' : 'text-ink-3')}>
                     {s.title}
-                    {active && <span className="ml-2 rounded-md bg-primary px-1.5 py-0.5 font-label text-[10px] text-white">Sedang Berlangsung</span>}
+                    {active && <span className="ml-2 rounded-md bg-primary px-1.5 py-0.5 font-label text-[10px] text-on-primary">Sedang Berlangsung</span>}
                   </p>
                   {(done || active) && at && <span className="font-mono text-xs text-ink-3">{timeOnly(at)} WIB</span>}
                   {!done && !active && <span className="font-label text-[11px] text-ink-3">Menunggu</span>}
@@ -614,10 +613,10 @@ export function MechanicCard({ order }: { order: Order }) {
         <div className="flex items-center gap-4">
           <span className="relative grid h-14 w-14 shrink-0 place-items-center rounded-full bg-navy text-xl font-bold text-white">
             {m.name.charAt(0).toUpperCase()}
-            <span className="absolute right-0 bottom-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-success" />
+            <span className="absolute right-0 bottom-0 h-3.5 w-3.5 rounded-full border-2 border-card bg-success" />
           </span>
           <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-headline-sm text-navy">
+            <p className="flex items-center gap-1.5 text-headline-sm text-ink">
               {m.name} <Icon name="verified" filled className="text-[18px] text-primary" />
             </p>
             <p className="inline-flex items-center gap-1 font-label text-sm text-ink-2">
@@ -631,13 +630,13 @@ export function MechanicCard({ order }: { order: Order }) {
             <dt className="flex items-center gap-1.5 text-ink-3">
               <Icon name="storefront" className="text-[16px]" /> Mitra bengkel
             </dt>
-            <dd className="text-right font-semibold text-navy">{order.workshop?.name}</dd>
+            <dd className="text-right font-semibold text-ink">{order.workshop?.name}</dd>
           </div>
           <div className="flex justify-between gap-3">
             <dt className="flex items-center gap-1.5 text-ink-3">
               <Icon name="pin_drop" className="text-[16px]" /> Jarak bengkel
             </dt>
-            <dd className="font-semibold text-navy">{distance(order.emergency?.distance_meters)} dari Anda</dd>
+            <dd className="font-semibold text-ink">{distance(order.emergency?.distance_meters)} dari Anda</dd>
           </div>
         </dl>
         {m.phone && (
@@ -645,7 +644,7 @@ export function MechanicCard({ order }: { order: Order }) {
             <a href={`tel:${m.phone}`} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emergency font-label text-sm font-bold text-white hover:bg-emergency-dark">
               <Icon name="call" /> Hubungi {m.name.split(' ')[0]}
             </a>
-            <a href={`https://wa.me/${waNumber(m.phone)}`} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-success font-label text-sm font-bold text-white hover:brightness-95">
+            <a href={`https://wa.me/${waNumber(m.phone)}`} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-success font-label text-sm font-bold text-on-primary hover:brightness-95">
               <Icon name="chat" /> WhatsApp
             </a>
           </div>
@@ -662,7 +661,7 @@ export function EmergencyProblemCard({ order }: { order: Order }) {
   return (
     <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-headline-sm text-navy">
+        <h3 className="flex items-center gap-2 text-headline-sm text-ink">
           <Icon name={vehicleIcon(order.vehicle_type)} className="text-primary" /> Kendaraan &amp; Kendala
         </h3>
         {order.vehicle_plate && <span className="rounded-md bg-navy px-2 py-0.5 font-mono text-xs font-bold text-white">{order.vehicle_plate}</span>}
@@ -670,12 +669,12 @@ export function EmergencyProblemCard({ order }: { order: Order }) {
       <dl className="mt-4 space-y-2 text-sm">
         <div className="flex justify-between gap-3">
           <dt className="text-ink-3">Jenis kendaraan</dt>
-          <dd className="text-right font-bold text-navy">{order.vehicle ? `${vehicleLabel(order.vehicle_type)} · ${vehicleName(order.vehicle)}` : vehicleLabel(order.vehicle_type)}</dd>
+          <dd className="text-right font-bold text-ink">{order.vehicle ? `${vehicleLabel(order.vehicle_type)} · ${vehicleName(order.vehicle)}` : vehicleLabel(order.vehicle_type)}</dd>
         </div>
         {category && (
           <div className="flex justify-between gap-3">
             <dt className="text-ink-3">Kategori masalah</dt>
-            <dd className="inline-flex items-center gap-1 font-semibold text-navy" data-testid="problem-category">
+            <dd className="inline-flex items-center gap-1 font-semibold text-ink" data-testid="problem-category">
               <Icon name={category.icon} className="text-[16px] text-emergency-ink" /> {category.label}
             </dd>
           </div>
@@ -683,16 +682,16 @@ export function EmergencyProblemCard({ order }: { order: Order }) {
         {e.address_note && (
           <div className="flex justify-between gap-3">
             <dt className="text-ink-3">Patokan lokasi</dt>
-            <dd className="text-right font-semibold text-navy">{e.address_note}</dd>
+            <dd className="text-right font-semibold text-ink">{e.address_note}</dd>
           </div>
         )}
         <div className="flex justify-between gap-3">
           <dt className="text-ink-3">Kisaran biaya pelanggan</dt>
-          <dd className="text-right font-semibold text-navy">{customerRange(e) ?? NEGOTIABLE}</dd>
+          <dd className="text-right font-semibold text-ink">{customerRange(e) ?? NEGOTIABLE}</dd>
         </div>
       </dl>
       <p className="mt-3 font-label text-xs text-ink-3">Gejala kerusakan terlapor:</p>
-      <p className="mt-1 rounded-lg bg-surface-low p-3 text-sm whitespace-pre-line text-navy">“{p.text}”</p>
+      <p className="mt-1 rounded-lg bg-surface-low p-3 text-sm whitespace-pre-line text-ink">“{p.text}”</p>
     </section>
   );
 }
@@ -705,7 +704,7 @@ export function EmergencyCostCard({ order }: { order: Order }) {
   return (
     <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="flex items-center gap-2 text-headline-sm text-navy">
+        <h3 className="flex items-center gap-2 text-headline-sm text-ink">
           <Icon name="receipt_long" className="text-primary" /> {done ? 'Biaya Akhir' : 'Estimasi Biaya'}
         </h3>
         <span className="rounded-md bg-success-soft px-1.5 py-0.5 font-label text-[10px] font-bold text-success uppercase">Transparan</span>
@@ -713,11 +712,11 @@ export function EmergencyCostCard({ order }: { order: Order }) {
       <dl className="mt-4 space-y-2 text-sm">
         <div className="flex justify-between gap-3">
           <dt className="text-ink-2">Penanganan darurat ({vehicleLabel(order.vehicle_type)})</dt>
-          <dd className="text-right font-semibold text-navy">{emergencyPrice(order.total_amount)}</dd>
+          <dd className="text-right font-semibold text-ink">{emergencyPrice(order.total_amount)}</dd>
         </div>
         <div className="flex justify-between gap-3">
           <dt className="text-ink-2">Kisaran yang Anda siapkan</dt>
-          <dd className="text-right font-semibold text-navy">{range ?? NEGOTIABLE}</dd>
+          <dd className="text-right font-semibold text-ink">{range ?? NEGOTIABLE}</dd>
         </div>
         <div className="flex justify-between gap-3">
           <dt className="text-ink-2">Biaya platform</dt>
@@ -726,14 +725,14 @@ export function EmergencyCostCard({ order }: { order: Order }) {
       </dl>
       <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-4">
         <div>
-          <p className="font-bold text-navy">{done ? 'Total biaya' : 'Total estimasi'}</p>
+          <p className="font-bold text-ink">{done ? 'Total biaya' : 'Total estimasi'}</p>
           <p className="font-label text-[11px] text-ink-3">{done ? 'Ditetapkan bengkel saat selesai' : priced ? 'Dapat berubah setelah diagnosa di lokasi' : 'Disepakati dengan mekanik setelah diagnosa'}</p>
         </div>
-        <p className={cx('text-right', priced ? 'text-headline-md text-primary' : 'text-headline-sm text-navy')}>{emergencyPrice(order.total_amount)}</p>
+        <p className={cx('text-right', priced ? 'text-headline-md text-primary' : 'text-headline-sm text-ink')}>{emergencyPrice(order.total_amount)}</p>
       </div>
       <div className="mt-4 flex items-center justify-between gap-2 border-t border-line pt-3 font-label text-xs text-ink-3">
         <span>Metode bayar:</span>
-        <span className="rounded-md bg-surface-low px-2 py-0.5 font-bold text-navy">QRIS bengkel</span>
+        <span className="rounded-md bg-surface-low px-2 py-0.5 font-bold text-ink">QRIS bengkel</span>
       </div>
     </section>
   );
@@ -757,7 +756,7 @@ export function SafetyBanner({ onCancel, cancelling }: { onCancel?: () => void; 
           <ol className="mt-5 grid gap-4 sm:grid-cols-3">
             {tips.map(([a, b, c], i) => (
               <li key={b} className="flex gap-3 text-sm text-white/85">
-                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary font-label text-xs font-bold text-white">{i + 1}</span>
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary font-label text-xs font-bold text-on-primary">{i + 1}</span>
                 <span>
                   {a} <b className="text-white">{b}</b> {c}
                 </span>
@@ -849,7 +848,7 @@ export function QrisPayCard({ order }: { order: Order }) {
             <span className="rounded-md bg-sky px-1.5 py-0.5 font-label text-[10px] font-bold text-primary uppercase">Metode utama</span>
             <span className="rounded-md bg-success-soft px-1.5 py-0.5 font-label text-[10px] font-bold text-success uppercase">Diverifikasi bengkel</span>
           </span>
-          <h2 className="mt-2 text-headline-md text-navy">Pembayaran QRIS</h2>
+          <h2 className="mt-2 text-headline-md text-ink">Pembayaran QRIS</h2>
         </div>
         <span className="rounded-lg border border-line px-2.5 py-1 font-label text-xs font-extrabold tracking-wide text-emergency-ink">QRIS</span>
       </div>
@@ -870,17 +869,17 @@ export function QrisPayCard({ order }: { order: Order }) {
               <div className="grid aspect-square w-48 place-items-center text-center text-sm text-ink-3">{qris.error ?? 'Memuat QRIS…'}</div>
             )}
           </div>
-          <p className="max-w-48 text-center font-label text-[11px] font-bold text-navy uppercase">{order.workshop?.name}</p>
+          <p className="max-w-48 text-center font-label text-[11px] font-bold text-ink uppercase">{order.workshop?.name}</p>
         </div>
         <div className="flex flex-col gap-4">
           <div>
-            <p className="mb-2 text-sm font-bold text-navy">3 Langkah Mudah Bayar:</p>
+            <p className="mb-2 text-sm font-bold text-ink">3 Langkah Mudah Bayar:</p>
             <ol className="space-y-2 text-sm text-ink-2">
               {[
                 'Buka m-banking atau e-wallet yang mendukung QRIS.',
                 'Arahkan kamera ke kode QRIS di samping, atau simpan gambarnya lalu unggah dari galeri.',
                 <>
-                  Periksa nama penerima <b className="text-navy">{order.workshop?.name}</b> dan nominal <b className="text-navy">{rupiah(order.payment.amount || order.total_amount)}</b>, lalu masukkan PIN.
+                  Periksa nama penerima <b className="text-ink">{order.workshop?.name}</b> dan nominal <b className="text-ink">{rupiah(order.payment.amount || order.total_amount)}</b>, lalu masukkan PIN.
                 </>,
               ].map((t, i) => (
                 <li key={i} className="flex gap-2">
@@ -902,7 +901,7 @@ export function QrisPayCard({ order }: { order: Order }) {
           </div>
           <div className="flex flex-wrap gap-2">
             {qris.url && (
-              <a href={qris.url} download={`qris-${order.order_number}.png`} className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-line px-4 font-label text-sm font-semibold text-navy hover:bg-sky">
+              <a href={qris.url} download={`qris-${order.order_number}.png`} className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-line px-4 font-label text-sm font-semibold text-ink hover:bg-sky">
                 <Icon name="download" /> Unduh Kode QR (PNG)
               </a>
             )}
@@ -946,7 +945,7 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3 border-b border-line pb-4">
         <div>
           <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Verifikasi pembayaran</p>
-          <h2 className="text-headline-md text-navy">Konfirmasi &amp; Bukti Pembayaran</h2>
+          <h2 className="text-headline-md text-ink">Konfirmasi &amp; Bukti Pembayaran</h2>
         </div>
         <span className="inline-flex items-center gap-1 rounded-full bg-surface-low px-2.5 py-1 font-label text-[11px] font-bold text-ink-2">
           <Icon name="storefront" className="text-[14px]" /> Diperiksa bengkel
@@ -964,7 +963,7 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
           if (file) upload.mutate();
         }}
       >
-        <p className="text-sm font-bold text-navy">
+        <p className="text-sm font-bold text-ink">
           Unggah bukti struk / screenshot transfer <span className="text-emergency-ink">*</span>
         </p>
         <label
@@ -985,14 +984,14 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
             </span>
           )}
           {photo.busy ? (
-            <span className="text-sm text-navy">Menyiapkan foto…</span>
+            <span className="text-sm text-ink">Menyiapkan foto…</span>
           ) : file ? (
-            <span className="text-sm font-semibold break-all text-navy">
+            <span className="text-sm font-semibold break-all text-ink">
               {file.name} <span className="font-normal text-ink-3">({fileSize(file.size)})</span>
               <span className="block font-label text-xs font-normal text-primary">Klik untuk mengganti foto</span>
             </span>
           ) : (
-            <span className="text-base text-navy">
+            <span className="text-base text-ink">
               Tarik foto ke sini atau <b className="text-primary underline">Pilih dari Perangkat</b>
             </span>
           )}
@@ -1042,7 +1041,7 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
         <div className="flex items-start gap-3 rounded-lg bg-surface-low p-3 text-xs text-ink-2">
           <Icon name="verified_user" className="text-primary" />
           <p>
-            <b className="text-navy">Diverifikasi langsung:</b> bengkel mencocokkan bukti dengan mutasi QRIS mereka. Status pembayaran di aplikasi berubah otomatis setelah diverifikasi.
+            <b className="text-ink">Diverifikasi langsung:</b> bengkel mencocokkan bukti dengan mutasi QRIS mereka. Status pembayaran di aplikasi berubah otomatis setelah diverifikasi.
           </p>
         </div>
         <MissingFields
@@ -1076,10 +1075,10 @@ export function CustomerPaymentPanel({ order }: { order: Order }) {
       <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg bg-surface-low p-4">
         <div>
           <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Total pembayaran</p>
-          <p className="text-2xl font-extrabold text-navy">{order.payment.amount > 0 ? rupiah(order.payment.amount) : '-'}</p>
+          <p className="text-2xl font-extrabold text-ink">{order.payment.amount > 0 ? rupiah(order.payment.amount) : '-'}</p>
         </div>
         {canUploadProof(order) && (
-          <Link to={`/orders/${order.id}/pay`} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-white hover:bg-primary-dark" data-testid="pay-now">
+          <Link to={`/orders/${order.id}/pay`} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-on-primary hover:bg-primary-dark" data-testid="pay-now">
             <Icon name="qr_code_scanner" /> Bayar Sekarang
           </Link>
         )}
@@ -1178,32 +1177,32 @@ export function ProofVerifyPanel({ order, compact }: { order: Order; compact?: b
         <dl className="min-w-0 flex-1 space-y-1 text-sm">
           <div className="flex justify-between gap-2">
             <dt className="text-ink-3">{order.payment.invoice_number ? 'Invoice' : 'Pesanan'}</dt>
-            <dd className="font-mono text-xs font-bold text-navy">{order.payment.invoice_number ?? order.order_number}</dd>
+            <dd className="font-mono text-xs font-bold text-ink">{order.payment.invoice_number ?? order.order_number}</dd>
           </div>
           {order.payment.payer_reference && (
             <div className="flex justify-between gap-2">
               <dt className="text-ink-3">No. referensi</dt>
-              <dd className="font-mono text-xs font-bold text-navy" data-testid="proof-payer-reference">{order.payment.payer_reference}</dd>
+              <dd className="font-mono text-xs font-bold text-ink" data-testid="proof-payer-reference">{order.payment.payer_reference}</dd>
             </div>
           )}
           {order.payment.payer_name && (
             <div className="flex justify-between gap-2">
               <dt className="text-ink-3">Nama pengirim</dt>
-              <dd className="truncate font-semibold text-navy">{order.payment.payer_name}</dd>
+              <dd className="truncate font-semibold text-ink">{order.payment.payer_name}</dd>
             </div>
           )}
           <div className="flex justify-between gap-2">
             <dt className="text-ink-3">Nominal</dt>
-            <dd className="font-bold text-navy">{order.type === 'EMERGENCY' ? emergencyPrice(order.payment.amount) : rupiah(order.payment.amount)}</dd>
+            <dd className="font-bold text-ink">{order.type === 'EMERGENCY' ? emergencyPrice(order.payment.amount) : rupiah(order.payment.amount)}</dd>
           </div>
           <div className="flex justify-between gap-2">
             <dt className="text-ink-3">Pelanggan</dt>
-            <dd className="truncate font-semibold text-navy">{order.customer.name}</dd>
+            <dd className="truncate font-semibold text-ink">{order.customer.name}</dd>
           </div>
           {order.payment.uploaded_at && (
             <div className="flex justify-between gap-2">
               <dt className="text-ink-3">Diunggah</dt>
-              <dd className="text-navy">{dateTime(order.payment.uploaded_at)}</dd>
+              <dd className="text-ink">{dateTime(order.payment.uploaded_at)}</dd>
             </div>
           )}
           <div className="flex flex-wrap justify-between gap-2 pt-1">
@@ -1291,7 +1290,7 @@ export function OwnerOrderActions({ order }: { order: Order }) {
               )}
             </p>
             <p className="mb-3 font-label text-xs text-ink-2">
-              Kisaran biaya pelanggan: <b className="text-navy">{customerRange(order.emergency) ?? NEGOTIABLE}</b>
+              Kisaran biaya pelanggan: <b className="text-ink">{customerRange(order.emergency) ?? NEGOTIABLE}</b>
             </p>
             <div className="flex flex-wrap items-end gap-3">
               <Input label="Estimasi biaya (Rp, opsional)" hint="Kosongkan jika harga bisa dibicarakan" type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} className="w-48 bg-card" />
@@ -1378,7 +1377,7 @@ export function OwnerOrderActions({ order }: { order: Order }) {
         {!isEmergencyPending && !canStart && order.status !== 'IN_PROGRESS' && <p className="text-sm text-ink-3">Tidak ada tindakan untuk status ini.</p>}
 
         <div className="rounded-xl border border-line p-4">
-          <p className="mb-3 flex items-center gap-2 font-bold text-navy">
+          <p className="mb-3 flex items-center gap-2 font-bold text-ink">
             <Icon name="qr_code_scanner" className="text-primary" /> Verifikasi Pembayaran QRIS
           </p>
           <ProofVerifyPanel order={order} />
@@ -1476,11 +1475,11 @@ function RefundCancelModal({
     >
       <div className="mt-2 flex flex-col gap-3">
         <p>
-          Pelanggan sudah membayar <b className="text-navy">{rupiah(order.payment.amount)}</b> ke QRIS bengkel Anda. Kembalikan dana itu ke pelanggan (
+          Pelanggan sudah membayar <b className="text-ink">{rupiah(order.payment.amount)}</b> ke QRIS bengkel Anda. Kembalikan dana itu ke pelanggan (
           {order.customer.name}
           {order.customer.phone ? `, ${order.customer.phone}` : ''}) sebelum membatalkan.
         </p>
-        <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-line bg-surface-low p-3 text-sm text-navy">
+        <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-line bg-surface-low p-3 text-sm text-ink">
           <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[var(--color-emergency)]" checked={refunded} onChange={(e) => setRefunded(e.target.checked)} data-testid="refund-confirm" />
           <span>
             Saya sudah mengembalikan <b>{rupiah(order.payment.amount)}</b> ke pelanggan.
@@ -1541,7 +1540,7 @@ export function StatusHistoryCard({ order }: { order: Order }) {
           {(data ?? []).map((h, i) => (
             <li key={i} className="relative">
               <span className={cx('absolute top-1 -left-[25px] h-2.5 w-2.5 rounded-full ring-4 ring-card', h.kind === 'PAYMENT' ? 'bg-success' : 'bg-primary')} />
-              <p className="text-sm font-semibold text-navy">{(h.kind === 'PAYMENT' ? PAYMENT_HISTORY_LABEL : HISTORY_LABEL)[h.to_status] ?? h.to_status}</p>
+              <p className="text-sm font-semibold text-ink">{(h.kind === 'PAYMENT' ? PAYMENT_HISTORY_LABEL : HISTORY_LABEL)[h.to_status] ?? h.to_status}</p>
               <p className="font-label text-xs text-ink-3">
                 {dateTime(h.created_at)}
                 {h.actor_role && ` · ${ACTOR_LABEL[h.actor_role] ?? h.actor_role}${h.actor_name ? ` (${h.actor_name})` : ''}`}
@@ -1602,7 +1601,7 @@ export function RescheduleModal({ order, open, onClose }: { order: Order; open: 
     >
       <div className="mt-3 flex flex-col gap-4">
         <p className="text-sm text-ink-2">
-          Jadwal sekarang: <b className="text-navy">{order.booking && `${longDate(order.booking.booking_date)}, ${order.booking.time_slot}`}</b>. Slot lama dilepas untuk pelanggan lain. Jika jam baru penuh, Anda masuk daftar tunggu.
+          Jadwal sekarang: <b className="text-ink">{order.booking && `${longDate(order.booking.booking_date)}, ${order.booking.time_slot}`}</b>. Slot lama dilepas untuk pelanggan lain. Jika jam baru penuh, Anda masuk daftar tunggu.
         </p>
         <DateStrip value={date} onChange={(d) => { setDate(d); setSlot(''); }} days={14} />
         {slots.isLoading ? <SkeletonSlots /> : <SlotPicker slots={slots.data ?? []} value={slot} onChange={setSlot} />}

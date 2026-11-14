@@ -100,10 +100,9 @@ export default function WorkshopSearchPage() {
     <div className="flex flex-col gap-12">
       {geo.dialog}
       <section className="relative -mx-5 -mt-8 overflow-hidden px-5 pt-8 pb-2 sm:-mx-8 sm:-mt-12 sm:px-8 sm:pt-10 lg:-mx-20 lg:px-20">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_0%,#f0f3ff_0%,rgba(248,250,251,0)_70%)]" />
         <div className="relative">
           <p className="font-label text-label-sm text-primary uppercase">Cari &amp; booking</p>
-          <h1 className="mt-1 text-[21px] leading-tight font-bold tracking-[-0.02em] text-navy sm:text-headline-lg">Temukan Bengkel &amp; Pesan Servis</h1>
+          <h1 className="mt-1 text-[21px] leading-tight font-bold tracking-[-0.02em] text-ink sm:text-headline-lg">Temukan Bengkel &amp; Pesan Servis</h1>
           <p className="mt-2 max-w-2xl text-subtitle text-ink-2">
             Pilih kebutuhan Anda: booking servis terjadwal, minta bantuan darurat, atau cari bengkel terdekat.{' '}
             <Link to="/#cara-kerja" className="font-semibold text-primary hover:underline">
@@ -124,13 +123,13 @@ export default function WorkshopSearchPage() {
                     onClick={() => setTab(t.key)}
                     className={cx(
                       'inline-flex h-11 shrink-0 items-center gap-2 rounded-lg px-4 font-label text-sm font-semibold transition',
-                      active ? (t.key === 'sos' ? 'bg-emergency text-white shadow-sm' : 'bg-primary text-white shadow-sm') : 'bg-surface-low text-navy hover:bg-surface',
+                      active ? (t.key === 'sos' ? 'bg-emergency text-white shadow-sm' : 'bg-primary text-on-primary shadow-sm') : 'bg-surface-low text-ink hover:bg-surface',
                     )}
                   >
                     <Icon name={t.icon} className={cx(!active && t.key === 'sos' && 'text-emergency')} />
                     {t.label}
                     {t.badge && (
-                      <span className={cx('rounded-md px-1.5 py-0.5 text-[10px] font-bold', active ? 'bg-white text-primary' : t.key === 'sos' ? 'bg-emergency text-white' : 'bg-primary text-white')}>
+                      <span className={cx('rounded-md px-1.5 py-0.5 text-[10px] font-bold', active ? 'bg-on-primary text-primary' : t.key === 'sos' ? 'bg-emergency text-white' : 'bg-primary text-on-primary')}>
                         {t.badge}
                       </span>
                     )}
@@ -167,7 +166,7 @@ export default function WorkshopSearchPage() {
                 {geo.position && (
                   <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-label text-xs text-ink-2" data-testid="search-around">
                     <Icon name="near_me" className="text-[16px] text-primary" />
-                    Menampilkan bengkel di sekitar <b className="text-navy">{placeLabel ?? (gpsAddress.data ? `${gpsAddress.data.name} (lokasi GPS Anda)` : 'lokasi GPS Anda')}</b>
+                    Menampilkan bengkel di sekitar <b className="text-ink">{placeLabel ?? (gpsAddress.data ? `${gpsAddress.data.name} (lokasi GPS Anda)` : 'lokasi GPS Anda')}</b>
                     <button
                       type="button"
                       onClick={() => {
@@ -189,7 +188,7 @@ export default function WorkshopSearchPage() {
                   <FieldCell icon="location_on" label="Lokasi Anda" hint={geo.position ? `Radius pencarian < ${radiusKm} km` : geo.error ?? 'Belum ditentukan'}>
                     {geo.position ? (
                       <span className="flex items-center gap-2">
-                        <select value={radiusKm} onChange={(e) => setRadiusKm(Number(e.target.value))} className="min-w-0 flex-1 bg-transparent font-bold text-navy focus:outline-none" aria-label="Radius pencarian">
+                        <select value={radiusKm} onChange={(e) => setRadiusKm(Number(e.target.value))} className="min-w-0 flex-1 bg-transparent font-bold text-ink focus:outline-none" aria-label="Radius pencarian">
                           {[2, 5, 10, 20, 50].map((r) => (
                             <option key={r} value={r}>
                               {placeLabel ? 'Sekitar lokasi dipilih' : 'Sekitar saya'} · {r} km
@@ -215,7 +214,7 @@ export default function WorkshopSearchPage() {
                     )}
                   </FieldCell>
                   <FieldCell icon="directions_car" label="Jenis Kendaraan" hint="Bengkel yang melayani kendaraan ini">
-                    <select value={vehicle} onChange={(e) => setVehicle(e.target.value as VehicleType | '')} className="w-full bg-transparent font-bold text-navy focus:outline-none" aria-label="Jenis kendaraan">
+                    <select value={vehicle} onChange={(e) => setVehicle(e.target.value as VehicleType | '')} className="w-full bg-transparent font-bold text-ink focus:outline-none" aria-label="Jenis kendaraan">
                       <option value="">Semua kendaraan</option>
                       <option value="MOTOR">Motor</option>
                       <option value="MOBIL">Mobil</option>
@@ -229,13 +228,13 @@ export default function WorkshopSearchPage() {
                         min={jakartaDate(0)}
                         max={jakartaDate(30)}
                         onChange={(e) => e.target.value && setDate(e.target.value)}
-                        className="min-w-0 flex-1 bg-transparent font-bold text-navy focus:outline-none"
+                        className="min-w-0 flex-1 bg-transparent font-bold text-ink focus:outline-none"
                         aria-label="Tanggal servis"
                       />
                       <select
                         value={hours.includes(slotTime) ? slotTime : ''}
                         onChange={(e) => setSlotTime(e.target.value)}
-                        className="bg-transparent font-bold text-navy focus:outline-none"
+                        className="bg-transparent font-bold text-ink focus:outline-none"
                         aria-label="Jam servis"
                         data-testid="search-slot"
                       >
@@ -249,7 +248,7 @@ export default function WorkshopSearchPage() {
                     </span>
                   </FieldCell>
                   <FieldCell icon="search" label="Nama Bengkel" hint="Opsional, kosongkan untuk semua">
-                    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="mis. Jaya Motor" className="w-full bg-transparent font-bold text-navy placeholder:font-normal placeholder:text-ink-3 focus:outline-none" data-testid="search-input" />
+                    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="mis. Jaya Motor" className="w-full bg-transparent font-bold text-ink placeholder:font-normal placeholder:text-ink-3 focus:outline-none" data-testid="search-input" />
                   </FieldCell>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -271,7 +270,7 @@ export default function WorkshopSearchPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-label text-xs font-bold tracking-[0.04em] text-emergency-ink uppercase">Lokasi Anda (radius 5 km)</p>
-                    <p className="font-semibold text-navy">{geo.position ? `${geo.position.lat.toFixed(5)}, ${geo.position.lng.toFixed(5)}` : (geo.error ?? 'Lokasi belum terdeteksi')}</p>
+                    <p className="font-semibold text-ink">{geo.position ? `${geo.position.lat.toFixed(5)}, ${geo.position.lng.toFixed(5)}` : (geo.error ?? 'Lokasi belum terdeteksi')}</p>
                     <p className="font-label text-xs text-ink-2">Bengkel aktif dalam 5 km dari titik ini akan dihubungi otomatis.</p>
                   </div>
                   <Button variant="secondary" size="sm" icon="sync" loading={geo.locating} onClick={geo.locate} className="border-emergency text-emergency-ink hover:bg-card">
@@ -279,7 +278,7 @@ export default function WorkshopSearchPage() {
                   </Button>
                 </div>
                 <div>
-                  <p className="mb-2 font-label text-xs font-semibold text-navy">Pilih masalah kendaraan Anda saat ini:</p>
+                  <p className="mb-2 font-label text-xs font-semibold text-ink">Pilih masalah kendaraan Anda saat ini:</p>
                   <div className="grid grid-cols-2 gap-2 lg:grid-cols-4" role="radiogroup" aria-label="Masalah kendaraan">
                     {PROBLEMS.map((p) => {
                       const sel = problem === p.text;
@@ -294,7 +293,7 @@ export default function WorkshopSearchPage() {
                         >
                           <Icon name={p.icon} className={sel ? 'text-emergency' : 'text-ink-2'} />
                           <span>
-                            <span className="block text-sm font-bold text-navy">{p.label}</span>
+                            <span className="block text-sm font-bold text-ink">{p.label}</span>
                             <span className="block font-label text-[11px] text-ink-3">{p.hint}</span>
                           </span>
                         </button>
@@ -317,10 +316,10 @@ export default function WorkshopSearchPage() {
               <div className="flex flex-col gap-4">
                 <div className="grid gap-2 rounded-xl bg-surface-low p-2 sm:grid-cols-3">
                   <FieldCell icon="search" label="Cari Nama Bengkel" hint="Ketik minimal 1 huruf">
-                    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="mis. Jaya Motor" className="w-full bg-transparent font-bold text-navy placeholder:font-normal placeholder:text-ink-3 focus:outline-none" />
+                    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="mis. Jaya Motor" className="w-full bg-transparent font-bold text-ink placeholder:font-normal placeholder:text-ink-3 focus:outline-none" />
                   </FieldCell>
                   <FieldCell icon="directions_car" label="Jenis Kendaraan" hint="Bengkel yang melayani kendaraan ini">
-                    <select value={vehicle} onChange={(e) => setVehicle(e.target.value as VehicleType | '')} className="w-full bg-transparent font-bold text-navy focus:outline-none" aria-label="Jenis kendaraan">
+                    <select value={vehicle} onChange={(e) => setVehicle(e.target.value as VehicleType | '')} className="w-full bg-transparent font-bold text-ink focus:outline-none" aria-label="Jenis kendaraan">
                       <option value="">Semua kendaraan</option>
                       <option value="MOTOR">Motor</option>
                       <option value="MOBIL">Mobil</option>
@@ -334,7 +333,7 @@ export default function WorkshopSearchPage() {
                         setSort(next);
                         if (next === 'near' && !geo.position) geo.locate();
                       }}
-                      className="w-full bg-transparent font-bold text-navy focus:outline-none"
+                      className="w-full bg-transparent font-bold text-ink focus:outline-none"
                       aria-label="Urutkan"
                     >
                       <option value="recommended">{geo.position ? 'Rekomendasi (jarak + rating)' : 'Rekomendasi'}</option>
@@ -364,7 +363,7 @@ export default function WorkshopSearchPage() {
               <span className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-emergency" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="flex flex-wrap items-center gap-2 font-bold text-navy">
+              <p className="flex flex-wrap items-center gap-2 font-bold text-ink">
                 Kendaraan Tiba-tiba Mogok di Jalan Tol atau Pemukiman?
                 <span className="rounded-md bg-emergency-ink px-1.5 py-0.5 font-label text-[10px] font-bold text-white">Radius 5 Km</span>
               </p>
@@ -456,16 +455,16 @@ function RadarSection({ workshops, origin }: { workshops: Workshop[]; origin: { 
               <span className="rounded-md bg-emergency-ink px-1.5 py-0.5 font-label text-[10px] font-bold text-white uppercase">{origin ? 'Terdekat terdeteksi' : 'Rekomendasi'}</span>
               <span className="font-label text-[11px] text-ink-3">{regionOf(top.address)}</span>
             </div>
-            <p className="mt-2 font-bold text-navy">{top.name}</p>
+            <p className="mt-2 font-bold text-ink">{top.name}</p>
             <p className="line-clamp-2 text-xs text-ink-2">{top.description || top.address}</p>
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="rounded-lg bg-surface-low px-2.5 py-2">
                 <p className="font-label text-[10px] font-bold text-ink-3 uppercase">{origin ? 'Jarak' : 'Jam buka'}</p>
-                <p className="text-sm font-bold text-navy">{origin ? distance(top.distance_meters) : `${top.open_time}–${top.close_time}`}</p>
+                <p className="text-sm font-bold text-ink">{origin ? distance(top.distance_meters) : `${top.open_time}–${top.close_time}`}</p>
               </div>
               <div className="rounded-lg bg-surface-low px-2.5 py-2">
                 <p className="font-label text-[10px] font-bold text-ink-3 uppercase">Rating bengkel</p>
-                <p className="text-sm font-bold text-navy">★ {top.avg_rating > 0 ? `${top.avg_rating.toFixed(1)} / 5.0` : 'Baru'}</p>
+                <p className="text-sm font-bold text-ink">★ {top.avg_rating > 0 ? `${top.avg_rating.toFixed(1)} / 5.0` : 'Baru'}</p>
               </div>
             </div>
             <Link to="/emergency" className="mt-3 flex h-10 items-center justify-center gap-1.5 rounded-lg bg-emergency font-label text-sm font-bold text-white hover:bg-emergency-dark">

@@ -50,7 +50,7 @@ export function AddressHint({
       ) : address ? (
         <>
           <span className="min-w-0 flex-1">
-            Perkiraan alamat: <b className="text-navy">{address}</b>
+            Perkiraan alamat: <b className="text-ink">{address}</b>
           </span>
           {onUse && (
             <button type="button" onClick={() => onUse(address)} className="font-semibold text-primary hover:underline" data-testid="address-hint-use">

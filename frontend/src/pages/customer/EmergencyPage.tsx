@@ -218,7 +218,7 @@ export default function EmergencyPage() {
                         )}
                       >
                         <Icon name={p.icon} className={selected ? 'text-emergency' : 'text-ink-2'} />
-                        <span className="text-sm font-semibold text-navy">{p.label}</span>
+                        <span className="text-sm font-semibold text-ink">{p.label}</span>
                       </button>
                     );
                   })}
@@ -316,7 +316,7 @@ export default function EmergencyPage() {
                   <ul className="flex flex-col gap-2">
                     {workshops.map((w, i) => (
                       <li key={w.id} className={cx('flex items-center gap-3 rounded-xl border p-3', w.id === priorityId ? 'border-success/40 bg-success-soft/50' : 'border-line')}>
-                        <span className={cx('grid h-9 w-9 shrink-0 place-items-center rounded-full font-label text-sm font-bold', w.id === priorityId ? 'bg-success text-white' : 'bg-canvas text-ink-2')}>
+                        <span className={cx('grid h-9 w-9 shrink-0 place-items-center rounded-full font-label text-sm font-bold', w.id === priorityId ? 'bg-success text-on-primary' : 'bg-canvas text-ink-2')}>
                           {i + 1}
                         </span>
                         <div className="min-w-0 flex-1">
@@ -400,7 +400,7 @@ export function PriceRangeField({ value, onChange }: { value: PriceRange; onChan
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface-low p-4" data-testid="sos-price-range">
       <div>
-        <p className="font-label text-xs font-semibold text-navy">Kisaran biaya yang Anda siapkan</p>
+        <p className="font-label text-xs font-semibold text-ink">Kisaran biaya yang Anda siapkan</p>
         <p className="text-xs text-ink-3">Harga pasti ditentukan bengkel setelah diagnosa di lokasi. Pilih “Bisa dibicarakan” jika belum tahu.</p>
       </div>
       <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Kisaran biaya">
@@ -413,7 +413,7 @@ export function PriceRangeField({ value, onChange }: { value: PriceRange; onChan
             onClick={() => onChange(p.range)}
             className={cx(
               'h-9 rounded-lg border px-3.5 font-label text-xs font-semibold transition',
-              same(p.range) ? 'border-primary bg-primary text-white' : 'border-line bg-card text-navy hover:border-primary/50',
+              same(p.range) ? 'border-primary bg-primary text-on-primary' : 'border-line bg-card text-ink hover:border-primary/50',
             )}
           >
             {p.label}
@@ -428,7 +428,7 @@ export function PriceRangeField({ value, onChange }: { value: PriceRange; onChan
         <p className="text-xs text-emergency-ink">Nilai minimal lebih besar dari maksimal.</p>
       ) : (
         <p className="font-label text-xs text-ink-2">
-          Dikirim ke bengkel: <b className="text-navy">{rangeLabel(value)}</b>
+          Dikirim ke bengkel: <b className="text-ink">{rangeLabel(value)}</b>
         </p>
       )}
     </div>

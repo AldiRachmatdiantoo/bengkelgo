@@ -59,7 +59,7 @@ function Section({ n, id, title, subtitle, action, children }: { n: number; id?:
     <section id={id} className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 text-headline-sm text-navy">
+          <h2 className="flex items-center gap-2 text-headline-sm text-ink">
             <Icon name={n === 1 ? 'calendar_month' : n === 2 ? 'schedule' : 'directions_car'} className="text-primary" />
             {n}. {title}
           </h2>
@@ -150,7 +150,7 @@ export default function WorkshopDetailPage() {
       </div>
       <div className="-mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-primary/15 bg-sky px-4 py-3 sm:px-6">
         <Icon name="lock_clock" className="text-primary" />
-        <p className="text-sm text-navy">
+        <p className="text-sm text-ink">
           <b>Jadwal Anda aman:</b> jam yang Anda pilih langsung jadi milik Anda begitu Anda menekan konfirmasi, jadi tidak akan bentrok dengan pelanggan lain.
         </p>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-2.5 py-1 font-label text-[11px] font-bold text-success">
@@ -180,7 +180,7 @@ export default function WorkshopDetailPage() {
                       Ubah Bengkel
                     </Link>
                   </div>
-                  <h1 className="mt-1.5 text-headline-md break-words text-navy">{w.name}</h1>
+                  <h1 className="mt-1.5 text-headline-md break-words text-ink">{w.name}</h1>
                   <p className="mt-0.5 text-sm text-ink-2">{w.address}</p>
                 </div>
               </div>
@@ -191,7 +191,7 @@ export default function WorkshopDetailPage() {
                   <Icon name="schedule" className="text-[14px]" /> {w.is_open ? `Buka ${w.open_time}–${w.close_time}` : 'Sedang tutup'}
                 </span>
                 {geo.position ? (
-                  <span className="inline-flex items-center gap-1 font-semibold text-navy" data-testid="workshop-distance">
+                  <span className="inline-flex items-center gap-1 font-semibold text-ink" data-testid="workshop-distance">
                     <Icon name="near_me" className="text-[14px] text-primary" /> {distance(metersBetween(geo.position, { lat: w.latitude, lng: w.longitude }))} dari lokasi Anda
                   </span>
                 ) : (
@@ -216,7 +216,7 @@ export default function WorkshopDetailPage() {
                   <span className="min-w-0 flex-1">
                     Slot terdekat: <b>{friendlyDay(nextSlot.data.booking_date)}, {nextSlot.data.time_slot} WIB</b>
                   </span>
-                  <span className="shrink-0 rounded-md bg-success px-2 py-0.5 font-bold text-white">Pilih</span>
+                  <span className="shrink-0 rounded-md bg-success px-2 py-0.5 font-bold text-on-primary">Pilih</span>
                 </button>
               )}
             </div>
@@ -233,14 +233,14 @@ export default function WorkshopDetailPage() {
               {service && !pickService ? (
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="flex items-center gap-2 font-bold text-navy">
+                    <p className="flex items-center gap-2 font-bold text-ink">
                       <Icon name="tune" className="text-primary" /> {service.name}
                     </p>
                     {service.description && <p className="mt-1 text-sm text-ink-2">{service.description}</p>}
                   </div>
                   <div className="text-right">
                     <p className="font-label text-[11px] text-ink-3">Estimasi durasi</p>
-                    <p className="text-headline-sm text-navy">{service.duration_minutes} Menit</p>
+                    <p className="text-headline-sm text-ink">{service.duration_minutes} Menit</p>
                     <p className="font-label text-xs font-bold text-success">{vehicleLabel(service.vehicle_type)}</p>
                   </div>
                 </div>
@@ -256,20 +256,20 @@ export default function WorkshopDetailPage() {
               )}
               <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
                 {w.vehicle_types.map((v) => (
-                  <span key={v} className="inline-flex items-center gap-1.5 rounded-full bg-surface-low px-3 py-1 font-label text-xs font-semibold text-navy">
+                  <span key={v} className="inline-flex items-center gap-1.5 rounded-full bg-surface-low px-3 py-1 font-label text-xs font-semibold text-ink">
                     <Icon name={vehicleIcon(v)} className="text-[16px] text-primary" /> Melayani {vehicleLabel(v)}
                   </span>
                 ))}
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-low px-3 py-1 font-label text-xs font-semibold text-navy">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-low px-3 py-1 font-label text-xs font-semibold text-ink">
                   <Icon name="engineering" className="text-[16px] text-primary" /> {w.mechanics.length} mekanik
                 </span>
                 {w.has_qris && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-low px-3 py-1 font-label text-xs font-semibold text-navy">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-low px-3 py-1 font-label text-xs font-semibold text-ink">
                     <Icon name="qr_code_2" className="text-[16px] text-primary" /> QRIS Ready
                   </span>
                 )}
                 {w.accepts_emergency && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-low px-3 py-1 font-label text-xs font-semibold text-navy">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-low px-3 py-1 font-label text-xs font-semibold text-ink">
                     <Icon name="e911_emergency" className="text-[16px] text-emergency" /> Siaga SOS
                   </span>
                 )}
@@ -300,7 +300,7 @@ export default function WorkshopDetailPage() {
           >
             <DateStrip value={date} onChange={changeDate} />
             <p className="mt-3 font-label text-xs text-ink-2">
-              Dipilih: <b className="text-navy">{longDate(date)}</b> ({friendlyDay(date)})
+              Dipilih: <b className="text-ink">{longDate(date)}</b> ({friendlyDay(date)})
             </p>
           </Section>
 
@@ -331,7 +331,7 @@ export default function WorkshopDetailPage() {
               <SlotPicker slots={slots.data ?? []} value={slot} onChange={setSlot} durationMinutes={service?.duration_minutes} />
             )}
             {chosenSlot && (
-              <div className={cx('mt-5 flex items-start gap-3 rounded-xl border p-4 text-sm', chosenSlot.remaining === 0 ? 'border-warning/30 bg-warning-soft text-warning-ink' : 'border-success/20 bg-success-soft text-[#006b35]')}>
+              <div className={cx('mt-5 flex items-start gap-3 rounded-xl border p-4 text-sm', chosenSlot.remaining === 0 ? 'border-warning/30 bg-warning-soft text-warning-ink' : 'border-success/20 bg-success-soft text-success')}>
                 <Icon name={chosenSlot.remaining === 0 ? 'hourglass_top' : 'verified'} className="mt-px" />
                 <p>
                   {chosenSlot.remaining === 0 ? (
@@ -410,25 +410,25 @@ export default function WorkshopDetailPage() {
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-xl border border-line bg-card p-5 shadow-lift">
             <div className="mb-4 flex items-center justify-between gap-2">
-              <h3 className="text-headline-sm text-navy">Ringkasan Pesanan</h3>
+              <h3 className="text-headline-sm text-ink">Ringkasan Pesanan</h3>
               <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 font-label text-[11px] font-bold text-success">
                 <Icon name="verified_user" className="text-[14px]" /> Aman &amp; Terlindungi
               </span>
             </div>
             <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-sky p-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary text-white">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary text-on-primary">
                 <Icon name="event_available" />
               </span>
               <div className="min-w-0">
                 <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Waktu kedatangan</p>
-                <p className="font-bold text-navy">{longDate(date)}</p>
+                <p className="font-bold text-ink">{longDate(date)}</p>
                 <p className="font-label text-xs text-ink-2">{slot ? `Pukul ${slotRange(slot)} WIB` : 'Pilih jam kedatangan'}</p>
               </div>
             </div>
             <dl className="mt-4 space-y-2.5 text-sm">
               <div className="flex justify-between gap-3">
                 <dt className="text-ink-2">{service ? service.name : 'Paket servis'}</dt>
-                <dd className="font-semibold text-navy">{service ? rupiah(service.price) : '-'}</dd>
+                <dd className="font-semibold text-ink">{service ? rupiah(service.price) : '-'}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="flex items-center gap-1 text-ink-2">Biaya layanan aplikasi</dt>
@@ -436,7 +436,7 @@ export default function WorkshopDetailPage() {
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-ink-2">Biaya pesan jadwal</dt>
-                <dd className="font-semibold text-navy">Rp0</dd>
+                <dd className="font-semibold text-ink">Rp0</dd>
               </div>
             </dl>
             <div className="mt-4 flex items-end justify-between gap-3 border-t border-dashed border-line-strong pt-4">
@@ -444,7 +444,7 @@ export default function WorkshopDetailPage() {
                 <p className="font-label text-[11px] text-ink-3">Total tagihan (estimasi)</p>
                 <p className="font-label text-[11px] font-semibold text-success">Dibayar via QRIS bengkel</p>
               </div>
-              <p className="text-[22px] leading-none font-extrabold tracking-[-0.02em] text-navy">{service ? rupiah(service.price) : '-'}</p>
+              <p className="text-[22px] leading-none font-extrabold tracking-[-0.02em] text-ink">{service ? rupiah(service.price) : '-'}</p>
             </div>
             <ul className="mt-4 space-y-2 border-t border-line pt-4 text-xs text-ink-2">
               {[
@@ -487,7 +487,7 @@ export default function WorkshopDetailPage() {
               <Icon name="support_agent" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-navy">Punya pertanyaan khusus?</p>
+              <p className="text-sm font-bold text-ink">Punya pertanyaan khusus?</p>
               <p className="font-label text-xs text-ink-2">Hubungi bengkel langsung sebelum datang.</p>
             </div>
             <a href={`tel:${w.phone}`} className="font-label text-xs font-bold text-primary hover:underline">
@@ -498,7 +498,7 @@ export default function WorkshopDetailPage() {
             href={directionsUrl({ lat: w.latitude, lng: w.longitude })}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-center gap-2 rounded-xl border border-line bg-card p-3 font-label text-sm font-bold text-navy shadow-sm hover:bg-sky"
+            className="flex items-center justify-center gap-2 rounded-xl border border-line bg-card p-3 font-label text-sm font-bold text-ink shadow-sm hover:bg-sky"
           >
             <Icon name="near_me" className="text-primary" /> Lihat rute ke bengkel
           </a>

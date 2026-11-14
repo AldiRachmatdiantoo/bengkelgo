@@ -21,7 +21,7 @@ export function AdminSearchBox() {
         onChange={(e) => setQ(e.target.value)}
         placeholder="Cari bengkel, pesanan, invoice, pengguna"
         aria-label="Cari"
-        className="min-w-0 flex-1 bg-transparent text-sm text-navy placeholder:text-ink-3 focus:outline-none"
+        className="min-w-0 flex-1 bg-transparent text-sm text-ink placeholder:text-ink-3 focus:outline-none"
         data-testid="admin-search-input"
       />
     </form>

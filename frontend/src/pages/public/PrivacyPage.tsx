@@ -13,7 +13,7 @@ export default function PrivacyPage() {
   return (
     <article className="mx-auto max-w-3xl py-6 sm:py-10">
       <p className="font-label text-label-sm text-primary uppercase">Kebijakan</p>
-      <h1 className="mt-2 text-headline-lg text-balance text-navy">Kebijakan Privasi BengkelGo</h1>
+      <h1 className="mt-2 text-headline-lg text-balance text-ink">Kebijakan Privasi BengkelGo</h1>
       <p className="mt-3 text-sm text-ink-3">Berlaku sejak 20 Oktober 2026 · Versi draf, akan disempurnakan</p>
 
       <div className="mt-8 space-y-8 text-[15px] leading-relaxed text-ink-2">
@@ -120,7 +120,7 @@ export default function PrivacyPage() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section>
-      <h2 className="mb-3 text-headline-sm text-navy">{title}</h2>
+      <h2 className="mb-3 text-headline-sm text-ink">{title}</h2>
       {children}
     </section>
   );

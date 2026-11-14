@@ -138,7 +138,7 @@ export function useGeolocation() {
         }
       >
         <p className="mt-2">Lokasi dipakai untuk mencari bengkel terdekat dan mengirim mekanik ke titik Anda. Lokasi hanya diambil saat Anda menekan tombol GPS.</p>
-        <p className="mt-3 flex items-start gap-2 rounded-lg bg-sky p-3 text-sm text-navy">
+        <p className="mt-3 flex items-start gap-2 rounded-lg bg-sky p-3 text-sm text-ink">
           <Icon name="info" className="mt-px text-primary" />
           <span>
             Setelah ini browser akan bertanya. Pilih <b>Izinkan</b> (atau <b>Allow</b>).

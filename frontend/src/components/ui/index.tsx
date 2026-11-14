@@ -21,11 +21,11 @@ export function Icon({ name, filled, className }: { name: string; filled?: boole
 // ---------- Button ----------
 type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost' | 'navy';
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-primary text-white shadow-soft hover:bg-primary-dark',
+  primary: 'bg-primary text-on-primary shadow-soft hover:bg-primary-dark',
   secondary: 'border-[1.5px] border-primary bg-card text-primary hover:bg-sky',
   danger: 'bg-emergency text-white shadow-soft hover:bg-emergency-dark',
-  success: 'bg-success text-white shadow-soft hover:brightness-95',
-  ghost: 'text-navy hover:bg-sky',
+  success: 'bg-success text-on-primary shadow-soft hover:brightness-95',
+  ghost: 'text-ink hover:bg-sky',
   navy: 'bg-navy text-white shadow-soft hover:bg-navy/90',
 };
 
@@ -62,7 +62,7 @@ function FieldShell({ label, hint, error, id, icon, children }: { label?: string
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       {label && (
-        <label htmlFor={id} className="font-label text-xs font-semibold text-navy">
+        <label htmlFor={id} className="font-label text-xs font-semibold text-ink">
           {label}
         </label>
       )}
@@ -77,7 +77,7 @@ function FieldShell({ label, hint, error, id, icon, children }: { label?: string
 }
 
 const fieldClass =
-  'w-full rounded-lg border border-line-strong bg-card px-3.5 text-xs text-navy placeholder:text-ink-3 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:bg-canvas';
+  'w-full rounded-lg border border-line-strong bg-card px-3.5 text-xs text-ink placeholder:text-ink-3 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:bg-canvas';
 
 type FieldProps = { label?: string; hint?: string; error?: string; icon?: string };
 
@@ -201,7 +201,7 @@ export function Segmented<T extends string>({
           className={cx(
             'inline-flex shrink-0 items-center gap-1.5 rounded-md font-label font-semibold whitespace-nowrap transition',
             size === 'sm' ? 'h-8 px-3 text-xs' : 'h-10 px-4 text-sm',
-            value === o.value ? 'bg-card text-primary shadow-soft' : 'text-ink-2 hover:text-navy',
+            value === o.value ? 'bg-card text-primary shadow-soft' : 'text-ink-2 hover:text-ink',
           )}
         >
           {o.icon && <Icon name={o.icon} />}
@@ -246,7 +246,7 @@ export function Card({
               </span>
             )}
             <div className="min-w-0">
-              {title && <h2 className="text-lg leading-snug font-bold text-navy">{title}</h2>}
+              {title && <h2 className="text-lg leading-snug font-bold text-ink">{title}</h2>}
               {subtitle && <p className="mt-0.5 text-subtitle text-ink-2">{subtitle}</p>}
             </div>
           </div>
@@ -260,8 +260,8 @@ export function Card({
 
 const TONES: Record<Tone, { chip: string; dot: string; alert: string; icon: string }> = {
   neutral: { chip: 'bg-canvas text-ink-2 border border-line', dot: 'bg-ink-3', alert: 'bg-canvas text-ink-2 border-line', icon: 'info' },
-  info: { chip: 'bg-sky text-primary-dark', dot: 'bg-primary', alert: 'bg-sky text-navy border-primary/20', icon: 'info' },
-  success: { chip: 'bg-success-soft text-success', dot: 'bg-success', alert: 'bg-success-soft text-[#006b35] border-success/20', icon: 'check_circle' },
+  info: { chip: 'bg-sky text-primary-dark', dot: 'bg-primary', alert: 'bg-sky text-ink border-primary/20', icon: 'info' },
+  success: { chip: 'bg-success-soft text-success', dot: 'bg-success', alert: 'bg-success-soft text-success border-success/20', icon: 'check_circle' },
   warning: { chip: 'bg-warning-soft text-warning-ink', dot: 'bg-warning', alert: 'bg-warning-soft text-warning-ink border-warning/30', icon: 'schedule' },
   danger: { chip: 'bg-emergency-soft text-emergency-ink', dot: 'bg-emergency', alert: 'bg-emergency-soft text-emergency-ink border-emergency/20', icon: 'error' },
 };
@@ -547,7 +547,7 @@ export function PageHeader({ title, subtitle, actions, eyebrow }: { title: React
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
         {eyebrow && <p className="mb-1 font-label text-xs font-bold tracking-[0.06em] text-primary uppercase">{eyebrow}</p>}
-        <h1 className="text-[20px] leading-tight font-bold tracking-[-0.015em] text-navy sm:text-[24px]">{title}</h1>
+        <h1 className="text-[20px] leading-tight font-bold tracking-[-0.015em] text-ink sm:text-[24px]">{title}</h1>
         {subtitle && <div className="mt-1.5 text-subtitle text-ink-2">{subtitle}</div>}
       </div>
       {actions}
@@ -557,7 +557,7 @@ export function PageHeader({ title, subtitle, actions, eyebrow }: { title: React
 
 export function Stars({ value, count }: { value: number; count?: number }) {
   return (
-    <span className="inline-flex items-center gap-1 font-label text-sm font-semibold text-navy" role="img" aria-label={value > 0 ? `Rating ${value.toFixed(1)} dari 5` : 'Belum ada rating'}>
+    <span className="inline-flex items-center gap-1 font-label text-sm font-semibold text-ink" role="img" aria-label={value > 0 ? `Rating ${value.toFixed(1)} dari 5` : 'Belum ada rating'}>
       <Icon name="star" filled className="text-[18px] text-warning" />
       {value > 0 ? value.toFixed(1) : 'Baru'}
       {count != null && <span className="font-normal text-ink-3">({count})</span>}
@@ -593,7 +593,7 @@ export function StatCard({
           <Icon name={icon} />
         </span>
       </div>
-      <p className="flex flex-wrap items-baseline gap-x-2 text-[22px] leading-none font-extrabold tracking-[-0.02em] text-navy">
+      <p className="flex flex-wrap items-baseline gap-x-2 text-[22px] leading-none font-extrabold tracking-[-0.02em] text-ink">
         {value}
         {aside && <span className="font-label text-xs font-semibold tracking-normal text-ink-2">{aside}</span>}
       </p>
@@ -624,7 +624,7 @@ export function InfoRow({ icon, label, children }: { icon?: string; label: strin
       )}
       <div className="min-w-0">
         <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">{label}</p>
-        <div className="mt-0.5 font-semibold break-words text-navy">{children}</div>
+        <div className="mt-0.5 font-semibold break-words text-ink">{children}</div>
       </div>
     </div>
   );
@@ -642,7 +642,7 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
             <span
               className={cx(
                 'grid h-8 w-8 shrink-0 place-items-center rounded-full font-label text-sm font-bold',
-                done ? 'bg-success text-white' : active ? 'bg-primary text-white ring-4 ring-primary-fixed' : 'border border-line-strong bg-card text-ink-3',
+                done ? 'bg-success text-on-primary' : active ? 'bg-primary text-on-primary ring-4 ring-primary-fixed' : 'border border-line-strong bg-card text-ink-3',
               )}
             >
               {done ? <Icon name="check" /> : i + 1}
@@ -652,7 +652,7 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
                 Langkah {i + 1}
                 {active && ' • Aktif'}
               </span>
-              <span className={cx('block truncate text-sm font-semibold', done || active ? 'text-navy' : 'text-ink-3')}>{s}</span>
+              <span className={cx('block truncate text-sm font-semibold', done || active ? 'text-ink' : 'text-ink-3')}>{s}</span>
             </span>
             {i < steps.length - 1 && <span className={cx('h-0.5 min-w-4 flex-1 rounded-full', done ? 'bg-success' : 'bg-line')} />}
           </li>
@@ -703,7 +703,7 @@ export function Pagination({
   if (pages <= 1) return null;
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
-  const arrow = 'grid h-10 w-10 place-items-center rounded-lg border border-line bg-card text-navy transition hover:bg-sky disabled:pointer-events-none disabled:opacity-40';
+  const arrow = 'grid h-10 w-10 place-items-center rounded-lg border border-line bg-card text-ink transition hover:bg-sky disabled:pointer-events-none disabled:opacity-40';
   return (
     <nav aria-label="Halaman hasil" className={cx('flex flex-col items-center gap-3', className)} data-testid="pagination">
       <p className="font-label text-xs text-ink-3">
@@ -722,7 +722,7 @@ export function Pagination({
             aria-label={`Halaman ${n}`}
             className={cx(
               'h-10 min-w-10 rounded-lg px-3 font-label text-sm font-bold transition',
-              n === page ? 'bg-primary text-white shadow-sm' : 'border border-line bg-card text-navy hover:bg-sky',
+              n === page ? 'bg-primary text-on-primary shadow-sm' : 'border border-line bg-card text-ink hover:bg-sky',
             )}
           >
             {n}
@@ -754,7 +754,7 @@ export function SectionHeading({
     <div className={cx('mb-6 flex gap-4', center ? 'flex-col items-center text-center' : 'flex-wrap items-end justify-between')}>
       <div className={cx('min-w-0', center && 'mx-auto max-w-2xl')}>
         {eyebrow && <p className="mb-1 font-label text-label-sm text-primary uppercase">{eyebrow}</p>}
-        <h2 className="text-[20px] leading-tight font-bold tracking-[-0.015em] text-navy sm:text-headline-lg">{title}</h2>
+        <h2 className="text-[20px] leading-tight font-bold tracking-[-0.015em] text-ink sm:text-headline-lg">{title}</h2>
         {subtitle && <p className="mt-1 text-subtitle text-ink-2">{subtitle}</p>}
       </div>
       {action}
@@ -816,7 +816,7 @@ export function Modal({
             </span>
           )}
           <div className="min-w-0 flex-1">
-            <h3 className="text-headline-sm text-navy">{title}</h3>
+            <h3 className="text-headline-sm text-ink">{title}</h3>
             <div className="mt-1 text-sm text-ink-2">{children}</div>
           </div>
         </div>
@@ -864,7 +864,7 @@ export function Toaster() {
             <Icon name={TONES[t.tone].icon} />
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-navy">{t.title}</p>
+            <p className="text-sm font-semibold text-ink">{t.title}</p>
             {t.text && <p className="text-xs text-ink-2">{t.text}</p>}
           </div>
         </div>
@@ -885,7 +885,7 @@ export function CopyButton({ text, label = 'Salin', className }: { text: string;
           setTimeout(() => setDone(false), 1500);
         });
       }}
-      className={cx('inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-card px-3 font-label text-xs font-semibold text-navy hover:bg-sky', className)}
+      className={cx('inline-flex h-9 items-center gap-1.5 rounded-lg border border-line bg-card px-3 font-label text-xs font-semibold text-ink hover:bg-sky', className)}
       aria-label={`${label}: ${text}`}
     >
       <Icon name={done ? 'check' : 'content_copy'} className="text-[16px]" /> {done ? 'Tersalin' : label}
@@ -900,7 +900,7 @@ export function QrCode({ value, size = 160, className }: { value: string; size?:
     let alive = true;
     // The QR library is only needed on order pages, so it is downloaded the first time a code is shown.
     import('qrcode')
-      .then((QRCode) => QRCode.toString(value, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: '#192557', light: '#FFFFFF' } }))
+      .then((QRCode) => QRCode.toString(value, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: '#102019', light: '#F7FAF6' } }))
       .then((out) => {
         if (alive) setSvg(out);
       })

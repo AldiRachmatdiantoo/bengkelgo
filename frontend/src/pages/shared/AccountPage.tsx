@@ -61,7 +61,7 @@ function ProfileCard({ user }: { user: User }) {
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
         <UserAvatar user={user} size="xl" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-lg font-bold text-navy" data-testid="account-name">
+          <p className="truncate text-lg font-bold text-ink" data-testid="account-name">
             {user.name}
           </p>
           <p className="font-label text-sm text-ink-2">
@@ -232,7 +232,7 @@ function EmailCard({ user }: { user: User }) {
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface-low px-4 py-3">
           <div className="min-w-0">
-            <p className="truncate font-semibold text-navy" data-testid="account-email">
+            <p className="truncate font-semibold text-ink" data-testid="account-email">
               {user.email}
             </p>
             <p className="font-label text-xs text-ink-2">{user.email_verified ? 'Terverifikasi' : 'Belum diverifikasi'}</p>
@@ -450,7 +450,7 @@ function SessionsCard() {
                   <Icon name={d.icon} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="flex flex-wrap items-center gap-2 font-semibold text-navy">
+                  <p className="flex flex-wrap items-center gap-2 font-semibold text-ink">
                     {d.name}
                     {s.current && <Badge tone="success">Perangkat ini</Badge>}
                   </p>

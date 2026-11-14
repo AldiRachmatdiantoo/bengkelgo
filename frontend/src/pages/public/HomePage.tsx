@@ -13,7 +13,7 @@ const ADVANTAGES = [
   { icon: 'hourglass_disabled', tone: 'bg-primary', title: 'Jadwal Anti-Bentrok', text: 'Setiap jam punya batas jumlah pelanggan. Begitu Anda konfirmasi, jam itu langsung jadi milik Anda dan tidak bisa diambil orang lain.', foot: 'Diuji 100 pemesan sekaligus, tidak ada yang bentrok', footIcon: 'check_circle', footTone: 'text-primary' },
   { icon: 'location_on', tone: 'bg-emergency', title: 'Pencarian Darurat 5 KM', text: 'Bengkel aktif terdekat dengan mekanik terbaik dihubungi lebih dulu. Jika tidak merespons dalam 2 menit, dialihkan otomatis.', foot: 'Pengalihan otomatis 2 menit', footIcon: 'bolt', footTone: 'text-emergency-ink' },
   { icon: 'qr_code_2', tone: 'bg-success', title: 'Pembayaran QRIS Bengkel', text: 'Bayar langsung ke QRIS milik bengkel, lalu unggah bukti. Bengkel memverifikasi dan status langsung terlihat di aplikasi.', foot: 'Transparan & tercatat', footIcon: 'check_circle', footTone: 'text-success' },
-  { icon: 'shield', tone: 'bg-navy', title: 'Rating Mekanik Dinamis', text: 'Setiap ulasan pelanggan memperbarui rating mekanik. Rating ini ikut menentukan prioritas penugasan panggilan darurat.', foot: 'Berdasarkan ulasan asli', footIcon: 'verified', footTone: 'text-navy' },
+  { icon: 'shield', tone: 'bg-navy', title: 'Rating Mekanik Dinamis', text: 'Setiap ulasan pelanggan memperbarui rating mekanik. Rating ini ikut menentukan prioritas penugasan panggilan darurat.', foot: 'Berdasarkan ulasan asli', footIcon: 'verified', footTone: 'text-ink' },
 ];
 
 const FAQ = [
@@ -90,19 +90,18 @@ export default function HomePage() {
     <div className="flex flex-col gap-20">
       {/* ------------------------------------------------ hero: what BengkelGo is */}
       <section className="relative -mx-5 -mt-8 overflow-hidden px-5 pt-12 pb-4 sm:-mx-8 sm:-mt-12 sm:px-8 sm:pt-16 lg:-mx-20 lg:px-20">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_80%_at_85%_0%,#f0f3ff_0%,rgba(248,250,251,0)_70%)]" />
         <div className="relative grid items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
           <Reveal>
             <p className="inline-flex items-center gap-2 font-label text-xs font-bold text-primary" data-testid="hero-location-chip">
               <Icon name="location_on" className="text-[20px]" />
               Temukan bengkel terdekat, di mana pun Anda berada
             </p>
-            <h1 className="mt-5 text-display-mobile text-navy sm:text-display">Solusi Lengkap Servis Kendaraan &amp; <span className="text-primary">Bantuan Darurat 24 Jam</span></h1>
+            <h1 className="mt-5 text-display-mobile text-ink sm:text-display">Solusi Lengkap Servis Kendaraan &amp; <span className="text-primary">Bantuan Darurat 24 Jam</span></h1>
             <p className="mt-4 max-w-xl text-subtitle leading-relaxed text-ink-2 sm:text-[15px]">
               BengkelGo menghubungkan pemilik motor dan mobil dengan bengkel UMKM terverifikasi di sekitar Anda. Pesan jadwal servis tanpa antre lama, atau panggil mekanik saat kendaraan mogok di jalan.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/workshops?tab=booking" className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-6 font-label text-sm font-bold text-white shadow-sm hover:bg-primary-dark" data-testid="hero-booking">
+              <Link to="/workshops?tab=booking" className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-6 font-label text-sm font-bold text-on-primary shadow-sm hover:bg-primary-dark" data-testid="hero-booking">
                 <Icon name="calendar_month" /> Cari &amp; Booking Bengkel
               </Link>
               <Link to="/emergency" className="inline-flex h-12 items-center gap-2 rounded-lg border-[1.5px] border-emergency bg-transparent px-6 font-label text-sm font-bold text-emergency-ink transition hover:bg-emergency-soft">
@@ -142,7 +141,7 @@ export default function HomePage() {
               <span className={cx('grid h-12 w-12 place-items-center rounded-lg text-white', s.tone)}>
                 <Icon name={s.icon} />
               </span>
-              <h3 className="text-headline-sm text-navy">{s.title}</h3>
+              <h3 className="text-headline-sm text-ink">{s.title}</h3>
               <p className="flex-1 text-sm leading-relaxed text-ink-2">{s.text}</p>
               {s.sos ? (
                 <span className="inline-flex h-10 items-center gap-1.5 self-start rounded-lg bg-emergency px-5 font-label text-sm font-bold text-white shadow-sm transition group-hover:bg-emergency-dark">
@@ -174,7 +173,7 @@ export default function HomePage() {
                 <span className={cx('grid h-12 w-12 place-items-center rounded-xl text-white shadow-soft', a.tone)}>
                   <Icon name={a.icon} className="text-[24px]" />
                 </span>
-                <h3 className="text-headline-sm font-bold text-navy">{a.title}</h3>
+                <h3 className="text-headline-sm font-bold text-ink">{a.title}</h3>
                 <p className="flex-1 text-sm leading-relaxed text-ink-2">{a.text}</p>
                 <p className={cx('flex items-center gap-1.5 font-label text-label-sm', a.footTone)}>
                   {a.foot} <Icon name={a.footIcon} className="text-[16px]" />
@@ -189,13 +188,12 @@ export default function HomePage() {
       <ReviewsSection workshops={workshops.data ?? []} />
 
       {/* ------------------------------------------------ partner banner */}
-      <Reveal as="section" className="relative overflow-hidden rounded-xl bg-gradient-to-r from-navy via-[#273C9B] to-primary p-8 text-white shadow-lift sm:p-12">
-        <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
+      <Reveal as="section" className="relative overflow-hidden rounded-xl border border-line bg-surface p-8 text-ink sm:p-12">
         <div className="relative grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-center">
           <div>
-            <span className="inline-flex rounded-full bg-white/15 px-3 py-1 font-label text-[11px] font-bold tracking-[0.04em] uppercase">Portal Pemilik Bengkel UMKM</span>
+            <span className="inline-flex rounded-md bg-card px-3 py-1 font-label text-xs font-bold text-primary">Portal Pemilik Bengkel UMKM</span>
             <h2 className="mt-4 text-[20px] leading-tight font-bold tracking-[-0.015em] sm:text-headline-lg">Kelola Antrean Bengkel Anda Lebih Rapi bersama BengkelGo</h2>
-            <p className="mt-3 max-w-xl text-subtitle text-white/80">Tinggalkan catatan antrean kertas. Atur kapasitas per jam, mekanik, panggilan darurat dalam radius 5 km, dan verifikasi pembayaran QRIS dari satu dashboard.</p>
+            <p className="mt-3 max-w-xl text-subtitle text-ink-2">Tinggalkan catatan antrean kertas. Atur kapasitas per jam, mekanik, panggilan darurat dalam radius 5 km, dan verifikasi pembayaran QRIS dari satu dashboard.</p>
             <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2 font-label text-xs font-semibold">
               {['Pendaftaran online', 'Kelola antrean & kapasitas per jam', 'Terima panggilan darurat sekitar'].map((t) => (
                 <li key={t} className="inline-flex items-center gap-1.5">
@@ -205,10 +203,10 @@ export default function HomePage() {
             </ul>
           </div>
           <div className="flex flex-col gap-3 lg:items-end">
-            <Link to="/register/workshop" className="inline-flex h-12 items-center justify-center rounded-lg bg-card px-7 font-label text-sm font-bold text-navy hover:bg-sky">
+            <Link to="/register/workshop" className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-7 font-label text-sm font-bold text-on-primary hover:bg-primary-dark">
               Daftarkan Bengkel Sekarang
             </Link>
-            <Link to="/login" className="inline-flex h-12 items-center justify-center rounded-lg bg-white/15 px-7 font-label text-sm font-bold text-white hover:bg-white/25">
+            <Link to="/login" className="inline-flex h-12 items-center justify-center rounded-lg border border-line bg-card px-7 font-label text-sm font-bold text-ink hover:bg-sky">
               Masuk Portal Mitra
             </Link>
           </div>
@@ -221,7 +219,7 @@ export default function HomePage() {
         <div className="flex max-w-3xl flex-col gap-3">
           {FAQ.map((f) => (
             <details key={f.q} className="group rounded-xl bg-surface-low px-5 py-4 open:bg-card open:shadow-sm open:ring-1 open:ring-line">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-bold text-navy [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-bold text-ink [&::-webkit-details-marker]:hidden">
                 {f.q}
                 <Icon name="expand_more" className="text-primary transition group-open:rotate-180" />
               </summary>
@@ -244,7 +242,6 @@ function HeroVisual() {
   return (
     <div className="relative mx-auto w-full max-w-lg" aria-hidden>
       {/* soft brand glow behind the tile */}
-      <div className="absolute inset-[8%] rounded-full bg-[radial-gradient(circle,#d3dbfd_0%,rgba(211,219,253,0)_70%)] blur-2xl" />
       <m.img
         src={heroWorkshop}
         alt=""
@@ -261,7 +258,7 @@ function HeroVisual() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.35 + i * 0.12, ease: 'easeOut' }}
-          className={cx('absolute flex items-center gap-2 rounded-xl bg-card/95 px-4 py-3 font-label text-sm font-bold text-navy shadow-lift ring-1 ring-line/60 backdrop-blur', c.pos)}
+          className={cx('absolute flex items-center gap-2 rounded-xl bg-card/95 px-4 py-3 font-label text-sm font-bold text-ink shadow-lift ring-1 ring-line/60 backdrop-blur', c.pos)}
         >
           <Icon name={c.icon} className={c.tone} /> {c.text}
         </m.span>
@@ -343,11 +340,11 @@ function HowItWorks({ sectionRef }: { sectionRef: React.RefObject<HTMLElement | 
             <RevealItem as="li" key={s.title} className="relative flex flex-col items-center text-center">
               <span className={cx('relative z-10 grid h-14 w-14 place-items-center rounded-full text-white shadow-lift ring-8 ring-canvas', g.tone)}>
                 <Icon name={s.icon} className="text-[20px]" />
-                <span className="absolute -top-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-card font-label text-xs font-bold text-navy shadow-sm">{i + 1}</span>
+                <span className="absolute -top-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-card font-label text-xs font-bold text-ink shadow-sm">{i + 1}</span>
               </span>
               <div className="mt-4 flex w-full flex-1 flex-col rounded-xl border border-line bg-card p-5 shadow-sm">
                 <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Langkah {i + 1}</p>
-                <h3 className="mt-1 text-headline-sm text-navy">{s.title}</h3>
+                <h3 className="mt-1 text-headline-sm text-ink">{s.title}</h3>
                 <p className="mt-2 flex-1 text-sm text-ink-2">{s.text}</p>
                 <p className="mt-4 inline-flex items-center justify-center gap-1 self-center rounded-full bg-surface-low px-3 py-1 font-label text-[11px] font-semibold text-ink-2">
                   <Icon name="touch_app" className="text-[14px] text-primary" /> {s.note}
@@ -388,7 +385,7 @@ function ReviewsSection({ workshops }: { workshops: Workshop[] }) {
         action={
           <span className="flex items-center gap-2">
             <StarRow rating={Math.round(avg)} className="[&_span]:text-[20px]" />
-            <span className="text-headline-sm text-navy">{avg.toFixed(1)} / 5.0</span>
+            <span className="text-headline-sm text-ink">{avg.toFixed(1)} / 5.0</span>
           </span>
         }
       />
@@ -396,7 +393,7 @@ function ReviewsSection({ workshops }: { workshops: Workshop[] }) {
         {reviews.map((r) => (
           <figure key={r.id} className="flex flex-col gap-4 rounded-xl border border-line bg-card p-6 shadow-sm">
             <StarRow rating={r.rating} />
-            <blockquote className="flex-1 text-sm leading-relaxed text-navy italic">“{r.comment}”</blockquote>
+            <blockquote className="flex-1 text-sm leading-relaxed text-ink italic">“{r.comment}”</blockquote>
             <figcaption className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-full bg-sky font-label text-sm font-bold text-primary">
                 {r.customer_name
@@ -407,7 +404,7 @@ function ReviewsSection({ workshops }: { workshops: Workshop[] }) {
                   .toUpperCase()}
               </span>
               <span>
-                <span className="block text-sm font-bold text-navy">{r.customer_name}</span>
+                <span className="block text-sm font-bold text-ink">{r.customer_name}</span>
                 <span className="block font-label text-xs text-ink-3">{r.workshop}</span>
               </span>
             </figcaption>
@@ -433,7 +430,7 @@ function PlatformNumbers() {
     <section aria-label="BengkelGo dalam angka" className="grid grid-cols-2 gap-4 rounded-xl border border-line bg-card p-5 shadow-sm sm:grid-cols-3 lg:grid-cols-5" data-testid="platform-numbers">
       {items.map((i) => (
         <div key={i.label}>
-          <p className="text-headline-md font-extrabold text-navy tabular-nums">{i.value}</p>
+          <p className="text-headline-md font-extrabold text-ink tabular-nums">{i.value}</p>
           <p className="font-label text-xs text-ink-2">{i.label}</p>
         </div>
       ))}

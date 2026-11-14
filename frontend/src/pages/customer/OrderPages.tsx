@@ -56,7 +56,7 @@ export function MyOrdersPage() {
         title="Riwayat & Status Servis"
         subtitle="Tiket booking, status bantuan darurat, dan pembayaran Anda."
         actions={
-          <Link to="/workshops?tab=booking" className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-white hover:bg-primary-dark">
+          <Link to="/workshops?tab=booking" className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-on-primary hover:bg-primary-dark">
             <Icon name="add" /> Booking baru
           </Link>
         }
@@ -127,12 +127,12 @@ export function PaymentPage() {
         <Stepper steps={['Bengkel & Paket', 'Jadwal', 'Kendaraan & Data', 'Bayar & QRIS']} current={3} />
       </div>
 
-      <section className="flex flex-col gap-4 overflow-hidden rounded-xl border border-warning/30 bg-[linear-gradient(90deg,#fef3c7_0%,#fffbeb_60%,#ffffff_100%)] p-5 shadow-sm sm:flex-row sm:items-center">
+      <section className="flex flex-col gap-4 overflow-hidden rounded-xl border border-warning-line bg-warning-soft p-5 sm:flex-row sm:items-center">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-warning-soft text-warning-ink ring-1 ring-warning/30">
           <Icon name="schedule" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-headline-sm text-navy">Selesaikan Pembayaran Sebelum Datang</p>
+          <p className="text-headline-sm text-ink">Selesaikan Pembayaran Sebelum Datang</p>
           <p className="text-sm text-ink-2">
             {b ? (
               <>
@@ -146,7 +146,7 @@ export function PaymentPage() {
         <div className="flex items-center gap-3 rounded-lg bg-card/80 px-4 py-2 ring-1 ring-line">
           <div>
             <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Kode reservasi</p>
-            <p className="font-mono text-sm font-bold text-navy">{order.order_number}</p>
+            <p className="font-mono text-sm font-bold text-ink">{order.order_number}</p>
           </div>
           <CopyButton text={order.order_number} />
         </div>
@@ -160,7 +160,7 @@ export function PaymentPage() {
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <section className="rounded-xl border border-line bg-card p-5 shadow-lift">
             <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Ringkasan pemesanan</p>
-            <h2 className="mt-1 text-headline-sm text-navy">{order.workshop?.name}</h2>
+            <h2 className="mt-1 text-headline-sm text-ink">{order.workshop?.name}</h2>
             <p className="font-label text-xs text-ink-2">{order.workshop?.address}</p>
             <div className="mt-4 space-y-3 border-t border-line pt-4 text-sm">
               {b && (
@@ -181,8 +181,8 @@ export function PaymentPage() {
             <div className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
               <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Rincian paket &amp; biaya</p>
               <div className="flex justify-between gap-3">
-                <span className="text-navy">{b?.service_name ?? 'Layanan'}</span>
-                <span className="font-semibold text-navy">{rupiah(order.total_amount)}</span>
+                <span className="text-ink">{b?.service_name ?? 'Layanan'}</span>
+                <span className="font-semibold text-ink">{rupiah(order.total_amount)}</span>
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-ink-2">Biaya layanan platform</span>
@@ -209,7 +209,7 @@ export function PaymentPage() {
                     <Icon name={icon} className="text-[18px]" />
                   </span>
                   <span>
-                    <span className="block font-bold text-navy">{t}</span>
+                    <span className="block font-bold text-ink">{t}</span>
                     <span className="block text-xs text-ink-2">{d}</span>
                   </span>
                 </li>
@@ -219,7 +219,7 @@ export function PaymentPage() {
               <a href={`tel:${order.workshop.phone}`} className="mt-4 flex items-center gap-3 rounded-lg bg-surface-low p-3 hover:bg-surface">
                 <Icon name="support_agent" className="text-primary" />
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-navy">Butuh bantuan pembayaran?</span>
+                  <span className="block text-sm font-bold text-ink">Butuh bantuan pembayaran?</span>
                   <span className="block font-label text-xs text-ink-2">Hubungi bengkel {order.workshop.phone}</span>
                 </span>
                 <Icon name="chevron_right" className="text-ink-3" />
@@ -241,7 +241,7 @@ function SummaryLine({ icon, label, children }: { icon: string; label: string; c
       <Icon name={icon} className="mt-0.5 text-primary" />
       <div className="min-w-0">
         <p className="font-label text-[11px] text-ink-3">{label}</p>
-        <div className="font-semibold text-navy">{children}</div>
+        <div className="font-semibold text-ink">{children}</div>
       </div>
     </div>
   );

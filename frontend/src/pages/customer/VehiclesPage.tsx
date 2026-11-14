@@ -61,7 +61,7 @@ export default function VehiclesPage() {
                   <Icon name={vehicleIcon(v.vehicle_type)} />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-navy">{vehicleName(v)}</p>
+                  <p className="font-bold text-ink">{vehicleName(v)}</p>
                   <p className="font-label text-xs text-ink-3">{vehicleLabel(v.vehicle_type)}</p>
                 </div>
                 {v.plate && <span className="rounded-md bg-navy px-2 py-0.5 font-mono text-xs font-bold text-white">{v.plate}</span>}

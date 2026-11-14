@@ -196,7 +196,7 @@ export function GoogleCallbackPage() {
       {failure ? (
         <>
           <Alert tone="danger">{failure}</Alert>
-          <Link to="/login" className="mt-5 inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-white hover:bg-primary-dark">
+          <Link to="/login" className="mt-5 inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-on-primary hover:bg-primary-dark">
             <Icon name="arrow_back" /> Kembali ke halaman Masuk
           </Link>
         </>

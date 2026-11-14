@@ -97,14 +97,14 @@ export function PlaceSearch({
           onBlur={() => setOpen(false)}
           placeholder={placeholder}
           aria-label="Cari lokasi"
-          className={cx('h-11 min-w-0 flex-1 bg-transparent text-sm text-navy placeholder:text-ink-3 focus:outline-none', inputClassName)}
+          className={cx('h-11 min-w-0 flex-1 bg-transparent text-sm text-ink placeholder:text-ink-3 focus:outline-none', inputClassName)}
           data-testid="place-search-input"
         />
         <button
           type="button"
           onClick={search}
           disabled={text.trim().length < 3}
-          className="inline-flex h-9 shrink-0 items-center gap-1 rounded-md bg-primary px-3 font-label text-xs font-semibold text-white hover:bg-primary-dark disabled:opacity-45"
+          className="inline-flex h-9 shrink-0 items-center gap-1 rounded-md bg-primary px-3 font-label text-xs font-semibold text-on-primary hover:bg-primary-dark disabled:opacity-45"
           data-testid="place-search-button"
         >
           {result.isFetching ? <Spinner small /> : <Icon name="search" className="text-[18px]" />} Cari
@@ -137,7 +137,7 @@ export function PlaceSearch({
                 >
                   <Icon name="location_on" className="mt-0.5 text-primary" />
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-navy">{p.name}</span>
+                    <span className="block truncate text-sm font-semibold text-ink">{p.name}</span>
                     {p.detail && <span className="block truncate text-xs text-ink-3">{p.detail}</span>}
                   </span>
                 </li>

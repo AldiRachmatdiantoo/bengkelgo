@@ -37,8 +37,8 @@ export function MapPicker({ value, onChange, height = 280, className }: { value:
         {value && (
           <>
             <Recenter center={value} />
-            <Circle center={[value.lat, value.lng]} radius={60} pathOptions={{ color: '#4361EE', weight: 0, fillOpacity: 0.18 }} />
-            <CircleMarker center={[value.lat, value.lng]} radius={10} pathOptions={{ color: '#FFFFFF', weight: 3, fillColor: '#4361EE', fillOpacity: 1 }} />
+            <Circle center={[value.lat, value.lng]} radius={60} pathOptions={{ color: '#BAF48F', weight: 0, fillOpacity: 0.18 }} />
+            <CircleMarker center={[value.lat, value.lng]} radius={10} pathOptions={{ color: '#101310', weight: 3, fillColor: '#BAF48F', fillOpacity: 1 }} />
           </>
         )}
       </MapContainer>
@@ -87,20 +87,20 @@ export function PointsMap({
   labels?: boolean;
 }) {
   const target = points.find((p) => p.highlight);
-  const originColor = originTone === 'emergency' ? '#CC4410' : '#4361EE';
+  const originColor = originTone === 'emergency' ? '#CC4410' : '#BAF48F';
   return (
     <div className={cx(frame, className)} style={{ height }}>
       <MapContainer center={[origin.lat, origin.lng]} zoom={zoom ?? (radiusMeters ? 12 : 14)} className="h-full w-full">
         <TileLayer url={TILE_URL} attribution={ATTRIBUTION} />
         <Recenter center={origin} />
         {radiusMeters && (
-          <Circle center={[origin.lat, origin.lng]} radius={radiusMeters} pathOptions={{ color: '#4361EE', weight: 1.5, dashArray: '6 6', fillColor: '#4361EE', fillOpacity: 0.06 }} />
+          <Circle center={[origin.lat, origin.lng]} radius={radiusMeters} pathOptions={{ color: '#BAF48F', weight: 1.5, dashArray: '6 6', fillColor: '#BAF48F', fillOpacity: 0.06 }} />
         )}
         {route && target && (
-          <Polyline positions={[[target.lat, target.lng], [origin.lat, origin.lng]]} pathOptions={{ color: '#4361EE', weight: 3, dashArray: '8 8' }} />
+          <Polyline positions={[[target.lat, target.lng], [origin.lat, origin.lng]]} pathOptions={{ color: '#BAF48F', weight: 3, dashArray: '8 8' }} />
         )}
         {!hideOrigin && (
-          <CircleMarker center={[origin.lat, origin.lng]} radius={11} pathOptions={{ color: '#FFFFFF', weight: 3, fillColor: originColor, fillOpacity: 1 }}>
+          <CircleMarker center={[origin.lat, origin.lng]} radius={11} pathOptions={{ color: '#101310', weight: 3, fillColor: originColor, fillOpacity: 1 }}>
             {labels ? (
               <Tooltip permanent direction="top" offset={[0, -10]} className="!rounded-md !border-0 !bg-emergency !px-2 !py-1 !font-label !text-[11px] !font-bold !text-white !shadow-md">
                 {originLabel}
@@ -115,10 +115,10 @@ export function PointsMap({
             key={p.id}
             center={[p.lat, p.lng]}
             radius={p.highlight ? 10 : 7}
-            pathOptions={{ color: '#FFFFFF', weight: 2.5, fillColor: p.highlight ? '#4361EE' : '#728AF3', fillOpacity: 1 }}
+            pathOptions={{ color: '#101310', weight: 2.5, fillColor: p.highlight ? '#BAF48F' : '#7FA86A', fillOpacity: 1 }}
           >
             {labels && p.highlight ? (
-              <Tooltip permanent direction="top" offset={[0, -10]} className="!rounded-md !border-0 !bg-card !px-2 !py-1 !font-label !text-[11px] !font-bold !text-navy !shadow-md">
+              <Tooltip permanent direction="top" offset={[0, -10]} className="!rounded-md !border-0 !bg-card !px-2 !py-1 !font-label !text-[11px] !font-bold !text-ink !shadow-md">
                 {p.label}
               </Tooltip>
             ) : (

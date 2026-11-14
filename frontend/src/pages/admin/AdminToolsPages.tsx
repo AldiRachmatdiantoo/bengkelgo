@@ -71,7 +71,7 @@ export function AdminSearchPage() {
                 {data.workshops.map((w) => (
                   <li key={w.id} className="flex items-center justify-between gap-3 py-2">
                     <span>
-                      <span className="font-semibold text-navy">{w.name}</span> <span className="text-xs text-ink-3">{w.phone}</span>
+                      <span className="font-semibold text-ink">{w.name}</span> <span className="text-xs text-ink-3">{w.phone}</span>
                     </span>
                     <Badge tone={WORKSHOP_STATUS[w.status].tone}>{WORKSHOP_STATUS[w.status].label}</Badge>
                   </li>
@@ -100,7 +100,7 @@ export function AdminSearchPage() {
                       {p.invoice_number ?? p.order_number}
                     </Link>
                     <span className="text-xs text-ink-2">{[p.payer_name, p.payer_reference && `Ref ${p.payer_reference}`].filter(Boolean).join(' · ')}</span>
-                    <span className="font-semibold text-navy">
+                    <span className="font-semibold text-ink">
                       {rupiah(p.amount)} · {PAYMENT_STATUS[p.status].label}
                     </span>
                   </li>
@@ -112,7 +112,7 @@ export function AdminSearchPage() {
                 {data.users.map((u) => (
                   <li key={u.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                     <span>
-                      <span className="font-semibold text-navy">{u.name}</span> <span className="text-xs text-ink-3">{u.email}</span>
+                      <span className="font-semibold text-ink">{u.name}</span> <span className="text-xs text-ink-3">{u.email}</span>
                     </span>
                     <span className="text-xs text-ink-2">
                       {ROLE[u.role]}
@@ -212,7 +212,7 @@ export function AdminAuditPage() {
 function HealthRow({ label, ok, children }: { label: string; ok: boolean; children: ReactNode }) {
   return (
     <li className="flex items-center justify-between gap-3 py-3">
-      <span className="flex items-center gap-2 font-semibold text-navy">
+      <span className="flex items-center gap-2 font-semibold text-ink">
         <span className={ok ? 'h-2.5 w-2.5 rounded-full bg-success' : 'h-2.5 w-2.5 rounded-full bg-emergency'} />
         {label}
       </span>
@@ -271,17 +271,17 @@ export function AdminHealthPage() {
               <Card title="Versi" icon="info">
                 <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
                   <dt className="text-ink-3">API</dt>
-                  <dd className="font-mono text-navy">{h.version}</dd>
+                  <dd className="font-mono text-ink">{h.version}</dd>
                   <dt className="text-ink-3">Node.js</dt>
-                  <dd className="font-mono text-navy">{h.node}</dd>
+                  <dd className="font-mono text-ink">{h.node}</dd>
                   <dt className="text-ink-3">Berjalan</dt>
-                  <dd className="text-navy">{Math.floor(h.uptime_seconds / 3600)} jam {Math.floor((h.uptime_seconds % 3600) / 60)} menit</dd>
+                  <dd className="text-ink">{Math.floor(h.uptime_seconds / 3600)} jam {Math.floor((h.uptime_seconds % 3600) / 60)} menit</dd>
                   <dt className="text-ink-3">Migrasi</dt>
-                  <dd className="font-mono text-xs text-navy">{h.migrations.join(', ')}</dd>
+                  <dd className="font-mono text-xs text-ink">{h.migrations.join(', ')}</dd>
                   {h.client_ip && (
                     <>
                       <dt className="text-ink-3">IP Anda menurut server</dt>
-                      <dd className="font-mono text-navy" data-testid="health-client-ip">{h.client_ip}</dd>
+                      <dd className="font-mono text-ink" data-testid="health-client-ip">{h.client_ip}</dd>
                     </>
                   )}
                   {h.proxy_headers &&
@@ -290,7 +290,7 @@ export function AdminHealthPage() {
                       .map(([k, v]) => (
                         <Fragment key={k}>
                           <dt className="text-ink-3 font-mono text-xs">{k}</dt>
-                          <dd className="font-mono text-xs text-navy break-all">{v}</dd>
+                          <dd className="font-mono text-xs text-ink break-all">{v}</dd>
                         </Fragment>
                       ))}
                 </dl>

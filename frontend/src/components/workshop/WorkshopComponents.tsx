@@ -81,7 +81,7 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
         {/* Phones show only the "recommended" label; every listed workshop is a verified partner anyway. */}
         <span
           className={cx(
-            'absolute top-2 left-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-card/95 px-2 py-0.5 font-label text-[10px] font-bold text-navy shadow-sm sm:top-3 sm:left-3 sm:max-w-none sm:px-2.5 sm:py-1 sm:text-[11px]',
+            'absolute top-2 left-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-card/95 px-2 py-0.5 font-label text-[10px] font-bold text-ink shadow-sm sm:top-3 sm:left-3 sm:max-w-none sm:px-2.5 sm:py-1 sm:text-[11px]',
             !featured && 'max-sm:hidden',
           )}
         >
@@ -115,7 +115,7 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
             {rating} ({workshop.total_reviews})
           </span>
         </div>
-        <h3 className="line-clamp-2 text-[13px] leading-snug font-bold text-navy group-hover:text-primary sm:text-headline-sm sm:font-semibold">{workshop.name}</h3>
+        <h3 className="line-clamp-2 text-[13px] leading-snug font-bold text-ink group-hover:text-primary sm:text-headline-sm sm:font-semibold">{workshop.name}</h3>
         <p className="line-clamp-2 hidden text-sm text-ink-2 sm:block">{workshop.description || workshop.address}</p>
         <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
           {workshop.vehicle_types.map((v) => (
@@ -146,7 +146,7 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
         </div>
         <div className="mt-auto flex items-end justify-between gap-3 sm:pt-1">
           <span className="hidden font-label text-xs text-ink-3 sm:inline">Jadwal per jam, tidak bentrok</span>
-          <span className="inline-flex h-8 w-full shrink-0 items-center justify-center rounded-lg bg-primary px-3 font-label text-xs font-semibold text-white transition group-hover:bg-primary-dark sm:h-10 sm:w-auto sm:px-5 sm:text-sm">
+          <span className="inline-flex h-8 w-full shrink-0 items-center justify-center rounded-lg bg-primary px-3 font-label text-xs font-semibold text-on-primary transition group-hover:bg-primary-dark sm:h-10 sm:w-auto sm:px-5 sm:text-sm">
             Pilih Jadwal
           </span>
         </div>
@@ -174,11 +174,11 @@ export function ServicePicker({ services, value, onChange }: { services: Service
             )}
           >
             <div className="flex items-start gap-3">
-              <span className={cx('grid h-10 w-10 shrink-0 place-items-center rounded-lg', selected ? 'bg-primary text-white' : 'bg-sky text-primary')}>
+              <span className={cx('grid h-10 w-10 shrink-0 place-items-center rounded-lg', selected ? 'bg-primary text-on-primary' : 'bg-sky text-primary')}>
                 <Icon name={vehicleIcon(s.vehicle_type)} />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="font-bold text-navy">{s.name}</p>
+                <p className="font-bold text-ink">{s.name}</p>
                 <p className="font-label text-xs text-ink-3">
                   {vehicleLabel(s.vehicle_type)} · ±{s.duration_minutes} menit
                 </p>
@@ -188,7 +188,7 @@ export function ServicePicker({ services, value, onChange }: { services: Service
               </span>
             </div>
             {s.description && <p className="text-sm text-ink-2">{s.description}</p>}
-            <p className="text-lg font-extrabold text-navy">{rupiah(s.price)}</p>
+            <p className="text-lg font-extrabold text-ink">{rupiah(s.price)}</p>
           </button>
         );
       })}
@@ -220,7 +220,7 @@ export function DateStrip({ value, onChange, days = 7 }: { value: string; onChan
             <span className={cx('font-label text-[11px] font-bold tracking-[0.04em] uppercase', selected ? 'text-primary' : 'text-ink-3')}>
               {i === 0 ? 'Hari ini' : i === 1 ? 'Besok' : weekdayFmt.format(dt)}
             </span>
-            <span className="text-2xl font-extrabold text-navy">{dt.getUTCDate()}</span>
+            <span className="text-2xl font-extrabold text-ink">{dt.getUTCDate()}</span>
             <span className="font-label text-xs text-ink-2">
               {monthFmt.format(dt)} ({dayShortFmt.format(dt)})
             </span>
@@ -243,7 +243,7 @@ export function SlotPicker({ slots, value, onChange, durationMinutes }: { slots:
     <div className="flex flex-col gap-5" role="radiogroup" aria-label="Pilih jam">
       {sessions.map((sess) => (
         <div key={sess.key}>
-          <p className="mb-3 flex items-center gap-2 text-sm font-bold text-navy">
+          <p className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
             <Icon name={sess.icon} className="text-warning" />
             {sess.title} ({sess.items[0].time_slot} – {slotRange(sess.items[sess.items.length - 1].time_slot).split(' – ')[1]} WIB)
           </p>
@@ -254,7 +254,7 @@ export function SlotPicker({ slots, value, onChange, durationMinutes }: { slots:
               return (
                 <div key={s.time_slot} className="relative">
                   {selected && (
-                    <span className="absolute -top-2.5 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-primary px-2 py-0.5 font-label text-[10px] font-bold whitespace-nowrap text-white">
+                    <span className="absolute -top-2.5 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-primary px-2 py-0.5 font-label text-[10px] font-bold whitespace-nowrap text-on-primary">
                       <Icon name="check_circle" className="text-[12px]" /> Jam Terpilih
                     </span>
                   )}
@@ -271,7 +271,7 @@ export function SlotPicker({ slots, value, onChange, durationMinutes }: { slots:
                     )}
                   >
                     <span className="flex items-start justify-between gap-2">
-                      <span className="text-base font-bold text-navy">{slotRange(s.time_slot)}</span>
+                      <span className="text-base font-bold text-ink">{slotRange(s.time_slot)}</span>
                       <span
                         className={cx(
                           'shrink-0 rounded-md px-1.5 py-0.5 font-label text-[10px] font-bold',
@@ -308,7 +308,7 @@ export function MechanicList({ mechanics }: { mechanics: Mechanic[] }) {
         <div key={m.id} className="flex items-start gap-3 rounded-lg bg-surface-low p-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-navy font-bold text-white">{m.name.charAt(0).toUpperCase()}</span>
           <div className="min-w-0">
-            <p className="font-semibold text-navy">{m.name}</p>
+            <p className="font-semibold text-ink">{m.name}</p>
             <Stars value={m.avg_rating} count={m.total_reviews} />
             {m.specializations.length > 0 && (
               <div className="mt-1.5 flex flex-wrap gap-1">
@@ -335,7 +335,7 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-sky font-semibold text-primary">{r.customer_name.charAt(0).toUpperCase()}</span>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              <span className="font-semibold text-navy">{r.customer_name}</span>
+              <span className="font-semibold text-ink">{r.customer_name}</span>
               <StarRow rating={r.rating} />
               <span className="ml-auto font-label text-xs text-ink-3">{dateTime(r.created_at)}</span>
             </div>
@@ -344,7 +344,7 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
             {r.owner_reply && (
               <div className="mt-2 rounded-lg border-l-2 border-primary bg-sky/60 px-3 py-2 text-sm" data-testid="review-reply">
                 <p className="font-label text-[11px] font-bold text-primary">Balasan bengkel</p>
-                <p className="text-navy">{r.owner_reply}</p>
+                <p className="text-ink">{r.owner_reply}</p>
               </div>
             )}
           </div>

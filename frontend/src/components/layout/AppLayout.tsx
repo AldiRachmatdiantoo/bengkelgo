@@ -26,12 +26,12 @@ const PORTAL_HOME: Partial<Record<Role, { to: string; title: string }>> = {
 export function Brand({ suffix, sub, light, compact }: { suffix?: string; sub?: string; light?: boolean; compact?: boolean }) {
   return (
     <span className="flex items-center gap-2.5" role={compact ? 'img' : undefined} aria-label={compact ? `BengkelGo${suffix ?? ''}` : undefined}>
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-white shadow-sm">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-on-primary shadow-sm">
         <Icon name="car_repair" filled />
       </span>
       {/* compact: very narrow phones keep only the logo mark so the portal top bar fits in 375px */}
       <span className={cx('leading-none', compact && 'max-[400px]:hidden')}>
-        <span className={cx('text-[18px] font-bold tracking-tight', light ? 'text-white' : 'text-navy')}>
+        <span className={cx('text-[18px] font-bold tracking-tight', light ? 'text-white' : 'text-ink')}>
           Bengkel<span className={light ? 'text-sky' : 'text-primary'}>Go</span>
           {suffix && <span className={light ? 'text-sky' : 'text-primary'}>{suffix}</span>}
         </span>
@@ -109,7 +109,7 @@ function Dropdown({ trigger, children, align = 'right', label, width = 'w-60' }:
 }
 
 function MenuItem({ to, icon, children, onClick, danger }: { to?: string; icon: string; children: ReactNode; onClick?: () => void; danger?: boolean }) {
-  const cls = cx('flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold hover:bg-surface-low', danger ? 'text-emergency-ink' : 'text-navy');
+  const cls = cx('flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-semibold hover:bg-surface-low', danger ? 'text-emergency-ink' : 'text-ink');
   return to ? (
     <Link to={to} className={cls}>
       <Icon name={icon} /> {children}
@@ -142,7 +142,7 @@ function NotificationBell({ role }: { role: Role }) {
       label={`${n.unread} notifikasi belum dibaca`}
       width="w-[min(92vw,22rem)]"
       trigger={() => (
-        <span className="relative grid h-10 w-10 place-items-center rounded-lg bg-surface-low text-navy hover:bg-surface" data-testid="notif-bell">
+        <span className="relative grid h-10 w-10 place-items-center rounded-lg bg-surface-low text-ink hover:bg-surface" data-testid="notif-bell">
           <Icon name={n.unread ? 'notifications_active' : 'notifications'} />
           {n.unread > 0 && (
             <span className="absolute -top-0.5 -right-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-emergency-ink px-1 font-label text-[10px] font-bold text-white">{n.unread > 99 ? '99+' : n.unread}</span>
@@ -151,7 +151,7 @@ function NotificationBell({ role }: { role: Role }) {
       )}
     >
       <div className="flex items-center justify-between gap-2 border-b border-line px-4 pt-1 pb-2.5">
-        <p className="text-sm font-bold text-navy">Notifikasi</p>
+        <p className="text-sm font-bold text-ink">Notifikasi</p>
         {n.unread > 0 && (
           <button type="button" onClick={n.markAllRead} className="font-label text-xs font-semibold text-primary hover:underline">
             Tandai semua dibaca
@@ -276,7 +276,7 @@ function PublicShell() {
               <div className="hidden sm:block">
               <Dropdown trigger={() => <Avatar user={user} />}>
                 <div className="border-b border-line px-4 pt-1 pb-3">
-                  <p className="truncate text-sm font-bold text-navy">{user.name}</p>
+                  <p className="truncate text-sm font-bold text-ink">{user.name}</p>
                   <p className="font-label text-xs text-ink-3">{ROLE_LABEL[user.role]}</p>
                 </div>
                 {portal ? (
@@ -320,7 +320,7 @@ function PublicShell() {
               <Link
                 key={l.label}
                 to={{ pathname: l.to, search: l.search }}
-                className={cx('flex items-center gap-3 rounded-lg px-3 py-3 font-semibold', isActive(l) ? 'bg-sky text-primary' : 'text-navy')}
+                className={cx('flex items-center gap-3 rounded-lg px-3 py-3 font-semibold', isActive(l) ? 'bg-sky text-primary' : 'text-ink')}
               >
                 <Icon name={l.icon} /> {l.label}
               </Link>
@@ -329,16 +329,16 @@ function PublicShell() {
               <>
                 {!portal && (
                   <>
-                    <Link to="/akun" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-navy">
+                    <Link to="/akun" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-ink">
                       <Icon name="account_circle" /> Akun saya
                     </Link>
-                    <Link to="/orders" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-navy">
+                    <Link to="/orders" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-ink">
                       <Icon name="receipt_long" /> Pesanan saya
                     </Link>
-                    <Link to="/vehicles" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-navy">
+                    <Link to="/vehicles" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-ink">
                       <Icon name="garage" /> Kendaraan saya
                     </Link>
-                    <Link to="/notifications" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-navy">
+                    <Link to="/notifications" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-ink">
                       <Icon name="notifications" /> Notifikasi
                     </Link>
                   </>
@@ -349,10 +349,10 @@ function PublicShell() {
               </>
             ) : (
               <>
-                <Link to="/login" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-navy">
+                <Link to="/login" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-ink">
                   <Icon name="login" /> Masuk
                 </Link>
-                <Link to="/register" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-navy">
+                <Link to="/register" className="flex items-center gap-3 rounded-lg px-3 py-3 font-semibold text-ink">
                   <Icon name="person_add" /> Daftar akun
                 </Link>
               </>
@@ -382,7 +382,7 @@ function PublicShell() {
               </span>
               <span className="min-w-0">
                 <span className="block font-label text-label-sm text-emergency-ink uppercase">Hotline Darurat 24/7 Nasional</span>
-                <span className="block text-sm font-bold text-navy">Kirim SOS dari BengkelGo</span>
+                <span className="block text-sm font-bold text-ink">Kirim SOS dari BengkelGo</span>
               </span>
             </Link>
           </div>
@@ -485,51 +485,10 @@ function VerifyEmailStrip({ wide }: { wide?: boolean }) {
   );
 }
 
-const THEME_KEY = 'bengkelgo-portal-theme';
-
-/** Light/dark choice for the portals, remembered per browser. Leaving the portal always returns to light. */
-function usePortalTheme() {
-  const [dark, setDark] = useState(() => {
-    try {
-      return localStorage.getItem(THEME_KEY) === 'dark';
-    } catch {
-      return false;
-    }
-  });
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle('theme-dark', dark);
-    try {
-      localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light');
-    } catch {
-      /* private mode: the choice just isn't remembered */
-    }
-    return () => root.classList.remove('theme-dark');
-  }, [dark]);
-  return { dark, toggle: () => setDark((d) => !d) };
-}
-
-function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
-  const label = dark ? 'Pakai tampilan terang' : 'Pakai tampilan gelap';
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={dark}
-      aria-label={label}
-      title={label}
-      className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-ink-2 transition hover:bg-sky hover:text-primary"
-      data-testid="theme-toggle"
-    >
-      <Icon name={dark ? 'light_mode' : 'dark_mode'} />
-    </button>
-  );
-}
-
 function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
   return (
     <div>
-      <h3 className="mb-4 font-label text-sm font-bold text-navy uppercase">{title}</h3>
+      <h3 className="mb-4 font-label text-sm font-bold text-ink uppercase">{title}</h3>
       <ul className="space-y-2.5 text-sm text-ink-2">
         {links.map(([label, to]) => (
           <li key={label}>
@@ -558,7 +517,6 @@ const OWNER_NAV: NavItem[] = [
 ];
 
 function OwnerShell({ user }: { user: User }) {
-  const theme = usePortalTheme();
   const doLogout = useLogout();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
@@ -598,7 +556,7 @@ function OwnerShell({ user }: { user: User }) {
           className={({ isActive }) =>
             cx(
               'flex items-center gap-3 rounded-lg px-3 py-2.5 font-label text-sm font-semibold transition',
-              isActive ? 'bg-primary text-white shadow-sm' : 'text-ink-2 hover:bg-surface-low hover:text-navy',
+              isActive ? 'bg-primary text-on-primary shadow-sm' : 'text-ink-2 hover:bg-surface-low hover:text-ink',
             )
           }
         >
@@ -624,7 +582,7 @@ function OwnerShell({ user }: { user: User }) {
                 <Icon name="verified" className="text-[14px]" /> Mitra Resmi
               </span>
             )}
-            <p className="mt-1.5 truncate text-sm font-bold text-navy">{w.name}</p>
+            <p className="mt-1.5 truncate text-sm font-bold text-ink">{w.name}</p>
             <p className="mt-0.5 flex items-center gap-1 font-label text-xs text-ink-2">
               <Icon name="radar" className="text-[16px] text-primary" /> Siaga SOS 5 km {w.accepts_emergency ? 'aktif' : 'nonaktif'}
             </p>
@@ -632,7 +590,7 @@ function OwnerShell({ user }: { user: User }) {
         )}
         {nav}
         <div className="mt-auto rounded-lg bg-surface-low p-3 font-label text-xs text-ink-2">
-          <p className="flex items-center gap-1.5 font-semibold text-navy">
+          <p className="flex items-center gap-1.5 font-semibold text-ink">
             <span className={cx('h-2 w-2 rounded-full', sos.isError ? 'bg-emergency' : 'bg-success')} />
             {sos.isError ? 'Koneksi terputus, mencoba lagi…' : 'Terhubung'}
           </p>
@@ -666,14 +624,13 @@ function OwnerShell({ user }: { user: User }) {
                 <Icon name={live ? 'toggle_on' : 'toggle_off'} className="text-[23px]" />
               </button>
             )}
-            <ThemeToggle dark={theme.dark} onToggle={theme.toggle} />
             <NotificationBell role={user.role} />
             <Dropdown
               trigger={(isOpen) => (
                 <span className="flex items-center gap-2">
                   <Avatar user={user} />
                   <span className="hidden text-left leading-tight lg:block">
-                    <span className="block max-w-36 truncate text-sm font-bold text-navy">{user.name}</span>
+                    <span className="block max-w-36 truncate text-sm font-bold text-ink">{user.name}</span>
                     <span className="block font-label text-[11px] text-ink-3">{ROLE_LABEL[user.role]}</span>
                   </span>
                   <span className="hidden text-ink-3 lg:block">
@@ -720,7 +677,6 @@ const ADMIN_NAV: NavItem[] = [
 ];
 
 function AdminShell({ user }: { user: User }) {
-  const theme = usePortalTheme();
   const doLogout = useLogout();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -740,7 +696,7 @@ function AdminShell({ user }: { user: User }) {
           className={({ isActive }) =>
             cx(
               'flex items-center gap-3 rounded-lg px-3 py-2.5 font-label text-sm font-semibold transition',
-              isActive ? 'bg-primary text-white shadow-sm' : 'text-ink-2 hover:bg-surface-low hover:text-navy',
+              isActive ? 'bg-primary text-on-primary shadow-sm' : 'text-ink-2 hover:bg-surface-low hover:text-ink',
             )
           }
         >
@@ -763,7 +719,7 @@ function AdminShell({ user }: { user: User }) {
         </span>
         {nav}
         <div className="mt-auto rounded-lg bg-surface-low p-3 font-label text-xs text-ink-2">
-          <p className="flex items-center gap-1.5 font-semibold text-navy">
+          <p className="flex items-center gap-1.5 font-semibold text-ink">
             <Icon name="shield" className="text-[16px] text-primary" /> Akses admin
           </p>
           <p className="mt-1">Semua persetujuan tercatat otomatis.</p>
@@ -784,14 +740,13 @@ function AdminShell({ user }: { user: User }) {
           </span>
           <AdminSearchBox />
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            <ThemeToggle dark={theme.dark} onToggle={theme.toggle} />
             <NotificationBell role={user.role} />
             <Dropdown
               trigger={() => (
                 <span className="flex items-center gap-2">
                   <Avatar user={user} />
                   <span className="hidden text-left leading-tight sm:block">
-                    <span className="block max-w-36 truncate text-sm font-bold text-navy">{user.name}</span>
+                    <span className="block max-w-36 truncate text-sm font-bold text-ink">{user.name}</span>
                     <span className="block font-label text-[11px] text-ink-3">{ROLE_LABEL[user.role]}</span>
                   </span>
                 </span>
