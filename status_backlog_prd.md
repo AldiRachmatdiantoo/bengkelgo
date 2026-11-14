@@ -154,7 +154,7 @@ Usulan tim 15 Nov: formulir panjang satu halaman membingungkan, jadi isian dipec
 
 | Tahap | Isi | Status |
 |---|---|---|
-| 1 | Komponen langkah (`components/ui/steps.tsx`: langkah di URL `?langkah=`, penanda "Langkah n dari m", fokus ke judul langkah, draft per tab, baris ringkasan dengan "Ubah") + **alur darurat**: Lokasi (GPS jalan sendiri bila izin lokasi sudah diberikan) → Bengkel terdekat (dipindai otomatis, pilih motor/mobil di sini) → Kendaraan (hanya bila ada kendaraan tersimpan sejenis) → Keluhan → Kontak (dilewati bila sudah masuk dan punya nomor) → Periksa & kirim. Tamu 5 langkah, pelanggan tanpa kendaraan tersimpan 4 langkah. Data yang dikirim ke backend sama. Tes E2E SOS disesuaikan (journeys, backlog-features, cross-browser) | ✅ branch `landing-globe`, belum di-push |
+| 1 | Komponen langkah (`components/ui/steps.tsx`: langkah di URL `?langkah=`, penanda "Langkah n dari m", fokus ke judul langkah, draft per tab, baris ringkasan dengan "Ubah") + **alur darurat**: Lokasi (GPS jalan sendiri bila izin lokasi sudah diberikan) → Bengkel terdekat (dipindai otomatis, pilih motor/mobil di sini) → Kendaraan (hanya bila ada kendaraan tersimpan sejenis) → Keluhan → Kontak (dilewati bila sudah masuk dan punya nomor) → Periksa & kirim. Tamu 5 langkah, pelanggan tanpa kendaraan tersimpan 4 langkah. Data yang dikirim ke backend sama. Tes E2E SOS disesuaikan (journeys, backlog-features, cross-browser) | ✅ live 15 Nov |
 | 2 | Alur booking + halaman profil bengkel terpisah | ⏳ |
 | 3 | Pembayaran 2 langkah | ⏳ |
 | 4 | Daftar mitra 5 langkah | ⏳ |
