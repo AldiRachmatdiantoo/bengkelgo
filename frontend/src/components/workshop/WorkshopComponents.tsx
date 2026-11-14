@@ -1,8 +1,10 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Mechanic, Review, Service, SlotAvailability, VehicleType, Workshop } from '@/services/api/types';
 import { EmptyState, Icon, Stars, cx } from '@/components/ui';
 import { dateTime, distance, jakartaDate, rupiah } from '@/utils/format';
 import { apiAsset } from '@/services/api/endpoints';
+import { ChoiceChip, OptionCard, WorkshopArt } from '@/components/ui/screen';
 
 export const vehicleLabel = (v: VehicleType) => (v === 'MOTOR' ? 'Motor' : 'Mobil');
 export const vehicleIcon = (v: VehicleType) => (v === 'MOTOR' ? 'two_wheeler' : 'directions_car');
@@ -28,7 +30,15 @@ export function pasaran(isoDate: string) {
 
 const weekdayFmt = new Intl.DateTimeFormat('id-ID', { weekday: 'long', timeZone: 'UTC' });
 const dayShortFmt = new Intl.DateTimeFormat('id-ID', { weekday: 'short', timeZone: 'UTC' });
-const monthFmt = new Intl.DateTimeFormat('id-ID', { month: 'short', timeZone: 'UTC' });
+const monthFmt = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const dmyFmt = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+/** "15 November 2026" */
+export const dayMonthYear = (isoDate: string) => dmyFmt.format(new Date(`${isoDate}T00:00:00Z`));
+const dmFmt = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+/** "24 Mei" */
+export const shortDate = (isoDate: string) => dmFmt.format(new Date(`${isoDate}T00:00:00Z`));
+/** "Mei 2026" */
+export const monthYear = (isoDate: string) => monthFmt.format(new Date(`${isoDate}T00:00:00Z`));
 
 /** "Besok, Senin Wage" */
 export function friendlyDay(isoDate: string) {
@@ -42,112 +52,66 @@ export function friendlyDay(isoDate: string) {
 export const regionOf = (address: string) => address.split(',').map((p) => p.trim()).filter(Boolean).slice(-2).join(', ');
 
 /**
- * Workshop result card. On phones two cards sit side by side, so the card is short there: rating and area sit at
- * the bottom of the picture, vehicle types are icons, the hours are one line and the button is small; from `sm` up it is the
- * full card with description and small print.
+ * Workshop card (Figma "Pilih bengkel"): cover photo or the line art, name with the rating on the right, address,
+ * and the distance (or opening hours) in the accent. Two sit side by side on phones, so the text stays short there.
  */
 export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop; featured?: boolean; date?: string }) {
   const to = `/workshops/${workshop.id}${date ? `?date=${date}` : ''}`;
-  const rating = workshop.avg_rating > 0 ? workshop.avg_rating.toFixed(1) : 'Baru';
+  const rating = workshop.avg_rating > 0 ? workshop.avg_rating.toFixed(1).replace('.', ',') : 'Baru';
   return (
     <Link
       to={to}
       data-testid="workshop-card"
-      className="group flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-lift"
+      className={cx(
+        'group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border bg-card transition hover:border-line-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+        featured ? 'border-primary/60' : 'border-line',
+      )}
     >
-      {/* Cover photo when the workshop has one, otherwise an illustration; a dark fade keeps the text readable. */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-primary to-navy sm:aspect-[16/8]">
+      <div className="relative h-[84px] overflow-hidden bg-art sm:h-[120px]">
         {workshop.cover_photo_url ? (
-          <>
-            <img
-              src={apiAsset(`${workshop.cover_photo_url}?size=sm`)!}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-              data-testid="workshop-card-photo"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          </>
+          <img
+            src={apiAsset(`${workshop.cover_photo_url}?size=sm`)!}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+            data-testid="workshop-card-photo"
+          />
         ) : (
-          <>
-            <div className="absolute inset-0 opacity-15 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:16px_16px]" />
-            {/* The icon is 1.25em of its parent, so the size is set on this wrapper: ~70px on phones, 140px from sm up. */}
-            <span aria-hidden className="absolute -right-2 -bottom-3 text-[56px] leading-none text-white/15 sm:-right-4 sm:-bottom-6 sm:text-[112px]">
-              <Icon name="car_repair" />
-            </span>
-          </>
+          <WorkshopArt className="absolute inset-0 h-full w-full" />
         )}
-        {/* Phones show only the "recommended" label; every listed workshop is a verified partner anyway. */}
-        <span
-          className={cx(
-            'absolute top-2 left-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full bg-card/95 px-2 py-0.5 font-label text-[10px] font-bold text-ink shadow-sm sm:top-3 sm:left-3 sm:max-w-none sm:px-2.5 sm:py-1 sm:text-[11px]',
-            !featured && 'max-sm:hidden',
-          )}
-        >
-          <Icon name="verified" filled className="text-[13px] text-primary sm:text-[14px]" />
-          <span className="truncate sm:hidden">Rekomendasi</span>
-          <span className="hidden sm:inline">{featured ? 'Rekomendasi BengkelGo' : 'Mitra Resmi BengkelGo'}</span>
-        </span>
-        {/* Phones: rating, and the area unless the distance is shown (no room for both), on the picture. */}
-        <span className="absolute bottom-1.5 left-2 flex max-w-[calc(100%-1rem)] items-center gap-1.5 sm:hidden">
-          <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-card/95 px-1.5 py-0.5 font-label text-[10px] font-bold text-warning-ink shadow-sm">
-            <Icon name="star" filled className="text-[12px] text-warning" />
-            {rating}
-          </span>
-          {workshop.distance_meters == null && (
-            <span className="min-w-0 truncate font-label text-[10px] font-bold tracking-[0.04em] text-white uppercase drop-shadow">{regionOf(workshop.address).split(',')[0]}</span>
-          )}
-        </span>
-        <span className="absolute bottom-3 left-3 hidden max-w-[70%] truncate text-lg font-bold text-white drop-shadow sm:block">{workshop.name}</span>
-        {workshop.distance_meters != null && (
-          <span className="absolute right-2 bottom-1.5 inline-flex items-center gap-0.5 rounded-full bg-navy/80 px-1.5 py-0.5 font-label text-[10px] font-bold text-white sm:right-3 sm:bottom-3 sm:gap-1 sm:px-2.5 sm:py-1 sm:text-[11px] sm:backdrop-blur">
-            <Icon name="pin_drop" className="text-[12px] sm:text-[14px]" /> {distance(workshop.distance_meters)}
-            <span className="hidden sm:inline">dari Anda</span>
-          </span>
+        {featured && (
+          <span className="absolute top-2 left-2 rounded-md bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">Rekomendasi</span>
         )}
       </div>
-      <div className="flex flex-1 flex-col gap-1.5 p-2.5 sm:gap-3 sm:p-5">
-        <div className="hidden items-center justify-between gap-2 sm:flex">
-          <span className="min-w-0 truncate font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">{regionOf(workshop.address)}</span>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning-soft px-1.5 py-0.5 font-label text-xs font-bold text-warning-ink">
-            <Icon name="star" filled className="text-[14px] text-warning" />
-            {rating} ({workshop.total_reviews})
+      <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2">
+          <h3 className="line-clamp-2 min-w-0 text-sm leading-snug font-bold text-ink sm:text-lg">{workshop.name}</h3>
+          <span className="inline-flex shrink-0 items-center gap-0.5 self-start text-sm font-bold text-primary sm:text-subtitle" aria-label={workshop.avg_rating > 0 ? `Rating ${rating} dari 5` : 'Belum ada rating'}>
+            <Icon name="star" filled className="text-[14px] text-star sm:text-[16px]" />
+            {rating}
           </span>
         </div>
-        <h3 className="line-clamp-2 text-[13px] leading-snug font-bold text-ink group-hover:text-primary sm:text-headline-sm sm:font-semibold">{workshop.name}</h3>
-        <p className="line-clamp-2 hidden text-sm text-ink-2 sm:block">{workshop.description || workshop.address}</p>
-        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-          {workshop.vehicle_types.map((v) => (
-            <span key={v} title={vehicleLabel(v)} className="inline-flex items-center gap-1 rounded-md bg-surface-low px-1 py-0.5 font-label text-[11px] font-semibold text-ink-2 sm:px-2 sm:py-1">
-              <Icon name={vehicleIcon(v)} className="text-[14px]" />
-              <span className="max-sm:sr-only">{vehicleLabel(v)}</span>
+        <p className="line-clamp-1 text-xs text-ink-2 sm:line-clamp-2 sm:text-sm">{workshop.address}</p>
+        <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1.5">
+          {workshop.distance_meters != null ? (
+            <span className="text-xs font-bold text-primary">
+              {distance(workshop.distance_meters)}
+              <span className="max-sm:hidden"> dari lokasi Anda</span>
             </span>
-          ))}
-          {workshop.accepts_emergency && (
-            <span className="rounded-md bg-surface-low px-1.5 py-0.5 font-label text-[10px] font-semibold text-ink-2 sm:px-2 sm:py-1 sm:text-[11px]">
-              <span className="sm:hidden">SOS</span>
-              <span className="hidden sm:inline">Siaga SOS</span>
+          ) : (
+            <span className={cx('text-xs font-bold', workshop.is_open ? 'text-primary' : 'text-ink-3')}>
+              {workshop.is_open ? `Buka ${workshop.open_time}–${workshop.close_time}` : 'Sedang tutup'}
             </span>
           )}
-          {workshop.has_qris && <span className="hidden rounded-md bg-surface-low px-2 py-1 font-label text-[11px] font-semibold text-ink-2 sm:inline">QRIS Ready</span>}
-        </div>
-        <div
-          className={cx(
-            'flex items-center justify-between gap-2 rounded-lg px-3 py-2 font-label text-xs font-semibold max-sm:bg-transparent max-sm:p-0 max-sm:text-[11px]',
-            workshop.is_open ? 'bg-success-soft text-success' : 'bg-surface-low text-ink-3',
-          )}
-        >
-          <span className="inline-flex min-w-0 items-center gap-1 sm:gap-1.5">
-            <Icon name="event_available" className="text-[14px] sm:text-[16px]" />
-            <span className="truncate">{workshop.is_open ? `${workshop.open_time}–${workshop.close_time}` : 'Sedang tutup'}</span>
-          </span>
-          <span className="hidden text-[11px] text-ink-3 sm:inline">{workshop.max_slot_per_hour} booking/jam</span>
-        </div>
-        <div className="mt-auto flex items-end justify-between gap-3 sm:pt-1">
-          <span className="hidden font-label text-xs text-ink-3 sm:inline">Jadwal per jam, tidak bentrok</span>
-          <span className="inline-flex h-8 w-full shrink-0 items-center justify-center rounded-lg bg-primary px-3 font-label text-xs font-semibold text-on-primary transition group-hover:bg-primary-dark sm:h-10 sm:w-auto sm:px-5 sm:text-sm">
-            Pilih Jadwal
+          <span className="inline-flex items-center gap-1 text-ink-2">
+            {workshop.vehicle_types.map((v) => (
+              <span key={v} title={vehicleLabel(v)} className="inline-flex">
+                <Icon name={vehicleIcon(v)} className="text-[16px]" />
+                <span className="sr-only">{vehicleLabel(v)}</span>
+              </span>
+            ))}
+            {workshop.accepts_emergency && <span className="text-[11px] font-bold">SOS</span>}
           </span>
         </div>
       </div>
@@ -157,145 +121,79 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
 
 export function ServicePicker({ services, value, onChange }: { services: Service[]; value: string; onChange: (id: string) => void }) {
   if (services.length === 0) return <EmptyState icon="build">Bengkel belum menambahkan layanan.</EmptyState>;
+  // The vehicle type only needs saying when the workshop serves both.
+  const mixed = new Set(services.map((s) => s.vehicle_type)).size > 1;
   return (
-    <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Pilih layanan">
-      {services.map((s) => {
-        const selected = value === s.id;
-        return (
-          <button
-            type="button"
-            key={s.id}
-            role="radio"
-            aria-checked={selected}
-            onClick={() => onChange(s.id)}
-            className={cx(
-              'flex flex-col gap-2 rounded-xl border p-4 text-left transition',
-              selected ? 'border-primary bg-sky ring-2 ring-primary' : 'border-line bg-card hover:border-primary/50 hover:shadow-sm',
-            )}
-          >
-            <div className="flex items-start gap-3">
-              <span className={cx('grid h-10 w-10 shrink-0 place-items-center rounded-lg', selected ? 'bg-primary text-on-primary' : 'bg-sky text-primary')}>
-                <Icon name={vehicleIcon(s.vehicle_type)} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-ink">{s.name}</p>
-                <p className="font-label text-xs text-ink-3">
-                  {vehicleLabel(s.vehicle_type)} · ±{s.duration_minutes} menit
-                </p>
-              </div>
-              <span className={cx('mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full border-[1.5px]', selected ? 'border-primary bg-primary' : 'border-line-strong')}>
-                {selected && <span className="h-2 w-2 rounded-full bg-card" />}
-              </span>
-            </div>
-            {s.description && <p className="text-sm text-ink-2">{s.description}</p>}
-            <p className="text-lg font-extrabold text-ink">{rupiah(s.price)}</p>
-          </button>
-        );
-      })}
+    <div className="flex flex-col gap-2.5" role="radiogroup" aria-label="Pilih layanan">
+      {services.map((s) => (
+        <OptionCard
+          key={s.id}
+          checked={value === s.id}
+          onSelect={() => onChange(s.id)}
+          title={s.name}
+          description={[mixed && vehicleLabel(s.vehicle_type), `±${s.duration_minutes} menit`, s.description].filter(Boolean).join(' · ')}
+          aside={rupiah(s.price)}
+        />
+      ))}
     </div>
   );
 }
 
-/** Next N days as tappable cards (dates in Asia/Jakarta). */
-export function DateStrip({ value, onChange, days = 7 }: { value: string; onChange: (d: string) => void; days?: number }) {
+const fullDateFmt = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+
+/** "22 Jum" chip label for a YYYY-MM-DD date. */
+export const chipDate = (isoDate: string) => {
+  const dt = new Date(`${isoDate}T00:00:00Z`);
+  return `${dt.getUTCDate()} ${dayShortFmt.format(dt).replace('.', '')}`;
+};
+
+/** Next N days as 44px chips, four to a row on phones (dates in Asia/Jakarta). `extra` adds one more cell (a calendar picker). */
+export function DateStrip({ value, onChange, days = 7, extra }: { value: string; onChange: (d: string) => void; days?: number; extra?: ReactNode }) {
   const dates = Array.from({ length: days }, (_, i) => jakartaDate(i));
   return (
-    <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="radiogroup" aria-label="Pilih tanggal">
-      {dates.map((d, i) => {
-        const dt = new Date(`${d}T00:00:00Z`);
-        const selected = value === d;
-        return (
-          <button
-            type="button"
-            key={d}
-            role="radio"
-            aria-checked={selected}
-            onClick={() => onChange(d)}
-            className={cx(
-              'relative flex w-[88px] shrink-0 flex-col items-center gap-0.5 rounded-xl border px-2 py-3 transition',
-              selected ? 'border-2 border-primary bg-sky' : 'border-line bg-card hover:border-primary/50',
-            )}
-          >
-            {selected && <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-primary" />}
-            <span className={cx('font-label text-[11px] font-bold tracking-[0.04em] uppercase', selected ? 'text-primary' : 'text-ink-3')}>
-              {i === 0 ? 'Hari ini' : i === 1 ? 'Besok' : weekdayFmt.format(dt)}
-            </span>
-            <span className="text-2xl font-extrabold text-ink">{dt.getUTCDate()}</span>
-            <span className="font-label text-xs text-ink-2">
-              {monthFmt.format(dt)} ({dayShortFmt.format(dt)})
-            </span>
-          </button>
-        );
-      })}
+    <div className="grid grid-cols-4 gap-2 sm:grid-cols-8" role="radiogroup" aria-label="Pilih tanggal">
+      {dates.map((d, i) => (
+        <ChoiceChip
+          key={d}
+          checked={value === d}
+          onSelect={() => onChange(d)}
+          aria-label={`${i === 0 ? 'Hari ini, ' : i === 1 ? 'Besok, ' : ''}${fullDateFmt.format(new Date(`${d}T00:00:00Z`))}`}
+        >
+          {chipDate(d)}
+        </ChoiceChip>
+      ))}
+      {extra}
     </div>
   );
 }
 
-/** Hourly slots grouped into morning / afternoon sessions. Full slots stay selectable (waiting list). */
+/** "09:00" -> "09.00", the way the design writes times. */
+export const dotTime = (slot: string) => slot.slice(0, 5).replace(':', '.');
+
+/** Hourly slots as 44px chips, three to a row on phones. Full slots stay selectable (they join the waiting list). */
 export function SlotPicker({ slots, value, onChange, durationMinutes }: { slots: SlotAvailability[]; value: string; onChange: (slot: string) => void; durationMinutes?: number }) {
   if (slots.length === 0) return <EmptyState icon="event_busy">Tidak ada slot pada tanggal ini. Bengkel mungkin tutup.</EmptyState>;
-  const sessions = [
-    { key: 'pagi', title: 'Sesi Pagi', icon: 'wb_sunny', items: slots.filter((s) => Number(s.time_slot.slice(0, 2)) < 12) },
-    { key: 'siang', title: 'Sesi Siang & Sore', icon: 'wb_twilight', items: slots.filter((s) => Number(s.time_slot.slice(0, 2)) >= 12) },
-  ].filter((s) => s.items.length > 0);
-
   return (
-    <div className="flex flex-col gap-5" role="radiogroup" aria-label="Pilih jam">
-      {sessions.map((sess) => (
-        <div key={sess.key}>
-          <p className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
-            <Icon name={sess.icon} className="text-warning" />
-            {sess.title} ({sess.items[0].time_slot} – {slotRange(sess.items[sess.items.length - 1].time_slot).split(' – ')[1]} WIB)
-          </p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {sess.items.map((s) => {
-              const full = s.remaining === 0;
-              const selected = value === s.time_slot;
-              return (
-                <div key={s.time_slot} className="relative">
-                  {selected && (
-                    <span className="absolute -top-2.5 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-primary px-2 py-0.5 font-label text-[10px] font-bold whitespace-nowrap text-on-primary">
-                      <Icon name="check_circle" className="text-[12px]" /> Jam Terpilih
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    disabled={!s.bookable}
-                    onClick={() => onChange(s.time_slot)}
-                    data-testid={`slot-${s.time_slot}`}
-                    className={cx(
-                      'flex w-full flex-col gap-1.5 rounded-xl border p-3.5 text-left transition disabled:cursor-not-allowed disabled:bg-surface-low disabled:opacity-60',
-                      selected ? 'border-2 border-primary bg-sky shadow-sm' : 'border-line bg-card hover:border-primary/50',
-                    )}
-                  >
-                    <span className="flex items-start justify-between gap-2">
-                      <span className="text-base font-bold text-ink">{slotRange(s.time_slot)}</span>
-                      <span
-                        className={cx(
-                          'shrink-0 rounded-md px-1.5 py-0.5 font-label text-[10px] font-bold',
-                          !s.bookable ? 'bg-surface text-ink-3' : full ? 'bg-emergency-soft text-emergency-ink' : s.remaining <= 1 ? 'bg-warning-soft text-warning-ink' : 'bg-success-soft text-success',
-                        )}
-                      >
-                        {!s.bookable ? 'Tutup' : full ? 'Penuh' : s.remaining <= 1 ? `Sisa ${s.remaining} tempat` : `${s.remaining} tempat`}
-                      </span>
-                    </span>
-                    <span className="font-label text-[11px] text-ink-3">
-                      WIB{durationMinutes ? ` · selesai ±${addMinutes(s.time_slot, durationMinutes)}` : ''}
-                    </span>
-                    {full && s.bookable && (
-                      <span className="mt-1 border-t border-line pt-1.5 font-label text-[11px] font-bold text-emergency-ink">
-                        + Waiting List{s.waitlisted > 0 ? ` (${s.waitlisted} antre)` : ''}
-                      </span>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="Pilih jam">
+      {slots.map((s) => {
+        const full = s.remaining === 0;
+        const note = !s.bookable ? 'Tutup' : full ? `Penuh, antre${s.waitlisted > 0 ? ` ${s.waitlisted}` : ''}` : `Sisa ${s.remaining}`;
+        return (
+          <ChoiceChip
+            key={s.time_slot}
+            checked={value === s.time_slot}
+            onSelect={() => onChange(s.time_slot)}
+            disabled={!s.bookable}
+            muted={full && s.bookable}
+            data-testid={`slot-${s.time_slot}`}
+            aria-label={`${s.time_slot} WIB, ${!s.bookable ? 'tutup' : full ? 'penuh, masuk daftar tunggu' : `sisa ${s.remaining} tempat`}${durationMinutes ? `, selesai sekitar ${addMinutes(s.time_slot, durationMinutes)}` : ''}`}
+            className="min-h-13"
+          >
+            <span>{dotTime(s.time_slot)}</span>
+            <span className={cx('text-[11px] font-semibold', value === s.time_slot ? 'text-on-primary/80' : full ? '' : 'text-ink-2')}>{note}</span>
+          </ChoiceChip>
+        );
+      })}
     </div>
   );
 }

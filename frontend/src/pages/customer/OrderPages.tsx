@@ -8,7 +8,6 @@ import { useAuth } from '@/services/auth/AuthProvider';
 import {
   BookingHero,
   BookingPass,
-  CalendarSyncCard,
   CancelOrderModal,
   RescheduleModal,
   StatusHistoryCard,
@@ -33,9 +32,10 @@ import {
   canUploadProof,
 } from '@/components/orders/OrderComponents';
 import { PointsMap } from '@/components/map/Maps';
-import { slotRange, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, CopyButton, EmptyState, Icon, PageHeader, Segmented, Stepper, toast, SkeletonList, SkeletonPage } from '@/components/ui';
-import { longDate, rupiah } from '@/utils/format';
+import { dotTime, shortDate, vehicleLabel } from '@/components/workshop/WorkshopComponents';
+import { BottomBar, NoteBox, ScreenHeader, ScreenLink, ScreenSection, ScreenTopBar, SummaryCard } from '@/components/ui/screen';
+import { Alert, CopyButton, EmptyState, Icon, PageHeader, Segmented, toast, SkeletonList, SkeletonPage } from '@/components/ui';
+import { rupiah } from '@/utils/format';
 
 const LIVE: OrderStatus[] = ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'CONFIRMED', 'IN_QUEUE'];
 type Filter = 'ALL' | 'ACTIVE' | 'DONE' | 'CANCELLED';
@@ -109,7 +109,7 @@ function useOrder(id: string) {
   });
 }
 
-/** Step 4 of the booking flow: pay the workshop's QRIS and upload the proof (Stitch "Konfirmasi & Pembayaran QRIS"). */
+/** Pay the workshop's QRIS and send the proof (Figma "Pembayaran"). */
 export function PaymentPage() {
   const { id = '' } = useParams();
   const { user } = useAuth();
@@ -122,127 +122,49 @@ export function PaymentPage() {
   const b = order.booking;
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="rounded-xl border border-line bg-card px-4 py-4 shadow-sm sm:px-6">
-        <Stepper steps={['Bengkel & Paket', 'Jadwal', 'Kendaraan & Data', 'Bayar & QRIS']} current={3} />
+    <div className="mx-auto w-full max-w-xl">
+      <ScreenHeader back={`/orders/${order.id}`} backLabel="Lihat tiket booking" title="Pembayaran" subtitle="Bayar ke QRIS bengkel, lalu kirim buktinya." />
+
+      <NoteBox tone="warning" title="Menunggu pembayaran">
+        {b ? (
+          <>
+            Jam {shortDate(b.booking_date)}, {dotTime(b.time_slot)} WIB (antrean #{b.queue_number}) sudah tercatat atas nama Anda.
+          </>
+        ) : (
+          'Pesanan Anda sudah tercatat.'
+        )}
+      </NoteBox>
+
+      <div className="mt-4">
+        <QrisPayCard order={order} />
       </div>
 
-      <section className="flex flex-col gap-4 overflow-hidden rounded-xl border border-warning-line bg-warning-soft p-5 sm:flex-row sm:items-center">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-warning-soft text-warning-ink ring-1 ring-warning/30">
-          <Icon name="schedule" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-headline-sm text-ink">Selesaikan Pembayaran Sebelum Datang</p>
-          <p className="text-sm text-ink-2">
-            {b ? (
-              <>
-                Slot <b>{longDate(b.booking_date)}, {slotRange(b.time_slot)} WIB</b> (antrean <b>#{b.queue_number}</b>) sudah tercatat atas nama Anda.
-              </>
-            ) : (
-              'Pesanan Anda sudah tercatat.'
-            )}
-          </p>
-        </div>
-        <div className="flex items-center gap-3 rounded-lg bg-card/80 px-4 py-2 ring-1 ring-line">
-          <div>
-            <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Kode reservasi</p>
-            <p className="font-mono text-sm font-bold text-ink">{order.order_number}</p>
-          </div>
-          <CopyButton text={order.order_number} />
-        </div>
-      </section>
+      <ScreenSection title="Ringkasan booking" className="mt-6">
+        <SummaryCard
+          rows={[
+            ['Bengkel', order.workshop?.name ?? '-'],
+            b && ['Layanan', b.service_name],
+            ['Kendaraan', [vehicleLabel(order.vehicle_type), order.vehicle_plate].filter(Boolean).join(' · ')],
+            b && ['Jadwal', `${shortDate(b.booking_date)} · ${dotTime(b.time_slot)} WIB`],
+            [
+              'Kode pesanan',
+              <span key="code" className="inline-flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
+                <span className="whitespace-nowrap">{order.order_number}</span>
+                <CopyButton text={order.order_number} label="Salin" className="h-8 px-2" />
+              </span>,
+            ],
+            ['Total', rupiah(order.total_amount)],
+          ]}
+        />
+      </ScreenSection>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <QrisPayCard order={order} />
-          <ProofUploadCard order={order} onUploaded={() => navigate(`/orders/${order.id}`)} />
-        </div>
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-          <section className="rounded-xl border border-line bg-card p-5 shadow-lift">
-            <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Ringkasan pemesanan</p>
-            <h2 className="mt-1 text-headline-sm text-ink">{order.workshop?.name}</h2>
-            <p className="font-label text-xs text-ink-2">{order.workshop?.address}</p>
-            <div className="mt-4 space-y-3 border-t border-line pt-4 text-sm">
-              {b && (
-                <SummaryLine icon="calendar_today" label="Waktu servis terjadwal">
-                  {longDate(b.booking_date)}
-                  <span className="block font-label text-xs font-normal text-ink-2">{slotRange(b.time_slot)} WIB</span>
-                </SummaryLine>
-              )}
-              <SummaryLine icon="build" label="Antrean & mekanik">
-                {b && <span className="mr-2 rounded-md bg-sky px-1.5 py-0.5 font-label text-xs font-bold text-primary">Antrean #{b.queue_number}</span>}
-                <span className="font-label text-xs font-normal text-ink-2">{order.mechanic ? `Mekanik: ${order.mechanic.name}` : 'Mekanik ditugaskan bengkel'}</span>
-              </SummaryLine>
-              <SummaryLine icon={vehicleIcon(order.vehicle_type)} label="Kendaraan">
-                {vehicleLabel(order.vehicle_type)}
-                {order.vehicle_plate && <span className="ml-2 font-mono text-xs text-ink-2">{order.vehicle_plate}</span>}
-              </SummaryLine>
-            </div>
-            <div className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
-              <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Rincian paket &amp; biaya</p>
-              <div className="flex justify-between gap-3">
-                <span className="text-ink">{b?.service_name ?? 'Layanan'}</span>
-                <span className="font-semibold text-ink">{rupiah(order.total_amount)}</span>
-              </div>
-              <div className="flex justify-between gap-3">
-                <span className="text-ink-2">Biaya layanan platform</span>
-                <span className="font-bold text-success">GRATIS (Rp0)</span>
-              </div>
-            </div>
-            <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-4">
-              <div>
-                <p className="font-label text-[11px] text-ink-3">Total biaya reservasi</p>
-                <p className="text-[21px] leading-tight font-extrabold text-primary">{rupiah(order.total_amount)}</p>
-              </div>
-            </div>
-          </section>
-          <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
-            <p className="mb-3 font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Perlindungan pengendara</p>
-            <ul className="space-y-3 text-sm">
-              {[
-                ['verified', 'Bengkel terverifikasi', 'Mitra diverifikasi admin sebelum tampil ke pelanggan.'],
-                ['receipt_long', 'Tersimpan di pesanan', 'Bukti bayar dan status pembayaran tersimpan di pesanan Anda.'],
-                ['cancel', 'Bisa dibatalkan', 'Selama belum dikerjakan dan pembayaran belum diverifikasi.'],
-              ].map(([icon, t, d]) => (
-                <li key={t} className="flex gap-3">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-success-soft text-success">
-                    <Icon name={icon} className="text-[18px]" />
-                  </span>
-                  <span>
-                    <span className="block font-bold text-ink">{t}</span>
-                    <span className="block text-xs text-ink-2">{d}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {order.workshop && (
-              <a href={`tel:${order.workshop.phone}`} className="mt-4 flex items-center gap-3 rounded-lg bg-surface-low p-3 hover:bg-surface">
-                <Icon name="support_agent" className="text-primary" />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-ink">Butuh bantuan pembayaran?</span>
-                  <span className="block font-label text-xs text-ink-2">Hubungi bengkel {order.workshop.phone}</span>
-                </span>
-                <Icon name="chevron_right" className="text-ink-3" />
-              </a>
-            )}
-          </section>
-          <Link to={`/orders/${order.id}`} className="text-center font-label text-sm font-semibold text-primary hover:underline">
-            Bayar nanti, lihat tiket booking
-          </Link>
-        </aside>
-      </div>
-    </div>
-  );
-}
+      <ScreenSection title="Bukti pembayaran">
+        <ProofUploadCard order={order} onUploaded={() => navigate(`/orders/${order.id}`)} />
+      </ScreenSection>
 
-function SummaryLine({ icon, label, children }: { icon: string; label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex gap-3">
-      <Icon name={icon} className="mt-0.5 text-primary" />
-      <div className="min-w-0">
-        <p className="font-label text-[11px] text-ink-3">{label}</p>
-        <div className="font-semibold text-ink">{children}</div>
-      </div>
+      <Link to={`/orders/${order.id}`} className="mt-5 flex min-h-11 items-center justify-center text-sm font-bold text-primary hover:underline">
+        Bayar nanti, lihat tiket booking
+      </Link>
     </div>
   );
 }
@@ -287,6 +209,7 @@ export function OrderDetailPage() {
     const live = ['PENDING', 'ACCEPTED', 'IN_PROGRESS'].includes(order.status);
     return (
       <div className="flex flex-col gap-6">
+        <ScreenTopBar back="/orders" backLabel="Kembali ke pesanan saya" />
         <EmergencyHeader order={order} />
         {cancel.error && <Alert tone="danger">{errorMessage(cancel.error)}</Alert>}
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
@@ -311,52 +234,78 @@ export function OrderDetailPage() {
     );
   }
 
+  const b = order.booking;
+  const pay = isCustomer && canUploadProof(order);
+  const subtitle = b ? `${b.service_name} di ${order.workshop?.name ?? 'bengkel'}.` : `Pesanan ${order.order_number}.`;
+
   return (
-    <div className="flex flex-col gap-6">
-      <BookingHero order={order} />
-      <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
-        <div className="flex min-w-0 flex-col gap-6">
-          {order.booking && order.status !== 'CANCELLED' && <BookingPass order={order} />}
-          {isCustomer && order.payment.status !== 'VERIFIED' && <CustomerPaymentPanel order={order} />}
-          {isCustomer && <ReviewForm order={order} />}
-          <WorkshopContactCard order={order} />
-        </div>
-        <div className="flex flex-col gap-6">
-          <OrderReceipt order={order} />
-          <StatusHistoryCard order={order} />
-        </div>
+    <div className="mx-auto w-full max-w-xl">
+      <ScreenHeader back="/orders" backLabel="Kembali ke pesanan saya" title="Status pesanan" subtitle={subtitle} />
+      <div className="flex flex-col gap-6">
+        <BookingHero order={order} />
+        {b && order.status !== 'CANCELLED' && <BookingPass order={order} />}
+        <StatusHistoryCard order={order} />
+        <MechanicCard order={order} />
+        {isCustomer && order.payment.status !== 'VERIFIED' && !pay && <CustomerPaymentPanel order={order} />}
+        {isCustomer && <ReviewForm order={order} />}
+        <OrderReceipt order={order} />
+        <WorkshopContactCard order={order} />
+        {isCustomer && (canReschedule(order) || cancellable) && (
+          <div className="flex gap-2" data-print-hide>
+            {canReschedule(order) && (
+              <button
+                type="button"
+                onClick={() => setRescheduling(true)}
+                className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md border border-line bg-card px-3 text-sm font-bold text-ink hover:bg-surface"
+                data-testid="reschedule-open"
+              >
+                <Icon name="event_repeat" className="text-primary" /> Ganti jadwal
+              </button>
+            )}
+            {cancellable && (
+              <button
+                type="button"
+                onClick={() => setConfirmCancel(true)}
+                className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md border border-line bg-card px-3 text-sm font-bold text-emergency-ink hover:bg-surface"
+              >
+                <Icon name="event_busy" /> Batalkan booking
+              </button>
+            )}
+          </div>
+        )}
+        {cancel.error && <Alert tone="danger">{errorMessage(cancel.error)}</Alert>}
       </div>
-      <CalendarSyncCard order={order} />
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-card px-5 py-4 shadow-sm" data-print-hide>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <PageBackLink to="/">Kembali ke Beranda</PageBackLink>
-          {isCustomer && canReschedule(order) && (
-            <button type="button" onClick={() => setRescheduling(true)} className="inline-flex items-center gap-1 font-label text-sm font-semibold text-primary hover:underline" data-testid="reschedule-open">
-              <Icon name="event_repeat" /> Ganti jadwal
-            </button>
-          )}
-          {cancellable && (
-            <button type="button" onClick={() => setConfirmCancel(true)} className="inline-flex items-center gap-1 font-label text-sm font-semibold text-emergency-ink hover:underline">
-              <Icon name="event_busy" /> Batalkan booking
-            </button>
-          )}
-        </div>
-        <Link to="/orders" className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-sky px-4 font-label text-sm font-semibold text-primary hover:bg-primary-fixed/60">
-          <Icon name="receipt_long" /> Lihat Riwayat &amp; Status Servis Saya
-        </Link>
-      </div>
-      {cancel.error && <Alert tone="danger">{errorMessage(cancel.error)}</Alert>}
+      {pay ? (
+        <BottomBar caption="Total bayar" amount={rupiah(order.payment.amount || order.total_amount)}>
+          <ScreenLink to={`/orders/${order.id}/pay`} data-testid="pay-now">
+            Bayar sekarang →
+          </ScreenLink>
+        </BottomBar>
+      ) : (
+        order.workshop &&
+        order.status !== 'CANCELLED' && (
+          <BottomBar>
+            <a
+              href={`tel:${order.workshop.phone}`}
+              className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-subtitle font-bold text-on-primary transition hover:bg-primary-dark"
+            >
+              <Icon name="call" /> Telepon bengkel
+            </a>
+          </BottomBar>
+        )
+      )}
       {cancelModal}
       {isCustomer && canReschedule(order) && <RescheduleModal order={order} open={rescheduling} onClose={() => setRescheduling(false)} />}
     </div>
   );
 }
 
+
 function OwnerOrderView({ order }: { order: Order }) {
   const emergency = order.type === 'EMERGENCY' && order.emergency;
   return (
     <div className="flex flex-col gap-6">
-      <PageBackLink to={emergency ? '/owner/emergency' : '/owner/orders'}>{emergency ? 'Kembali ke panggilan darurat' : 'Kembali ke pesanan masuk'}</PageBackLink>
+      <ScreenTopBar back={emergency ? '/owner/emergency' : '/owner/orders'} backLabel={emergency ? 'Kembali ke panggilan darurat' : 'Kembali ke pesanan masuk'} />
       <PageHeader
         eyebrow={emergency ? 'Panggilan darurat' : 'Booking servis'}
         title={order.order_number}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { workshopApi } from '@/services/api/endpoints';
@@ -9,8 +9,9 @@ import { PHONE_QUERY, useMediaQuery } from '@/hooks/useMediaQuery';
 import { DEFAULT_CENTER, PointsMap } from '@/components/map/Maps';
 import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { useReverseAddress } from '@/components/map/AddressHint';
-import { WorkshopCard, friendlyDay, regionOf } from '@/components/workshop/WorkshopComponents';
-import { Alert, Button, EmptyState, Icon, Pagination, SectionHeading, cx, SkeletonCards } from '@/components/ui';
+import { DateStrip, WorkshopCard, dotTime, friendlyDay, monthYear, regionOf } from '@/components/workshop/WorkshopComponents';
+import { ChoiceChip, OptionCard, ScreenSection } from '@/components/ui/screen';
+import { Alert, Button, EmptyState, Icon, Input, Pagination, SectionHeading, Select, cx, SkeletonCards } from '@/components/ui';
 import { distance, jakartaDate } from '@/utils/format';
 
 type Tab = 'booking' | 'sos' | 'cari';
@@ -22,10 +23,22 @@ const PAGE_SIZE = 10;
 /** Booking hours offered by the slot filter (workshops' own hours are checked by the API). */
 const SLOT_HOURS = Array.from({ length: 15 }, (_, i) => `${String(i + 7).padStart(2, '0')}:00`);
 
-const TABS: { key: Tab; label: string; icon: string; badge: string; tone: string }[] = [
-  { key: 'booking', label: 'Booking Servis Berkala', icon: 'calendar_month', badge: 'Anti-Antre', tone: 'bg-white/20 text-white' },
-  { key: 'sos', label: 'Bantuan Darurat SOS (5 Km)', icon: 'emergency', badge: 'Respon Cepat', tone: 'bg-emergency text-white' },
-  { key: 'cari', label: 'Cari Bengkel Terdekat', icon: 'storefront', badge: '', tone: '' },
+const TABS: { key: Tab; label: string; icon: string }[] = [
+  { key: 'booking', label: 'Booking', icon: 'calendar_month' },
+  { key: 'cari', label: 'Terdekat', icon: 'near_me' },
+  { key: 'sos', label: 'Darurat', icon: 'emergency' },
+];
+
+const VEHICLES: { value: VehicleType | ''; label: string; icon: string }[] = [
+  { value: '', label: 'Semua', icon: 'garage' },
+  { value: 'MOTOR', label: 'Motor', icon: 'two_wheeler' },
+  { value: 'MOBIL', label: 'Mobil', icon: 'directions_car' },
+];
+
+const SORTS: { value: Sort; label: string }[] = [
+  { value: 'recommended', label: 'Rekomendasi' },
+  { value: 'near', label: 'Terdekat' },
+  { value: 'rating', label: 'Rating' },
 ];
 
 const PROBLEMS = [
@@ -49,9 +62,11 @@ export default function WorkshopSearchPage() {
   const tab: Tab = isTab(tabParam) ? tabParam : 'booking';
   const setTab = (t: Tab) => setParams({ tab: t }, { replace: true });
 
-  const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
-  const [vehicle, setVehicle] = useState<VehicleType | ''>('');
+  // The home page's MOTOR / MOBIL cards and search box arrive with ?vehicle= and ?q=.
+  const vParam = params.get('vehicle');
+  const [search, setSearch] = useState(params.get('q') ?? '');
+  const [query, setQuery] = useState(params.get('q') ?? '');
+  const [vehicle, setVehicle] = useState<VehicleType | ''>(vParam === 'MOTOR' || vParam === 'MOBIL' ? vParam : '');
   const [radiusKm, setRadiusKm] = useState(10);
   const [date, setDate] = useState(jakartaDate(1));
   const [sort, setSort] = useState<Sort>('recommended');
@@ -97,54 +112,54 @@ export default function WorkshopSearchPage() {
   };
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-10">
       {geo.dialog}
-      <section className="relative -mx-5 -mt-8 overflow-hidden px-5 pt-8 pb-2 sm:-mx-8 sm:-mt-12 sm:px-8 sm:pt-10 lg:-mx-20 lg:px-20">
-        <div className="relative">
-          <p className="font-label text-label-sm text-primary uppercase">Cari &amp; booking</p>
-          <h1 className="mt-1 text-[21px] leading-tight font-bold tracking-[-0.02em] text-ink sm:text-headline-lg">Temukan Bengkel &amp; Pesan Servis</h1>
-          <p className="mt-2 max-w-2xl text-subtitle text-ink-2">
-            Pilih kebutuhan Anda: booking servis terjadwal, minta bantuan darurat, atau cari bengkel terdekat.{' '}
-            <Link to="/#cara-kerja" className="font-semibold text-primary hover:underline">
-              Lihat cara kerja
-            </Link>
-          </p>
+      <section ref={cardRef} id="booking" className="scroll-mt-28">
+        <h1 className="text-display text-ink">Pilih bengkel</h1>
+        <p className="mt-1.5 max-w-2xl text-subtitle text-ink-2">
+          Booking servis terjadwal, cari bengkel terdekat, atau minta bantuan darurat.{' '}
+          <Link to="/#cara-kerja" className="font-bold text-primary hover:underline">
+            Cara kerja
+          </Link>
+        </p>
 
-          <div ref={cardRef} id="booking" className="mt-8 scroll-mt-28 rounded-xl border border-line bg-card p-4 shadow-float sm:p-6">
-            <div className="no-scrollbar -mx-1 mb-5 flex gap-2 overflow-x-auto px-1" role="tablist">
-              {TABS.map((t) => {
-                const active = tab === t.key;
-                return (
-                  <button
-                    key={t.key}
-                    type="button"
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => setTab(t.key)}
-                    className={cx(
-                      'inline-flex h-11 shrink-0 items-center gap-2 rounded-lg px-4 font-label text-sm font-semibold transition',
-                      active ? (t.key === 'sos' ? 'bg-emergency text-white shadow-sm' : 'bg-primary text-on-primary shadow-sm') : 'bg-surface-low text-ink hover:bg-surface',
-                    )}
-                  >
-                    <Icon name={t.icon} className={cx(!active && t.key === 'sos' && 'text-emergency')} />
-                    {t.label}
-                    {t.badge && (
-                      <span className={cx('rounded-md px-1.5 py-0.5 text-[10px] font-bold', active ? 'bg-on-primary text-primary' : t.key === 'sos' ? 'bg-emergency text-white' : 'bg-primary text-on-primary')}>
-                        {t.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+        <div className="mt-6 grid max-w-2xl grid-cols-3 gap-2" role="tablist" aria-label="Kebutuhan Anda">
+          {TABS.map((t) => {
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(t.key)}
+                className={cx(
+                  'inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-sm font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+                  active
+                    ? t.key === 'sos'
+                      ? 'border-emergency bg-emergency text-white'
+                      : 'border-primary bg-primary text-on-primary'
+                    : 'border-line bg-card text-ink hover:border-line-strong',
+                )}
+              >
+                <span className="hidden sm:inline-flex">
+                  <Icon name={t.icon} className={cx('text-[18px]', !active && (t.key === 'sos' ? 'text-emergency-ink' : 'text-primary'))} />
+                </span>
+                <span className="truncate">{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
 
-            {tab !== 'sos' && (
-              <div className="mb-4 flex flex-col gap-2">
+        <div className="mt-6 grid gap-x-8 lg:grid-cols-2">
+          {tab !== 'sos' && (
+            <>
+              <ScreenSection title="Lokasi" className="mt-0 lg:col-span-2">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
                   <PlaceSearch
                     className="flex-1"
                     near={geo.position}
-                    placeholder="Cari bengkel di sekitar… (mis. Margonda Depok, Stasiun Bogor)"
+                    placeholder="Cari daerah, mis. Ketintang Surabaya"
                     onPick={(p) => {
                       geo.setPosition({ lat: p.lat, lng: p.lng });
                       setPlaceLabel(p.label);
@@ -164,260 +179,158 @@ export default function WorkshopSearchPage() {
                   </Button>
                 </div>
                 {geo.position && (
-                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 font-label text-xs text-ink-2" data-testid="search-around">
-                    <Icon name="near_me" className="text-[16px] text-primary" />
-                    Menampilkan bengkel di sekitar <b className="text-ink">{placeLabel ?? (gpsAddress.data ? `${gpsAddress.data.name} (lokasi GPS Anda)` : 'lokasi GPS Anda')}</b>
+                  <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-ink-2" data-testid="search-around">
+                    <span>
+                      Di sekitar <b className="text-ink">{placeLabel ?? (gpsAddress.data ? `${gpsAddress.data.name} (GPS)` : 'lokasi GPS Anda')}</b>
+                    </span>
+                    <label className="inline-flex items-center gap-1.5">
+                      <span className="sr-only">Radius pencarian</span>
+                      <select
+                        value={radiusKm}
+                        onChange={(e) => setRadiusKm(Number(e.target.value))}
+                        className="h-8 rounded-md border border-line bg-card px-2 text-xs font-bold text-ink focus:border-primary focus:outline-none"
+                        aria-label="Radius pencarian"
+                      >
+                        {[2, 5, 10, 20, 50].map((r) => (
+                          <option key={r} value={r}>
+                            Radius {r} km
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                     <button
                       type="button"
                       onClick={() => {
                         geo.setPosition(null);
                         setPlaceLabel(null);
                       }}
-                      className="font-semibold text-primary hover:underline"
+                      className="font-bold text-primary hover:underline"
                     >
                       Hapus lokasi
                     </button>
-                  </p>
+                  </div>
                 )}
-              </div>
-            )}
+                {geo.error && (
+                  <div className="mt-3">
+                    <Alert tone="warning">{geo.error}</Alert>
+                  </div>
+                )}
+              </ScreenSection>
 
-            {tab === 'booking' && (
-              <div className="flex flex-col gap-4">
-                <div className="grid gap-2 rounded-xl bg-surface-low p-2 sm:grid-cols-2 lg:grid-cols-4">
-                  <FieldCell icon="location_on" label="Lokasi Anda" hint={geo.position ? `Radius pencarian < ${radiusKm} km` : geo.error ?? 'Belum ditentukan'}>
-                    {geo.position ? (
-                      <span className="flex items-center gap-2">
-                        <select value={radiusKm} onChange={(e) => setRadiusKm(Number(e.target.value))} className="min-w-0 flex-1 bg-transparent font-bold text-ink focus:outline-none" aria-label="Radius pencarian">
-                          {[2, 5, 10, 20, 50].map((r) => (
-                            <option key={r} value={r}>
-                              {placeLabel ? 'Sekitar lokasi dipilih' : 'Sekitar saya'} · {r} km
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            geo.setPosition(null);
-                            setPlaceLabel(null);
-                          }}
-                          className="text-ink-3 hover:text-emergency"
-                          aria-label="Hapus lokasi"
-                        >
-                          <Icon name="close" />
-                        </button>
+              <ScreenSection title="Kendaraan" className="lg:mt-6">
+                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Jenis kendaraan">
+                  {VEHICLES.map((v) => (
+                    <ChoiceChip key={v.value} checked={vehicle === v.value} onSelect={() => setVehicle(v.value)}>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon name={v.icon} className="text-[18px]" /> {v.label}
                       </span>
-                    ) : (
-                      <button type="button" onClick={geo.locate} className="flex items-center gap-1.5 font-bold text-primary hover:underline">
-                        <Icon name="my_location" /> {geo.locating ? 'Mencari lokasi…' : 'Deteksi lokasi GPS'}
-                      </button>
-                    )}
-                  </FieldCell>
-                  <FieldCell icon="directions_car" label="Jenis Kendaraan" hint="Bengkel yang melayani kendaraan ini">
-                    <select value={vehicle} onChange={(e) => setVehicle(e.target.value as VehicleType | '')} className="w-full bg-transparent font-bold text-ink focus:outline-none" aria-label="Jenis kendaraan">
-                      <option value="">Semua kendaraan</option>
-                      <option value="MOTOR">Motor</option>
-                      <option value="MOBIL">Mobil</option>
-                    </select>
-                  </FieldCell>
-                  <FieldCell icon="calendar_today" label="Tanggal & Jam Servis" hint={slotTime ? `${friendlyDay(date)} · hanya bengkel yang masih ada slot` : friendlyDay(date)}>
-                    <span className="flex items-center gap-2">
-                      <input
-                        type="date"
-                        value={date}
-                        min={jakartaDate(0)}
-                        max={jakartaDate(30)}
-                        onChange={(e) => e.target.value && setDate(e.target.value)}
-                        className="min-w-0 flex-1 bg-transparent font-bold text-ink focus:outline-none"
-                        aria-label="Tanggal servis"
-                      />
-                      <select
-                        value={hours.includes(slotTime) ? slotTime : ''}
-                        onChange={(e) => setSlotTime(e.target.value)}
-                        className="bg-transparent font-bold text-ink focus:outline-none"
-                        aria-label="Jam servis"
-                        data-testid="search-slot"
-                      >
-                        <option value="">Semua jam</option>
-                        {hours.map((h) => (
-                          <option key={h} value={h}>
-                            {h}
-                          </option>
-                        ))}
-                      </select>
-                    </span>
-                  </FieldCell>
-                  <FieldCell icon="search" label="Nama Bengkel" hint="Opsional, kosongkan untuk semua">
-                    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="mis. Jaya Motor" className="w-full bg-transparent font-bold text-ink placeholder:font-normal placeholder:text-ink-3 focus:outline-none" data-testid="search-input" />
-                  </FieldCell>
+                    </ChoiceChip>
+                  ))}
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="flex items-center gap-2 font-label text-xs font-semibold text-ink-2">
-                    <Icon name="lock" className="text-success" /> Jam pilihan Anda langsung jadi milik Anda saat konfirmasi, tidak bentrok dengan pelanggan lain
-                  </p>
-                  <Button icon="search" onClick={showResults} className="bg-navy hover:bg-navy/90">
-                    Cari Bengkel ({data?.length ?? 0})
-                  </Button>
-                </div>
-              </div>
-            )}
+              </ScreenSection>
 
-            {tab === 'sos' && (
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-wrap items-center gap-4 rounded-xl border border-emergency/20 bg-emergency-soft p-4">
-                  <span className="grid h-11 w-11 place-items-center rounded-full bg-card text-emergency-ink shadow-sm">
-                    <Icon name="my_location" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-label text-xs font-bold tracking-[0.04em] text-emergency-ink uppercase">Lokasi Anda (radius 5 km)</p>
-                    <p className="font-semibold text-ink">{geo.position ? `${geo.position.lat.toFixed(5)}, ${geo.position.lng.toFixed(5)}` : (geo.error ?? 'Lokasi belum terdeteksi')}</p>
-                    <p className="font-label text-xs text-ink-2">Bengkel aktif dalam 5 km dari titik ini akan dihubungi otomatis.</p>
-                  </div>
-                  <Button variant="secondary" size="sm" icon="sync" loading={geo.locating} onClick={geo.locate} className="border-emergency text-emergency-ink hover:bg-card">
-                    {geo.position ? 'Perbarui Titik GPS' : 'Deteksi GPS'}
-                  </Button>
-                </div>
-                <div>
-                  <p className="mb-2 font-label text-xs font-semibold text-ink">Pilih masalah kendaraan Anda saat ini:</p>
-                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-4" role="radiogroup" aria-label="Masalah kendaraan">
-                    {PROBLEMS.map((p) => {
-                      const sel = problem === p.text;
-                      return (
-                        <button
-                          type="button"
-                          key={p.label}
-                          role="radio"
-                          aria-checked={sel}
-                          onClick={() => setProblem(p.text)}
-                          className={cx('flex items-start gap-3 rounded-xl border p-3 text-left transition', sel ? 'border-2 border-emergency bg-emergency-soft' : 'border-line bg-card hover:border-emergency/50')}
-                        >
-                          <Icon name={p.icon} className={sel ? 'text-emergency' : 'text-ink-2'} />
-                          <span>
-                            <span className="block text-sm font-bold text-ink">{p.label}</span>
-                            <span className="block font-label text-[11px] text-ink-3">{p.hint}</span>
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="flex items-center gap-2 font-label text-xs font-semibold text-ink-2">
-                    <Icon name="timer" className="text-emergency" /> Bengkel wajib merespons dalam 2 menit, atau dialihkan otomatis
-                  </p>
-                  <Button variant="danger" icon="e911_emergency" onClick={() => navigate('/emergency', { state: { position: geo.position, problem } })}>
-                    Lanjut Kirim Bantuan Darurat
-                  </Button>
-                </div>
-              </div>
-            )}
+              <ScreenSection title="Nama bengkel" className="lg:mt-6">
+                <Input aria-label="Nama bengkel" icon="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Opsional, mis. Jaya Motor" data-testid="search-input" />
+              </ScreenSection>
+            </>
+          )}
 
-            {tab === 'cari' && (
-              <div className="flex flex-col gap-4">
-                <div className="grid gap-2 rounded-xl bg-surface-low p-2 sm:grid-cols-3">
-                  <FieldCell icon="search" label="Cari Nama Bengkel" hint="Ketik minimal 1 huruf">
-                    <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="mis. Jaya Motor" className="w-full bg-transparent font-bold text-ink placeholder:font-normal placeholder:text-ink-3 focus:outline-none" />
-                  </FieldCell>
-                  <FieldCell icon="directions_car" label="Jenis Kendaraan" hint="Bengkel yang melayani kendaraan ini">
-                    <select value={vehicle} onChange={(e) => setVehicle(e.target.value as VehicleType | '')} className="w-full bg-transparent font-bold text-ink focus:outline-none" aria-label="Jenis kendaraan">
-                      <option value="">Semua kendaraan</option>
-                      <option value="MOTOR">Motor</option>
-                      <option value="MOBIL">Mobil</option>
-                    </select>
-                  </FieldCell>
-                  <FieldCell icon="sort" label="Urutkan Berdasarkan" hint={geo.position ? (placeLabel ? 'Dari lokasi yang Anda pilih' : 'Lokasi Anda terdeteksi') : 'Terdekat: pilih lokasi atau GPS'}>
-                    <select
-                      value={!geo.position && sort === 'near' ? 'recommended' : sort}
-                      onChange={(e) => {
-                        const next = e.target.value as Sort;
-                        setSort(next);
-                        if (next === 'near' && !geo.position) geo.locate();
-                      }}
-                      className="w-full bg-transparent font-bold text-ink focus:outline-none"
-                      aria-label="Urutkan"
-                    >
-                      <option value="recommended">{geo.position ? 'Rekomendasi (jarak + rating)' : 'Rekomendasi'}</option>
-                      <option value="near">Paling dekat dari lokasi</option>
-                      <option value="rating">Rating tertinggi</option>
-                    </select>
-                  </FieldCell>
-                </div>
-                <div className="flex justify-end">
-                  <Button icon="filter_list" onClick={showResults} className="bg-navy hover:bg-navy/90">
-                    Tampilkan {data?.length ?? 0} Bengkel
-                  </Button>
-                </div>
+          {tab === 'booking' && (
+            <ScreenSection title="Jadwal servis" aside={monthYear(date)} className="lg:col-span-2">
+              <div className="grid gap-3 lg:grid-cols-[1fr_220px] lg:items-start">
+                <DateStrip value={date} onChange={setDate} />
+                <Select aria-label="Jam servis" value={hours.includes(slotTime) ? slotTime : ''} onChange={(e) => setSlotTime(e.target.value)} data-testid="search-slot" icon="schedule">
+                  <option value="">Semua jam</option>
+                  {hours.map((h) => (
+                    <option key={h} value={h}>
+                      {dotTime(h)} WIB
+                    </option>
+                  ))}
+                </Select>
               </div>
-            )}
-            {geo.error && tab !== 'sos' && (
-              <div className="mt-4">
-                <Alert tone="warning">{geo.error}</Alert>
-              </div>
-            )}
-          </div>
-
-          {/* SOS banner right under the card */}
-          <div className="mt-4 flex flex-col items-start gap-4 rounded-xl border border-line bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:p-5">
-            <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-emergency-soft text-emergency-ink">
-              <Icon name="car_crash" />
-              <span className="absolute -top-1 -right-1 h-3 w-3 animate-pulse rounded-full bg-emergency" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="flex flex-wrap items-center gap-2 font-bold text-ink">
-                Kendaraan Tiba-tiba Mogok di Jalan Tol atau Pemukiman?
-                <span className="rounded-md bg-emergency-ink px-1.5 py-0.5 font-label text-[10px] font-bold text-white">Radius 5 Km</span>
+              <p className="mt-2.5 text-xs text-ink-2">
+                {friendlyDay(date)}
+                {slotTime && hours.includes(slotTime) ? ' · hanya bengkel yang masih punya tempat di jam ini' : ''}
               </p>
-              <p className="text-sm text-ink-2">Tidak perlu panik mencari nomor derek tak resmi. Kirim lokasi GPS, bengkel mitra terdekat akan dihubungi otomatis.</p>
+            </ScreenSection>
+          )}
+
+          {tab === 'cari' && (
+            <ScreenSection title="Urutkan" className="lg:col-span-2">
+              <div className="grid max-w-2xl grid-cols-3 gap-2" role="radiogroup" aria-label="Urutkan">
+                {SORTS.map((s) => (
+                  <ChoiceChip
+                    key={s.value}
+                    checked={(!geo.position && sort === 'near' ? 'recommended' : sort) === s.value}
+                    onSelect={() => {
+                      setSort(s.value);
+                      if (s.value === 'near' && !geo.position) void geo.locate();
+                    }}
+                  >
+                    {s.label}
+                  </ChoiceChip>
+                ))}
+              </div>
+            </ScreenSection>
+          )}
+
+          {tab === 'sos' && (
+            <div className="flex flex-col gap-5 lg:col-span-2 lg:max-w-2xl">
+              <div className="flex items-start gap-3 rounded-lg border border-emergency/40 bg-emergency-soft px-4 py-3.5">
+                <Icon name="my_location" className="mt-px text-emergency-ink" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-subtitle font-bold text-emergency-ink">Lokasi Anda (radius 5 km)</p>
+                  <p className="mt-0.5 text-sm text-ink-2">
+                    {geo.position ? `${geo.position.lat.toFixed(5)}, ${geo.position.lng.toFixed(5)}` : (geo.error ?? 'Lokasi belum terdeteksi')}. Bengkel aktif di sekitar titik ini
+                    dihubungi otomatis.
+                  </p>
+                </div>
+                <button type="button" onClick={geo.locate} disabled={geo.locating} className="min-h-11 shrink-0 rounded-md px-2 text-sm font-bold text-emergency-ink hover:underline disabled:opacity-60">
+                  {geo.locating ? 'Mencari…' : geo.position ? 'Perbarui' : 'Deteksi'}
+                </button>
+              </div>
+              <ScreenSection title="Masalah kendaraan" className="mt-0">
+                <div className="grid gap-2.5 sm:grid-cols-2" role="radiogroup" aria-label="Masalah kendaraan">
+                  {PROBLEMS.map((p) => (
+                    <OptionCard key={p.label} checked={problem === p.text} onSelect={() => setProblem(p.text)} title={p.label} description={p.hint} />
+                  ))}
+                </div>
+              </ScreenSection>
+              <p className="text-xs text-ink-2">Bengkel wajib merespons dalam 2 menit, atau permintaan dialihkan otomatis ke bengkel lain.</p>
+              <Button variant="danger" size="lg" icon="e911_emergency" onClick={() => navigate('/emergency', { state: { position: geo.position, problem } })}>
+                Lanjut kirim bantuan darurat
+              </Button>
             </div>
-            <Link to="/emergency" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-lg bg-emergency px-5 font-label text-sm font-bold text-white shadow-sm hover:bg-emergency-dark">
-              <Icon name="phone_in_talk" /> SOS Panggil Sekarang
-            </Link>
-          </div>
+          )}
         </div>
       </section>
 
-      <section ref={resultsRef} id="hasil" className="scroll-mt-24">
-        <SectionHeading
-          eyebrow={
-            <span className="inline-flex items-center gap-2">
-              <span className="rounded-md bg-navy px-1.5 py-0.5 text-white normal-case">Top Verified</span> Mitra terverifikasi admin
-            </span>
-          }
-          title={geo.position ? 'Bengkel Rekomendasi Terdekat' : 'Bengkel Rekomendasi'}
-          subtitle={geo.position ? `Dalam radius ${radiusKm} km dari lokasi Anda, diurutkan dari yang paling dekat.` : 'Diurutkan berdasarkan rating pelanggan.'}
-          action={data && <span className="font-label text-sm text-ink-3">{list.length} bengkel ditemukan</span>}
-        />
-        {isLoading ? (
-          <SkeletonCards media count={6} label="Mencari bengkel…" className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3" />
-        ) : error ? (
-          <Alert tone="danger">{errorMessage(error)}</Alert>
-        ) : list.length > 0 ? (
-          <>
-            <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
-              {shown.map((w) => (
-                <WorkshopCard key={w.id} workshop={w} featured={w.id === list[0].id} date={date} />
-              ))}
-            </div>
-            <Pagination className="mt-6" page={current} pages={pages} total={list.length} pageSize={PAGE_SIZE} onChange={goToPage} />
-          </>
-        ) : (
-          <EmptyState icon="search_off">Tidak ada bengkel yang cocok dengan filter. Coba perluas radius atau ubah kata kunci.</EmptyState>
-        )}
-      </section>
+      {tab !== 'sos' && (
+        <section ref={resultsRef} id="hasil" className="scroll-mt-24">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <h2 className="text-xl font-bold text-ink">{geo.position ? 'Bengkel terdekat' : 'Rekomendasi bengkel'}</h2>
+            {data && <span className="shrink-0 text-sm text-ink-2">{list.length} bengkel</span>}
+          </div>
+          {isLoading ? (
+            <SkeletonCards media count={6} label="Mencari bengkel…" className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3" />
+          ) : error ? (
+            <Alert tone="danger">{errorMessage(error)}</Alert>
+          ) : list.length > 0 ? (
+            <>
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
+                {shown.map((w) => (
+                  <WorkshopCard key={w.id} workshop={w} featured={w.id === list[0].id} date={tab === 'booking' ? date : undefined} />
+                ))}
+              </div>
+              <Pagination className="mt-6" page={current} pages={pages} total={list.length} pageSize={PAGE_SIZE} onChange={goToPage} />
+            </>
+          ) : (
+            <EmptyState icon="search_off">Tidak ada bengkel yang cocok dengan filter. Coba perluas radius atau ubah kata kunci.</EmptyState>
+          )}
+        </section>
+      )}
 
-      {list.length > 0 && <RadarSection workshops={list} origin={geo.position} />}
-    </div>
-  );
-}
-
-function FieldCell({ icon, label, hint, children }: { icon: string; label: string; hint: ReactNode; children: ReactNode }) {
-  return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-lg bg-card px-3 py-2.5 shadow-sm">
-      <span className="flex items-center gap-1.5 font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">
-        <Icon name={icon} className="text-[16px] text-primary" /> {label}
-      </span>
-      <div className="min-h-7 text-[14px]">{children}</div>
-      <span className="truncate font-label text-[11px] text-ink-3">{hint}</span>
+      {list.length > 0 && tab !== 'sos' && <RadarSection workshops={list} origin={geo.position} />}
     </div>
   );
 }
@@ -452,7 +365,7 @@ function RadarSection({ workshops, origin }: { workshops: Workshop[]; origin: { 
         {top && (
           <div className="absolute top-4 left-4 z-[500] w-[min(320px,calc(100%-2rem))] rounded-xl bg-card/95 p-4 shadow-lift backdrop-blur">
             <div className="flex items-center justify-between gap-2">
-              <span className="rounded-md bg-emergency-ink px-1.5 py-0.5 font-label text-[10px] font-bold text-white uppercase">{origin ? 'Terdekat terdeteksi' : 'Rekomendasi'}</span>
+              <span className="rounded-md bg-emergency px-1.5 py-0.5 font-label text-[10px] font-bold text-white uppercase">{origin ? 'Terdekat terdeteksi' : 'Rekomendasi'}</span>
               <span className="font-label text-[11px] text-ink-3">{regionOf(top.address)}</span>
             </div>
             <p className="mt-2 font-bold text-ink">{top.name}</p>

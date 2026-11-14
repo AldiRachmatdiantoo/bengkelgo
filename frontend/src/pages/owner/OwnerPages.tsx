@@ -429,7 +429,7 @@ function IncomingEmergency({ order }: { order: Order }) {
         </span>
         <div className="min-w-0">
           <p className="flex flex-wrap items-center gap-2">
-            <span className="rounded-md bg-emergency-ink px-2 py-0.5 font-label text-[11px] font-bold text-white uppercase">Emergency SOS · {distance(e?.distance_meters)}</span>
+            <span className="rounded-md bg-emergency px-2 py-0.5 font-label text-[11px] font-bold text-white uppercase">Emergency SOS · {distance(e?.distance_meters)}</span>
             <span className="font-mono text-xs text-ink-2">#{order.order_number}</span>
           </p>
           <p className="mt-1 inline-flex rounded-md bg-card px-2 py-0.5 font-label text-xs font-semibold text-emergency-ink">{p.text}</p>

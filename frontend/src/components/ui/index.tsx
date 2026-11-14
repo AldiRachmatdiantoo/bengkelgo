@@ -22,7 +22,7 @@ export function Icon({ name, filled, className }: { name: string; filled?: boole
 type Variant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost' | 'navy';
 const VARIANTS: Record<Variant, string> = {
   primary: 'bg-primary text-on-primary shadow-soft hover:bg-primary-dark',
-  secondary: 'border-[1.5px] border-primary bg-card text-primary hover:bg-sky',
+  secondary: 'border border-line bg-card text-ink hover:bg-surface [&_.material-symbols-outlined]:text-primary',
   danger: 'bg-emergency text-white shadow-soft hover:bg-emergency-dark',
   success: 'bg-success text-on-primary shadow-soft hover:brightness-95',
   ghost: 'text-ink hover:bg-sky',
@@ -45,8 +45,8 @@ export function Button({
       {...rest}
       disabled={disabled || loading}
       className={cx(
-        'inline-flex items-center justify-center gap-2 rounded-lg font-label font-semibold tracking-[0.01em] transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
-        size === 'sm' ? 'h-9 px-4 text-xs' : size === 'lg' ? 'h-14 px-7 text-base' : 'h-12 px-5 text-sm',
+        'inline-flex items-center justify-center gap-2 rounded-lg font-label font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+        size === 'sm' ? 'h-9 px-4 text-xs' : size === 'lg' ? 'h-13 px-7 text-subtitle' : 'h-11 px-5 text-sm',
         VARIANTS[variant],
         className,
       )}
@@ -62,7 +62,7 @@ function FieldShell({ label, hint, error, id, icon, children }: { label?: string
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       {label && (
-        <label htmlFor={id} className="font-label text-xs font-semibold text-ink">
+        <label htmlFor={id} className="text-sm font-bold text-ink">
           {label}
         </label>
       )}
@@ -70,14 +70,14 @@ function FieldShell({ label, hint, error, id, icon, children }: { label?: string
         {icon && <Icon name={icon} className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-primary" />}
         {children}
       </div>
-      {hint && !error && <p className="text-xs text-ink-3">{hint}</p>}
+      {hint && !error && <p className="text-xs text-ink-2">{hint}</p>}
       {error && <p className="text-xs text-emergency-ink">{error}</p>}
     </div>
   );
 }
 
 const fieldClass =
-  'w-full rounded-lg border border-line-strong bg-card px-3.5 text-xs text-ink placeholder:text-ink-3 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:bg-canvas';
+  'w-full rounded-md border border-line bg-card px-3.5 text-sm text-ink placeholder:text-ink-2/70 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:bg-canvas';
 
 type FieldProps = { label?: string; hint?: string; error?: string; icon?: string };
 
@@ -190,7 +190,7 @@ export function Segmented<T extends string>({
   nowrap?: boolean;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className={cx('inline-flex gap-1 rounded-lg border border-line bg-canvas p-1', nowrap ? 'flex-nowrap' : 'flex-wrap')}>
+    <div role="radiogroup" aria-label={label} className={cx('inline-flex gap-2', nowrap ? 'flex-nowrap' : 'flex-wrap')}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -199,9 +199,9 @@ export function Segmented<T extends string>({
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={cx(
-            'inline-flex shrink-0 items-center gap-1.5 rounded-md font-label font-semibold whitespace-nowrap transition',
-            size === 'sm' ? 'h-8 px-3 text-xs' : 'h-10 px-4 text-sm',
-            value === o.value ? 'bg-card text-primary shadow-soft' : 'text-ink-2 hover:text-ink',
+            'inline-flex shrink-0 items-center gap-1.5 rounded-md border font-bold whitespace-nowrap transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+            size === 'sm' ? 'h-9 px-3 text-xs' : 'h-11 px-4 text-sm',
+            value === o.value ? 'border-primary bg-primary text-on-primary' : 'border-line bg-card text-ink hover:border-line-strong',
           )}
         >
           {o.icon && <Icon name={o.icon} />}
@@ -235,18 +235,18 @@ export function Card({
   id?: string;
 }) {
   return (
-    <section id={id} className={cx('relative overflow-hidden rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6', className)}>
+    <section id={id} className={cx('relative overflow-hidden rounded-2xl border border-line bg-card p-4 sm:p-5', className)}>
       {accent && <span className={cx('absolute inset-x-0 top-0 h-[3px]', accent === 'primary' ? 'bg-primary' : accent === 'emergency' ? 'bg-emergency' : 'bg-success')} />}
       {(title || actions) && (
         <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             {icon && (
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-sky text-primary">
+              <span className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-lg bg-surface-high text-primary">
                 <Icon name={icon} />
               </span>
             )}
             <div className="min-w-0">
-              {title && <h2 className="text-lg leading-snug font-bold text-ink">{title}</h2>}
+              {title && <h2 className="text-xl leading-snug font-bold text-ink">{title}</h2>}
               {subtitle && <p className="mt-0.5 text-subtitle text-ink-2">{subtitle}</p>}
             </div>
           </div>
@@ -278,7 +278,7 @@ export function Badge({ tone = 'neutral', children, dot = true }: { tone?: Tone;
 
 export function Alert({ tone = 'info', children, icon }: { tone?: Tone; children: ReactNode; icon?: string }) {
   return (
-    <div role={tone === 'danger' ? 'alert' : 'status'} className={cx('flex items-start gap-3 rounded-xl border px-4 py-3 text-sm leading-relaxed', TONES[tone].alert)}>
+    <div role={tone === 'danger' ? 'alert' : 'status'} className={cx('flex items-start gap-3 rounded-lg border px-4 py-3 text-sm leading-relaxed', TONES[tone].alert)}>
       <Icon name={icon ?? TONES[tone].icon} className="mt-px" />
       <div className="min-w-0 flex-1">{children}</div>
     </div>
@@ -532,8 +532,8 @@ export function SkeletonDetail({ label = 'Memuat bengkel…' }: { label?: string
 
 export function EmptyState({ children, icon = 'inbox', action }: { children: ReactNode; icon?: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-line-strong bg-card/60 px-6 py-10 text-center text-ink-2">
-      <span className="grid h-12 w-12 place-items-center rounded-full bg-sky text-primary">
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-line-strong bg-card/60 px-6 py-10 text-center text-ink-2">
+      <span className="grid h-[46px] w-[46px] place-items-center rounded-lg bg-surface-high text-primary">
         <Icon name={icon} />
       </span>
       <div className="max-w-md text-sm">{children}</div>
@@ -546,8 +546,8 @@ export function PageHeader({ title, subtitle, actions, eyebrow }: { title: React
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        {eyebrow && <p className="mb-1 font-label text-xs font-bold tracking-[0.06em] text-primary uppercase">{eyebrow}</p>}
-        <h1 className="text-[20px] leading-tight font-bold tracking-[-0.015em] text-ink sm:text-[24px]">{title}</h1>
+        {eyebrow && <p className="mb-1 text-xs font-bold tracking-[0.04em] text-primary uppercase">{eyebrow}</p>}
+        <h1 className="text-[26px] leading-tight font-bold text-ink sm:text-display">{title}</h1>
         {subtitle && <div className="mt-1.5 text-subtitle text-ink-2">{subtitle}</div>}
       </div>
       {actions}
@@ -586,14 +586,14 @@ export function StatCard({
   progress?: number;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-line bg-card p-5 shadow-sm">
+    <div className="flex flex-col gap-3 rounded-2xl border border-line bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-label text-xs font-semibold tracking-[0.02em] text-ink-2 uppercase">{label}</p>
+        <p className="text-sm text-ink-2">{label}</p>
         <span className={cx('grid h-9 w-9 place-items-center rounded-lg', TONES[tone].chip)}>
           <Icon name={icon} />
         </span>
       </div>
-      <p className="flex flex-wrap items-baseline gap-x-2 text-[22px] leading-none font-extrabold tracking-[-0.02em] text-ink">
+      <p className="flex flex-wrap items-baseline gap-x-2 text-3xl leading-none font-bold text-ink">
         {value}
         {aside && <span className="font-label text-xs font-semibold tracking-normal text-ink-2">{aside}</span>}
       </p>
@@ -665,7 +665,7 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
 /** Responsive table. */
 export function Table({ head, children }: { head: ReactNode[]; children: ReactNode }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-line bg-card shadow-sm">
+    <div className="overflow-x-auto rounded-2xl border border-line bg-card">
       <table className="min-w-full text-left text-sm">
         <thead className="border-b border-line bg-canvas">
           <tr>
@@ -754,7 +754,7 @@ export function SectionHeading({
     <div className={cx('mb-6 flex gap-4', center ? 'flex-col items-center text-center' : 'flex-wrap items-end justify-between')}>
       <div className={cx('min-w-0', center && 'mx-auto max-w-2xl')}>
         {eyebrow && <p className="mb-1 font-label text-label-sm text-primary uppercase">{eyebrow}</p>}
-        <h2 className="text-[20px] leading-tight font-bold tracking-[-0.015em] text-ink sm:text-headline-lg">{title}</h2>
+        <h2 className="text-xl leading-tight font-bold text-ink sm:text-2xl">{title}</h2>
         {subtitle && <p className="mt-1 text-subtitle text-ink-2">{subtitle}</p>}
       </div>
       {action}
@@ -802,7 +802,7 @@ export function Modal({
       <m.div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-md rounded-xl bg-card p-6 shadow-float"
+        className="w-full max-w-md rounded-2xl border border-line bg-card p-5 shadow-float sm:p-6"
         onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, y: 12, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}

@@ -93,23 +93,19 @@ export default function EmergencyPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-20 lg:pb-0">
-      {/* Hero */}
-      {/* Deep SOS orange (#C2410C) behind long white text: 5.2:1 contrast (WCAG AA). */}
-      <section className="relative overflow-hidden rounded-xl bg-emergency-ink p-6 text-white shadow-lift sm:p-8">
-        <div className="pointer-events-none absolute -right-16 -bottom-24 h-72 w-72 rounded-full bg-white/10" />
-        <div className="relative flex flex-wrap items-center gap-5">
-          <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-card text-emergency-ink animate-beacon">
-            <Icon name="e911_emergency" filled className="text-[30px]" />
+      <div>
+        <h1 className="text-display text-ink">Bantuan darurat</h1>
+        <p className="mt-1.5 max-w-2xl text-subtitle text-ink-2">Kendaraan mogok? Kirim lokasi, bengkel terdekat dengan mekanik terbaik dihubungi lebih dulu.</p>
+        <div className="mt-4 flex max-w-2xl items-start gap-3 rounded-lg border border-emergency/40 bg-emergency-soft px-4 py-3.5">
+          <span className="grid h-10 w-10 shrink-0 animate-beacon place-items-center rounded-full bg-emergency text-white">
+            <Icon name="e911_emergency" filled />
           </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-label text-xs font-bold tracking-[0.06em] text-white uppercase">Layanan darurat 24 jam · radius 5 km</p>
-            <h1 className="mt-1 text-[20px] leading-tight font-bold tracking-[-0.015em] sm:text-[24px]">Kendaraan mogok? Kami kirim mekanik terdekat.</h1>
-            <p className="mt-1 text-subtitle text-white">
-              Bengkel terdekat dengan mekanik terbaik dihubungi lebih dulu. Jika tidak merespons dalam 2 menit, permintaan dialihkan otomatis ke bengkel berikutnya.
-            </p>
+          <div className="min-w-0">
+            <p className="text-subtitle font-bold text-emergency-ink">Layanan 24 jam, radius 5 km</p>
+            <p className="mt-0.5 text-sm text-ink-2">Jika bengkel tidak merespons dalam 2 menit, permintaan dialihkan otomatis ke bengkel berikutnya.</p>
           </div>
         </div>
-      </section>
+      </div>
 
       <form
         className="grid gap-6 lg:grid-cols-[1fr_400px]"

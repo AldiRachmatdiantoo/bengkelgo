@@ -8,8 +8,9 @@ import { useProtectedImage } from '@/hooks/useProtectedImage';
 import { usePreparedImage } from '@/hooks/usePreparedImage';
 import { ACCEPT_IMAGES, fileSize } from '@/utils/imageUpload';
 import { PointsMap, directionsUrl } from '@/components/map/Maps';
-import { DateStrip, SlotPicker, addMinutes, slotRange, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
-import { Alert, Badge, Button, Card, CopyButton, Icon, Input, MissingFields, Modal, QrCode, Select, TextArea, cx, toast, SkeletonSlots, SkeletonTimeline } from '@/components/ui';
+import { BottomBar, ScreenAction } from '@/components/ui/screen';
+import { DateStrip, SlotPicker, addMinutes, dotTime, shortDate, vehicleIcon, vehicleLabel } from '@/components/workshop/WorkshopComponents';
+import { Alert, Badge, Button, Card, Icon, Input, MissingFields, Modal, QrCode, Select, TextArea, cx, toast, SkeletonSlots, SkeletonTimeline } from '@/components/ui';
 import { ORDER_STATUS, PAYMENT_STATUS, PROBLEM_CATEGORY, dateTime, distance, longDate, rupiah, vehicleName } from '@/utils/format';
 import { NEGOTIABLE, customerRange, emergencyPrice, splitPriceRange } from '@/utils/priceRange';
 
@@ -25,37 +26,35 @@ export function OrderStatusBadge({ order }: { order: Pick<Order, 'status'> }) {
 export function OrderCard({ order, to }: { order: Order; to: string }) {
   const emergency = order.type === 'EMERGENCY';
   return (
-    <Link to={to} data-testid="order-card" className="group flex gap-4 rounded-xl border border-line bg-card p-4 shadow-sm transition hover:border-primary/40 hover:shadow-lift sm:p-5">
-      <span className={cx('grid h-12 w-12 shrink-0 place-items-center rounded-lg', emergency ? 'bg-emergency-soft text-emergency-ink' : 'bg-sky text-primary')}>
-        <Icon name={emergency ? 'e911_emergency' : 'event_available'} filled={emergency} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-label text-xs font-bold tracking-[0.04em] text-ink-3 uppercase">{emergency ? 'Darurat' : 'Booking'}</span>
-          <span className="font-label text-xs text-ink-3">· {order.order_number}</span>
-          <span className="ml-auto">
-            <OrderStatusBadge order={order} />
-          </span>
+    <Link to={to} data-testid="order-card" className="group flex min-w-0 flex-col gap-3 rounded-2xl border border-line bg-card p-4 transition hover:border-line-strong">
+      <div className="flex items-start gap-3">
+        <span className={cx('grid h-[46px] w-[46px] shrink-0 place-items-center rounded-lg', emergency ? 'bg-emergency-soft text-emergency-ink' : 'bg-surface-high text-primary')}>
+          <Icon name={emergency ? 'e911_emergency' : vehicleIcon(order.vehicle_type)} filled={emergency} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-subtitle font-bold text-ink group-hover:text-primary">{order.workshop?.name ?? 'Mencari bengkel…'}</p>
+          <p className="truncate text-xs text-ink-2">
+            {emergency ? 'Darurat' : 'Booking'} · {order.order_number}
+          </p>
         </div>
-        <p className="mt-1 font-bold text-ink group-hover:text-primary">{order.workshop?.name ?? 'Mencari bengkel…'}</p>
-        <p className="mt-0.5 line-clamp-1 text-sm text-ink-2">
-          {order.booking
-            ? `${order.booking.service_name} · ${longDate(order.booking.booking_date)}, ${order.booking.time_slot} · Antrean #${order.booking.queue_number}`
-            : splitPriceRange(order.emergency?.problem_description).text}
-        </p>
-        <p className="mt-1 flex flex-wrap items-center gap-x-3 font-label text-xs text-ink-3">
-          <span className="inline-flex items-center gap-1">
-            <Icon name="person" className="text-[14px]" /> {order.customer.name}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Icon name={vehicleIcon(order.vehicle_type)} className="text-[14px]" /> {vehicleLabel(order.vehicle_type)}
-            {order.vehicle_plate && ` · ${order.vehicle_plate}`}
-          </span>
-          <span>{dateTime(order.created_at)}</span>
-          {order.total_amount > 0 ? <span className="font-semibold text-ink">{rupiah(order.total_amount)}</span> : emergency && order.status !== 'CANCELLED' && <span className="font-semibold text-ink-2">Harga {NEGOTIABLE.toLowerCase()}</span>}
-        </p>
+        <OrderStatusBadge order={order} />
       </div>
-      <Icon name="chevron_right" className="self-center text-ink-3 group-hover:text-primary" />
+      <p className="line-clamp-2 text-sm text-ink-2">
+        {order.booking
+          ? `${order.booking.service_name} · ${shortDate(order.booking.booking_date)}, ${dotTime(order.booking.time_slot)} WIB · Antrean #${order.booking.queue_number}`
+          : splitPriceRange(order.emergency?.problem_description).text}
+      </p>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-line pt-3 text-xs text-ink-2">
+        <span className="min-w-0 truncate">
+          {order.customer.name} · {vehicleLabel(order.vehicle_type)}
+          {order.vehicle_plate && ` · ${order.vehicle_plate}`} · {dateTime(order.created_at)}
+        </span>
+        {order.total_amount > 0 ? (
+          <span className="shrink-0 text-subtitle font-bold text-primary">{rupiah(order.total_amount)}</span>
+        ) : (
+          emergency && order.status !== 'CANCELLED' && <span className="shrink-0 font-bold text-ink-2">Harga {NEGOTIABLE.toLowerCase()}</span>
+        )}
+      </div>
     </Link>
   );
 }
@@ -74,7 +73,6 @@ export function cancellationText(order: Order) {
   return [`Dibatalkan ${by}`.trim(), order.cancel_reason].filter(Boolean).join(': ') + '.';
 }
 
-const HERO_TONE = { success: 'bg-success-soft text-success', warning: 'bg-warning-soft text-warning-ink', info: 'bg-sky text-primary', neutral: 'bg-surface-low text-ink-2' };
 
 /** iCalendar file for the booking slot (all times in WIB → UTC). */
 function icsFor(order: Order) {
@@ -119,279 +117,142 @@ async function shareOrder(order: Order) {
   }
 }
 
+const HERO_NOTE = { success: 'bg-success-soft text-primary', warning: 'border border-warning-line bg-warning-soft text-warning-ink', info: 'bg-sky text-primary', neutral: 'bg-card border border-line text-ink' };
+
+/** Status box (Figma tint boxes) with the payment state and the receipt / calendar / share actions under it. */
 export function BookingHero({ order }: { order: Order }) {
   const h = BOOKING_HERO[order.status];
   if (!h) return null;
   const ps = PAYMENT_STATUS[order.payment.status];
+  const chip = 'inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md border border-line bg-card px-3 text-sm font-bold text-ink transition hover:bg-surface';
   return (
-    <section className="relative overflow-hidden rounded-xl border border-line bg-card p-6 shadow-sm sm:p-8" data-print-hide>
-      <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center">
-        <span className={cx('grid h-16 w-16 shrink-0 place-items-center rounded-full', HERO_TONE[h.tone])}>
-          <Icon name={h.icon} className="text-[36px]" />
-        </span>
+    <section data-print-hide>
+      <div className={cx('flex items-start gap-3 rounded-lg px-4 py-3.5', HERO_NOTE[h.tone])}>
+        <Icon name={h.icon} filled className="mt-px text-[22px]" />
         <div className="min-w-0 flex-1">
-          <span className={cx('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-label text-[11px] font-bold uppercase', order.payment.status === 'VERIFIED' ? 'bg-success-soft text-success' : 'bg-surface-low text-ink-2')}>
-            <span className={cx('h-1.5 w-1.5 rounded-full', order.payment.status === 'VERIFIED' ? 'bg-success' : 'bg-ink-3')} />
-            {order.payment.status === 'VERIFIED' ? 'Pembayaran terverifikasi (QRIS)' : `Pembayaran: ${ps.label}`}
-          </span>
-          <h1 className="mt-2 text-[21px] leading-tight font-bold tracking-[-0.02em] text-ink sm:text-headline-lg">{h.title}</h1>
-          <p className="mt-2 max-w-xl text-subtitle text-ink-2" data-testid="booking-hero-text">{order.status === 'CANCELLED' ? cancellationText(order) : h.text}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button icon="download" onClick={() => window.print()}>
-            Unduh E-Receipt PDF
-          </Button>
-          {order.booking && order.status !== 'CANCELLED' && (
-            <a
-              href={`data:text/calendar;charset=utf-8,${encodeURIComponent(icsFor(order).text)}`}
-              download={`${order.order_number}.ics`}
-              className="inline-flex h-12 items-center gap-2 rounded-lg bg-sky px-5 font-label text-sm font-semibold text-primary hover:bg-primary-fixed/60"
-            >
-              <Icon name="event" /> Simpan ke Kalender
-            </a>
-          )}
-          <Button variant="ghost" icon="share" className="bg-surface-low" onClick={() => void shareOrder(order)}>
-            Bagikan
-          </Button>
+          <p className="text-subtitle font-bold">{h.title}</p>
+          <p className="mt-0.5 text-sm text-ink-2" data-testid="booking-hero-text">
+            {order.status === 'CANCELLED' ? cancellationText(order) : h.text}
+          </p>
+          <p className="mt-2 text-xs font-bold">{order.payment.status === 'VERIFIED' ? 'Pembayaran lunas (QRIS)' : `Pembayaran: ${ps.label}`}</p>
         </div>
       </div>
-      <div className="relative mt-6 grid gap-4 rounded-lg bg-surface-low p-4 sm:grid-cols-[repeat(3,auto)_1fr] sm:items-center">
-        <HeroFact label="No. Reservasi" value={order.order_number} mono />
-        <HeroFact label="Dibuat" value={dateTime(order.created_at)} />
-        <HeroFact label="Waktu Pembayaran" value={order.payment.verified_at ? dateTime(order.payment.verified_at) : '-'} />
-        <span className="sm:justify-self-end">
-          <Badge tone={ps.tone}>{order.payment.status === 'VERIFIED' ? 'Lunas (Paid)' : ps.label}</Badge>
-        </span>
+      <div className="mt-3 flex gap-2">
+        <button type="button" className={chip} onClick={() => window.print()}>
+          <Icon name="download" className="text-[18px] text-primary" /> Nota
+        </button>
+        {order.booking && order.status !== 'CANCELLED' && (
+          <a href={`data:text/calendar;charset=utf-8,${encodeURIComponent(icsFor(order).text)}`} download={`${order.order_number}.ics`} className={chip}>
+            <Icon name="event" className="text-[18px] text-primary" /> Kalender
+          </a>
+        )}
+        <button type="button" className={chip} onClick={() => void shareOrder(order)}>
+          <Icon name="share" className="text-[18px] text-primary" /> Bagikan
+        </button>
       </div>
     </section>
   );
 }
 
-function HeroFact({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div className="sm:border-r sm:border-line sm:pr-6">
-      <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">{label}</p>
-      <p className={cx('text-sm font-bold text-ink', mono && 'font-mono')}>{value}</p>
-    </div>
-  );
-}
-
-/** White "digital pass" with a QR of the order number (Stitch "Digital Fast-Track Pass"). */
+/** Check-in pass (Figma "Pelunasan via QRIS" card layout): QR of the order number beside the queue and schedule. */
 export function BookingPass({ order }: { order: Order }) {
   const b = order.booking!;
   const arrive = addMinutes(b.time_slot, -10);
   return (
-    <section className="overflow-hidden rounded-xl border border-line bg-card shadow-sm" data-print-hide>
-      <span className="block h-[3px] bg-primary" />
-      <div className="p-5 sm:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <span className="rounded-full bg-sky px-2.5 py-1 font-label text-[11px] font-bold text-primary uppercase">Digital Pass</span>
-            <h2 className="mt-2 text-headline-md text-ink">Check-In di Bengkel</h2>
-            <p className="text-sm text-ink-2">Tunjukkan kode QR atau nomor pesanan ini kepada petugas bengkel.</p>
-          </div>
-          <OrderStatusBadge order={order} />
+    <section className="rounded-2xl border border-line bg-card p-4" data-print-hide>
+      <div className="flex items-start gap-4">
+        <div className="shrink-0 rounded-xl bg-[#F7FAF6] p-2.5">
+          <QrCode value={order.order_number} size={96} />
         </div>
-        <div className="mt-5 grid gap-5 rounded-xl bg-surface-low p-4 sm:grid-cols-[auto_1fr]">
-          <div className="flex flex-col items-center gap-2 rounded-lg bg-card p-4 shadow-sm">
-            <QrCode value={order.order_number} size={132} />
-            <span className="font-mono text-xs font-bold text-ink">{order.order_number}</span>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-lg bg-card p-4 shadow-sm sm:col-span-2">
-              <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Nomor antrean</p>
-              <p className="text-[26px] leading-tight font-extrabold text-primary" data-testid="queue-number">
-                #{b.queue_number}
-              </p>
-            </div>
-            <div className="rounded-lg bg-card p-3 shadow-sm">
-              <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Jadwal servis</p>
-              <p className="text-sm font-bold text-ink">{longDate(b.booking_date)}</p>
-              <p className="font-label text-xs text-ink-2">{slotRange(b.time_slot)} WIB</p>
-            </div>
-            <div className="rounded-lg bg-card p-3 shadow-sm">
-              <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Estimasi kedatangan</p>
-              <p className="text-sm font-bold text-warning-ink">{arrive} WIB</p>
-              <p className="font-label text-xs text-ink-2">(10 menit lebih awal)</p>
-            </div>
-            <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-sky p-3 sm:col-span-2">
-              <Icon name="engineering" className="text-primary" />
-              <div>
-                <p className="font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">Mekanik ditugaskan</p>
-                <p className="text-sm font-bold text-ink">{order.mechanic ? order.mechanic.name : 'Ditugaskan saat jadwal terkonfirmasi'}</p>
-              </div>
-            </div>
-          </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-subtitle font-bold text-ink">Check-in di bengkel</p>
+          <p className="mt-0.5 text-xs break-all text-ink-2">{order.order_number}</p>
+          <p className="mt-2 text-xs text-ink-2">Nomor antrean</p>
+          <p className="text-[27px] leading-tight font-bold text-primary" data-testid="queue-number">
+            #{b.queue_number}
+          </p>
         </div>
-        <h3 className="mt-6 mb-3 flex items-center gap-2 font-bold text-ink">
-          <Icon name="how_to_reg" className="text-primary" /> Alur Kedatangan
-        </h3>
-        <ol className="grid gap-3 sm:grid-cols-3">
-          {[
-            ['Tiba di bengkel', `Datang sekitar pukul ${arrive} WIB, 10 menit sebelum jadwal.`],
-            ['Tunjukkan pass', 'Perlihatkan kode QR / nomor pesanan ke petugas bengkel.'],
-            ['Dikerjakan sesuai antrean', `Kendaraan dikerjakan sesuai nomor antrean #${b.queue_number}.`],
-          ].map(([t, d], i) => (
-            <li key={t} className="rounded-lg bg-surface-low p-4">
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-primary font-label text-xs font-bold text-on-primary">{i + 1}</span>
-              <p className="mt-2 text-sm font-bold text-ink">{t}</p>
-              <p className="text-xs text-ink-2">{d}</p>
-            </li>
-          ))}
-        </ol>
       </div>
+      <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-[#253627] px-4 py-3">
+        <div className="min-w-0">
+          <p className="text-xs text-ink-2">Jadwal servis</p>
+          <p className="text-lg font-bold text-primary">
+            {shortDate(b.booking_date)} · {dotTime(b.time_slot)} WIB
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-xs text-ink-2">Datang</p>
+          <p className="text-subtitle font-bold text-ink">{dotTime(arrive)} WIB</p>
+        </div>
+      </div>
+      <p className="mt-3 text-xs text-ink-2">Tunjukkan kode QR atau nomor pesanan ke petugas, datang sekitar 10 menit sebelum jadwal.</p>
     </section>
   );
 }
 
-/** Workshop info with a mini map, directions and call buttons. */
-export function WorkshopContactCard({ order, title = 'Bengkel Mitra Resmi' }: { order: Order; title?: string }) {
+/** Workshop card: name, address, a small green map, route and call buttons. */
+export function WorkshopContactCard({ order, title = 'Bengkel' }: { order: Order; title?: string }) {
   const w = order.workshop;
   if (!w) return null;
+  const btn = 'inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-md border border-line bg-card px-3 text-sm font-bold text-ink transition hover:bg-surface';
   return (
-    <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6" data-print-hide>
-      <p className="flex items-center gap-1.5 font-label text-[11px] font-bold tracking-[0.04em] text-primary uppercase">
-        <Icon name="storefront" className="text-[16px]" /> {title}
-      </p>
-      <h3 className="mt-2 text-headline-sm text-ink">{w.name}</h3>
-      <p className="mt-3 flex items-start gap-2 rounded-lg bg-surface-low p-3 text-sm text-ink-2">
-        <Icon name="location_on" className="text-primary" /> {w.address}
-      </p>
-      <PointsMap origin={{ lat: w.latitude, lng: w.longitude }} originLabel={w.name} originTone="primary" points={[]} height={160} zoom={15} className="mt-3" />
-      <div className="mt-4 grid gap-2 sm:grid-cols-[1.4fr_1fr]">
-        <a
-          href={directionsUrl({ lat: w.latitude, lng: w.longitude })}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 font-label text-sm font-semibold text-on-primary hover:bg-primary-dark"
-        >
-          <Icon name="near_me" /> Buka Rute Navigasi
+    <section className="rounded-2xl border border-line bg-card p-4" data-print-hide>
+      <p className="text-xs font-bold tracking-[0.04em] text-ink-2 uppercase">{title}</p>
+      <h3 className="mt-1 text-lg font-bold text-ink">{w.name}</h3>
+      <p className="mt-1 text-sm text-ink-2">{w.address}</p>
+      <PointsMap origin={{ lat: w.latitude, lng: w.longitude }} originLabel={w.name} originTone="primary" points={[]} height={140} zoom={15} className="mt-3 overflow-hidden rounded-xl" />
+      <div className="mt-3 flex gap-2">
+        <a href={directionsUrl({ lat: w.latitude, lng: w.longitude })} target="_blank" rel="noreferrer" className={btn}>
+          <Icon name="near_me" className="text-primary" /> Rute
         </a>
-        <a href={`tel:${w.phone}`} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-surface-low px-4 font-label text-sm font-semibold text-ink hover:bg-surface">
-          <Icon name="call" /> Hubungi Bengkel
+        <a href={`tel:${w.phone}`} className={btn}>
+          <Icon name="call" className="text-primary" /> Telepon
         </a>
       </div>
     </section>
   );
 }
 
-/** Receipt (Stitch "E-Receipt"): printable via the hero's "Unduh E-Receipt PDF". */
+/** Receipt (Figma "Nota akhir"): cost rows and the total box; printable through the "Nota" button. */
 export function OrderReceipt({ order }: { order: Order }) {
   const paid = order.payment.status === 'VERIFIED';
-  return (
-    <section className="overflow-hidden rounded-xl border border-line bg-card shadow-sm" data-print-area>
-      <div className="flex items-start justify-between gap-3 border-b border-line bg-surface-low px-5 py-4">
-        <div>
-          <p className="font-label text-[10px] font-bold tracking-[0.06em] text-ink-3 uppercase">Kuitansi elektronik</p>
-          <h3 className="text-headline-sm text-ink">E-Receipt BengkelGo</h3>
-        </div>
-        <div className="text-right font-label text-xs text-ink-2">
-          <p className="font-mono font-bold text-ink">{order.order_number}</p>
-          {order.payment.invoice_number && (
-            <p className="font-mono text-[11px] font-semibold text-primary" data-testid="invoice-number">
-              {order.payment.invoice_number}
-            </p>
-          )}
-          <p>{dateTime(order.created_at)}</p>
-        </div>
-      </div>
-      <div className="flex flex-col gap-4 p-5">
-        <dl className="grid gap-3 text-sm">
-          <div className="flex justify-between gap-3">
-            <dt className="text-ink-3">Pemilik kendaraan</dt>
-            <dd className="font-bold text-ink">{order.customer.name}</dd>
-          </div>
-          {order.customer.phone && (
-            <div className="flex justify-between gap-3">
-              <dt className="text-ink-3">No. handphone</dt>
-              <dd className="font-semibold text-ink">{order.customer.phone}</dd>
-            </div>
-          )}
-          {order.workshop && (
-            <div className="flex justify-between gap-3">
-              <dt className="text-ink-3">Bengkel</dt>
-              <dd className="text-right font-semibold text-ink">{order.workshop.name}</dd>
-            </div>
-          )}
-        </dl>
-        <div className="rounded-lg border border-line p-3">
-          <div className="flex items-center justify-between gap-2">
-            <p className="font-label text-[10px] font-bold tracking-[0.04em] text-primary uppercase">Kendaraan</p>
-            {order.vehicle_plate && <span className="rounded-md bg-navy px-2 py-0.5 font-mono text-[11px] font-bold text-white">{order.vehicle_plate}</span>}
-          </div>
-          <p className="mt-1 flex items-center gap-1.5 font-bold text-ink">
-            <Icon name={vehicleIcon(order.vehicle_type)} className="text-primary" /> {vehicleLabel(order.vehicle_type)}
-            {order.vehicle && <span className="font-normal text-ink-2">· {vehicleName(order.vehicle)}</span>}
-          </p>
-          {order.notes && (
-            <div className="mt-2 rounded-md bg-surface-low p-2.5 text-xs text-ink-2">
-              <b className="text-ink">Keluhan pemilik:</b> “{order.notes}”
-            </div>
-          )}
-        </div>
-        <div>
-          <div className="mb-2 flex justify-between font-label text-[10px] font-bold tracking-[0.04em] text-ink-3 uppercase">
-            <span>Layanan</span>
-            <span>Subtotal</span>
-          </div>
-          <div className="flex justify-between gap-3 rounded-md bg-surface-low p-3 text-sm">
-            <span className="font-semibold text-ink">{order.booking ? order.booking.service_name : `Bantuan darurat · ${splitPriceRange(order.emergency?.problem_description).text}`}</span>
-            <span className="shrink-0 font-bold text-ink">{order.booking ? rupiah(order.total_amount) : emergencyPrice(order.total_amount)}</span>
-          </div>
-          <div className="mt-2 flex justify-between px-3 text-sm">
-            <span className="text-ink-2">Biaya layanan platform</span>
-            <span className="font-semibold text-ink-2">Rp0</span>
-          </div>
-        </div>
-        <div className={cx('flex items-end justify-between gap-3 rounded-lg p-4', paid ? 'bg-success-soft text-primary' : 'bg-surface text-ink')}>
-          <div>
-            <p className="font-label text-xs font-bold text-ink-2">{paid ? 'Total pembayaran (Lunas)' : 'Total tagihan'}</p>
-            <p className="text-[21px] leading-tight font-extrabold">{order.total_amount > 0 ? rupiah(order.total_amount) : order.type === 'EMERGENCY' ? NEGOTIABLE : 'Menunggu harga'}</p>
-          </div>
-          <div className="text-right">
-            <span className="inline-flex items-center gap-1 rounded-md bg-card px-2 py-0.5 font-label text-xs font-bold">
-              <Icon name="qr_code_2" className="text-[14px]" /> QRIS
-            </span>
-            <p className="mt-1 font-label text-xs text-ink-2">{PAYMENT_STATUS[order.payment.status].label}</p>
-          </div>
-        </div>
-        <ul className="space-y-1.5 rounded-lg bg-surface-low p-3 text-xs text-ink-2">
-          <li className="flex items-center gap-2">
-            <Icon name="verified" className="text-[16px] text-success" /> Bengkel mitra terverifikasi admin BengkelGo
-          </li>
-          <li className="flex items-center gap-2">
-            <Icon name="receipt_long" className="text-[16px] text-success" /> Pembayaran {paid ? `diverifikasi bengkel ${dateTime(order.payment.verified_at)}` : 'diverifikasi langsung oleh bengkel'}
-          </li>
-        </ul>
-      </div>
-    </section>
+  const row = (k: ReactNode, v: ReactNode, strong?: boolean) => (
+    <div className="flex items-start justify-between gap-4">
+      <dt className="shrink-0 text-sm text-ink-2">{k}</dt>
+      <dd className={cx('min-w-0 text-right text-sm break-words text-ink', strong !== false && 'font-bold')}>{v}</dd>
+    </div>
   );
-}
-
-export function CalendarSyncCard({ order }: { order: Order }) {
-  if (!order.booking || order.status === 'CANCELLED' || order.status === 'COMPLETED') return null;
-  const ics = icsFor(order);
-  const gcal = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Servis ${order.booking.service_name} – ${order.workshop?.name ?? ''}`)}&dates=${ics.start}/${ics.end}&details=${encodeURIComponent(`No. pesanan ${order.order_number}`)}&location=${encodeURIComponent(order.workshop?.address ?? '')}`;
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-line bg-card p-5 shadow-sm sm:flex-row sm:items-center sm:p-6" data-print-hide>
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-sky text-primary">
-        <Icon name="calendar_add_on" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <h4 className="font-bold text-ink">Simpan ke Kalender</h4>
-        <p className="text-sm text-ink-2">Dapatkan pengingat 2 jam sebelum jadwal servis langsung di ponsel Anda.</p>
+    <section data-print-area>
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 className="text-xl font-bold text-ink">Rincian biaya</h2>
+        <span className="text-xs text-ink-2">{dateTime(order.created_at)}</span>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <a href={gcal} target="_blank" rel="noreferrer" className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-surface-low px-4 font-label text-sm font-semibold text-ink hover:bg-surface">
-          <Icon name="event" /> Google Calendar
-        </a>
-        <a
-          href={`data:text/calendar;charset=utf-8,${encodeURIComponent(ics.text)}`}
-          download={`${order.order_number}.ics`}
-          className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-surface-low px-4 font-label text-sm font-semibold text-ink hover:bg-surface"
-        >
-          <Icon name="mail" /> Outlook / Apple iCal
-        </a>
+      <dl className="flex flex-col gap-3.5 rounded-xl border border-line bg-card px-4 py-4">
+        {row('No. pesanan', order.order_number)}
+        {order.payment.invoice_number && row('No. invoice', <span data-testid="invoice-number">{order.payment.invoice_number}</span>)}
+        {row('Pemilik', order.customer.name)}
+        {order.customer.phone && row('No. HP', order.customer.phone, false)}
+        {order.workshop && row('Bengkel', order.workshop.name)}
+        {row('Kendaraan', [vehicleLabel(order.vehicle_type), order.vehicle && vehicleName(order.vehicle), order.vehicle_plate].filter(Boolean).join(' · '))}
+        {order.notes && row('Keluhan', <span className="font-normal">“{order.notes}”</span>)}
+        <div className="border-t border-line" />
+        {row(
+          order.booking ? order.booking.service_name : `Bantuan darurat · ${splitPriceRange(order.emergency?.problem_description).text}`,
+          order.booking ? rupiah(order.total_amount) : emergencyPrice(order.total_amount),
+        )}
+      </dl>
+      <div className={cx('mt-3 flex items-center justify-between gap-4 rounded-lg px-4 py-4', paid ? 'bg-success-soft' : 'bg-surface')}>
+        <div>
+          <p className="text-subtitle font-bold text-primary">{paid ? 'Lunas' : 'Total tagihan'}</p>
+          <p className="text-xs text-ink-2">
+            QRIS · {PAYMENT_STATUS[order.payment.status].label}
+            {paid && order.payment.verified_at ? `, ${dateTime(order.payment.verified_at)}` : ''}
+          </p>
+        </div>
+        <p className="text-right text-[27px] leading-tight font-bold text-primary">
+          {order.total_amount > 0 ? rupiah(order.total_amount) : order.type === 'EMERGENCY' ? NEGOTIABLE : 'Menunggu harga'}
+        </p>
       </div>
     </section>
   );
@@ -603,53 +464,49 @@ export function EmergencyTimeline({ order }: { order: Order }) {
   );
 }
 
+/** Figma mechanic row: initials avatar, "Name · Mekanik", rating; call and WhatsApp when the number is known. */
 export function MechanicCard({ order }: { order: Order }) {
   const m = order.mechanic;
   if (!m) return null;
+  const initials = m.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join('');
   return (
-    <section className="overflow-hidden rounded-xl border border-line bg-card shadow-sm">
-      <span className="block h-[3px] bg-primary" />
-      <div className="p-5">
-        <div className="flex items-center gap-4">
-          <span className="relative grid h-14 w-14 shrink-0 place-items-center rounded-full bg-navy text-xl font-bold text-white">
-            {m.name.charAt(0).toUpperCase()}
-            <span className="absolute right-0 bottom-0 h-3.5 w-3.5 rounded-full border-2 border-card bg-success" />
-          </span>
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-headline-sm text-ink">
-              {m.name} <Icon name="verified" filled className="text-[18px] text-primary" />
-            </p>
-            <p className="inline-flex items-center gap-1 font-label text-sm text-ink-2">
-              <Icon name="star" filled className="text-[16px] text-warning" /> {m.avg_rating > 0 ? m.avg_rating.toFixed(2) : 'Baru'}
-            </p>
-            <p className="font-label text-xs font-semibold text-primary">Mekanik {order.workshop?.name}</p>
-          </div>
-        </div>
-        <dl className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
-          <div className="flex justify-between gap-3">
-            <dt className="flex items-center gap-1.5 text-ink-3">
-              <Icon name="storefront" className="text-[16px]" /> Mitra bengkel
-            </dt>
-            <dd className="text-right font-semibold text-ink">{order.workshop?.name}</dd>
-          </div>
-          <div className="flex justify-between gap-3">
-            <dt className="flex items-center gap-1.5 text-ink-3">
-              <Icon name="pin_drop" className="text-[16px]" /> Jarak bengkel
-            </dt>
-            <dd className="font-semibold text-ink">{distance(order.emergency?.distance_meters)} dari Anda</dd>
-          </div>
-        </dl>
-        {m.phone && (
-          <div className="mt-4 grid gap-2 sm:grid-cols-[1.3fr_1fr]">
-            <a href={`tel:${m.phone}`} className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emergency font-label text-sm font-bold text-white hover:bg-emergency-dark">
-              <Icon name="call" /> Hubungi {m.name.split(' ')[0]}
-            </a>
-            <a href={`https://wa.me/${waNumber(m.phone)}`} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-success font-label text-sm font-bold text-on-primary hover:brightness-95">
-              <Icon name="chat" /> WhatsApp
-            </a>
-          </div>
-        )}
+    <section className="rounded-xl border border-line bg-card px-4 py-3.5">
+      <div className="flex items-center gap-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#3B553C] text-xs font-bold text-ink">{initials}</span>
+        <p className="min-w-0 flex-1">
+          <span className="block truncate text-subtitle font-bold text-ink">{m.name}</span>
+          <span className="block text-xs text-ink-2">Mekanik {order.workshop?.name}</span>
+        </p>
+        <span className="inline-flex shrink-0 items-center gap-1 text-subtitle font-bold text-primary">
+          <Icon name="star" filled className="text-[16px] text-star" />
+          {m.avg_rating > 0 ? m.avg_rating.toFixed(2).replace('.', ',') : 'Baru'}
+        </span>
       </div>
+      {order.type === 'EMERGENCY' && order.emergency && (
+        <p className="mt-2 text-xs text-ink-2">
+          {order.workshop?.name} · {distance(order.emergency.distance_meters)} dari Anda
+        </p>
+      )}
+      {m.phone && (
+        <div className="mt-3 flex gap-2">
+          <a href={`tel:${m.phone}`} className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-bold text-on-primary hover:bg-primary-dark">
+            <Icon name="call" /> Telepon
+          </a>
+          <a
+            href={`https://wa.me/${waNumber(m.phone)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-md border border-line bg-card px-3 text-sm font-bold text-ink hover:bg-surface"
+          >
+            <Icon name="chat" className="text-primary" /> WhatsApp
+          </a>
+        </div>
+      )}
     </section>
   );
 }
@@ -837,85 +694,59 @@ export function CancelOrderModal({
 export const isPayable = (order: Order) => ['CONFIRMED', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED'].includes(order.status) && order.total_amount > 0;
 export const canUploadProof = (order: Order) => isPayable(order) && (order.payment.status === 'UNPAID' || order.payment.status === 'REJECTED');
 
-/** QR + amount + steps. */
+/** QRIS card (Figma "Pembayaran"): the workshop's own QR on a light tile, the amount, then save / copy buttons. */
 export function QrisPayCard({ order }: { order: Order }) {
   const qris = useProtectedImage(canUploadProof(order) ? paymentApi.qrisPath(order.id) : null);
+  const amount = order.payment.amount || order.total_amount;
+  const [copied, setCopied] = useState(false);
+  const half = 'inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-md border border-line bg-card px-3 text-sm font-bold text-ink transition hover:bg-surface';
   return (
-    <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line pb-4">
-        <div>
-          <span className="flex flex-wrap gap-2">
-            <span className="rounded-md bg-sky px-1.5 py-0.5 font-label text-[10px] font-bold text-primary uppercase">Metode utama</span>
-            <span className="rounded-md bg-success-soft px-1.5 py-0.5 font-label text-[10px] font-bold text-success uppercase">Diverifikasi bengkel</span>
+    <div>
+      <section className="rounded-2xl border border-line bg-card px-4 pt-4 pb-5">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-subtitle font-bold text-primary">QRIS</span>
+          <span className="text-xs font-bold tracking-[0.04em] text-ink-2 uppercase">Bayar servis</span>
+        </div>
+        <p className="mt-2 text-center text-lg font-bold break-words text-ink">{order.workshop?.name}</p>
+        <div className="mx-auto mt-3 w-fit rounded-xl bg-[#F7FAF6] p-3">
+          {qris.url ? (
+            <img src={qris.url} alt={`QRIS ${order.workshop?.name ?? 'bengkel'}`} className="aspect-square w-44 object-contain sm:w-52" />
+          ) : (
+            <div className="grid aspect-square w-44 place-items-center px-3 text-center text-sm text-[#102019] sm:w-52">{qris.error ?? 'Memuat QRIS…'}</div>
+          )}
+        </div>
+        <p className="mt-3 text-center text-[27px] leading-tight font-bold text-ink">{rupiah(amount)}</p>
+        <p className="mt-1 text-center text-xs text-ink-2">Scan dengan m-banking atau e-wallet yang mendukung QRIS.</p>
+      </section>
+      <div className="mt-3 flex gap-2.5">
+        {qris.url ? (
+          <a href={qris.url} download={`qris-${order.order_number}.png`} className={half}>
+            Simpan QR
+          </a>
+        ) : (
+          <span className={cx(half, 'pointer-events-none opacity-45')} aria-disabled>
+            Simpan QR
           </span>
-          <h2 className="mt-2 text-headline-md text-ink">Pembayaran QRIS</h2>
-        </div>
-        <span className="rounded-lg border border-line px-2.5 py-1 font-label text-xs font-extrabold tracking-wide text-emergency-ink">QRIS</span>
+        )}
+        <button
+          type="button"
+          className={half}
+          onClick={() => {
+            void navigator.clipboard?.writeText(String(amount)).then(() => {
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            });
+          }}
+          aria-label={`Salin nominal ${amount}`}
+        >
+          {copied ? 'Tersalin' : 'Salin nominal'}
+        </button>
       </div>
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-low p-4">
-        <div>
-          <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Total pembayaran</p>
-          <p className="text-[22px] leading-tight font-extrabold text-primary">{rupiah(order.payment.amount || order.total_amount)}</p>
-          <p className="font-label text-xs text-success">(Tanpa biaya admin platform)</p>
-        </div>
-        <CopyButton text={String(order.payment.amount || order.total_amount)} label="Salin Nominal" />
-      </div>
-      <div className="mt-5 grid gap-6 rounded-xl border border-dashed border-line-strong p-4 sm:grid-cols-[auto_1fr] sm:p-5">
-        <div className="flex flex-col items-center gap-2">
-          <div className="rounded-xl bg-card p-3 shadow-sm ring-1 ring-line">
-            {qris.url ? (
-              <img src={qris.url} alt="QRIS bengkel" className="aspect-square w-48 object-contain" />
-            ) : (
-              <div className="grid aspect-square w-48 place-items-center text-center text-sm text-ink-3">{qris.error ?? 'Memuat QRIS…'}</div>
-            )}
-          </div>
-          <p className="max-w-48 text-center font-label text-[11px] font-bold text-ink uppercase">{order.workshop?.name}</p>
-        </div>
-        <div className="flex flex-col gap-4">
-          <div>
-            <p className="mb-2 text-sm font-bold text-ink">3 Langkah Mudah Bayar:</p>
-            <ol className="space-y-2 text-sm text-ink-2">
-              {[
-                'Buka m-banking atau e-wallet yang mendukung QRIS.',
-                'Arahkan kamera ke kode QRIS di samping, atau simpan gambarnya lalu unggah dari galeri.',
-                <>
-                  Periksa nama penerima <b className="text-ink">{order.workshop?.name}</b> dan nominal <b className="text-ink">{rupiah(order.payment.amount || order.total_amount)}</b>, lalu masukkan PIN.
-                </>,
-              ].map((t, i) => (
-                <li key={i} className="flex gap-2">
-                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-sky font-label text-[11px] font-bold text-primary">{i + 1}</span>
-                  <span>{t}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div>
-            <p className="mb-2 font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Mendukung semua aplikasi QRIS</p>
-            <div className="flex flex-wrap gap-1.5">
-              {['m-Banking', 'GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja'].map((p) => (
-                <span key={p} className="rounded-md border border-line px-2 py-1 font-label text-[11px] font-semibold text-ink-2">
-                  {p}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {qris.url && (
-              <a href={qris.url} download={`qris-${order.order_number}.png`} className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-line px-4 font-label text-sm font-semibold text-ink hover:bg-sky">
-                <Icon name="download" /> Unduh Kode QR (PNG)
-              </a>
-            )}
-            <span className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-sky px-4 font-label text-sm font-semibold text-primary">
-              Sudah scan? Konfirmasi di bawah <Icon name="arrow_downward" />
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   );
 }
 
-/** Proof upload with drag & drop. */
+/** Proof upload; its send button sits in the screen's bottom bar next to the amount. */
 export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploaded?: () => void }) {
   const qc = useQueryClient();
   const photo = usePreparedImage();
@@ -940,130 +771,107 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
       void photo.choose(f);
     }
   };
+  const refBad = !!payer.payer_reference.trim() && payer.payer_reference.trim().length < 3;
+  const nameBad = !!payer.payer_name.trim() && payer.payer_name.trim().length < 2;
   return (
-    <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 border-b border-line pb-4">
-        <div>
-          <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Verifikasi pembayaran</p>
-          <h2 className="text-headline-md text-ink">Konfirmasi &amp; Bukti Pembayaran</h2>
-        </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-surface-low px-2.5 py-1 font-label text-[11px] font-bold text-ink-2">
-          <Icon name="storefront" className="text-[14px]" /> Diperiksa bengkel
-        </span>
-      </div>
-      {order.payment.status === 'REJECTED' && (
-        <div className="mb-4">
-          <Alert tone="danger">Bukti sebelumnya ditolak: {order.payment.rejection_reason}. Silakan unggah ulang.</Alert>
-        </div>
-      )}
-      <form
-        className="flex flex-col gap-4"
-        onSubmit={(e: FormEvent) => {
+    <form
+      className="flex flex-col gap-4"
+      onSubmit={(e: FormEvent) => {
+        e.preventDefault();
+        if (file) upload.mutate();
+      }}
+    >
+      {order.payment.status === 'REJECTED' && <Alert tone="danger">Bukti sebelumnya ditolak: {order.payment.rejection_reason}. Silakan unggah ulang.</Alert>}
+      <label
+        onDragOver={(e) => {
           e.preventDefault();
-          if (file) upload.mutate();
+          setDrag(true);
         }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={onDrop}
+        id="proof-drop"
+        className={cx(
+          'flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed px-4 py-6 text-center transition',
+          drag ? 'border-primary bg-surface' : 'border-line-strong bg-card hover:border-primary',
+        )}
       >
-        <p className="text-sm font-bold text-ink">
-          Unggah bukti struk / screenshot transfer <span className="text-emergency-ink">*</span>
-        </p>
-        <label
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDrag(true);
+        {photo.preview ? (
+          <img src={photo.preview} alt="Pratinjau bukti pembayaran" className="max-h-48 rounded-lg border border-line object-contain" data-testid="proof-preview" />
+        ) : (
+          <span className="grid h-[46px] w-[46px] place-items-center rounded-lg bg-surface-high text-primary">
+            <Icon name={photo.busy ? 'hourglass_top' : 'add_photo_alternate'} />
+          </span>
+        )}
+        {photo.busy ? (
+          <span className="text-sm text-ink">Menyiapkan foto…</span>
+        ) : file ? (
+          <span className="text-sm font-bold break-all text-ink">
+            {file.name} <span className="font-normal text-ink-2">({fileSize(file.size)})</span>
+            <span className="block text-xs font-bold text-primary">Ketuk untuk mengganti foto</span>
+          </span>
+        ) : (
+          <span className="text-subtitle font-bold text-ink">
+            Unggah foto bukti bayar <span className="text-emergency-ink">*</span>
+          </span>
+        )}
+        <span className="text-xs text-ink-2">Screenshot atau foto struk. JPG, PNG, atau WEBP; di atas 2 MB diperkecil otomatis.</span>
+        <input
+          type="file"
+          accept={ACCEPT_IMAGES}
+          className="sr-only"
+          data-testid="proof-input"
+          onChange={(e) => {
+            upload.reset();
+            void photo.choose(e.target.files?.[0]);
+            e.target.value = ''; // allow picking the same file again after an error
           }}
-          onDragLeave={() => setDrag(false)}
-          onDrop={onDrop}
-          id="proof-drop"
-          className={cx('flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition', drag ? 'border-primary bg-sky' : 'border-line-strong bg-surface-low hover:border-primary hover:bg-sky')}
-        >
-          {photo.preview ? (
-            <img src={photo.preview} alt="Pratinjau bukti pembayaran" className="max-h-48 rounded-lg border border-line bg-card object-contain shadow-sm" data-testid="proof-preview" />
-          ) : (
-            <span className="grid h-12 w-12 place-items-center rounded-full bg-card text-primary shadow-sm">
-              <Icon name={photo.busy ? 'hourglass_top' : 'add_photo_alternate'} />
-            </span>
-          )}
-          {photo.busy ? (
-            <span className="text-sm text-ink">Menyiapkan foto…</span>
-          ) : file ? (
-            <span className="text-sm font-semibold break-all text-ink">
-              {file.name} <span className="font-normal text-ink-3">({fileSize(file.size)})</span>
-              <span className="block font-label text-xs font-normal text-primary">Klik untuk mengganti foto</span>
-            </span>
-          ) : (
-            <span className="text-base text-ink">
-              Tarik foto ke sini atau <b className="text-primary underline">Pilih dari Perangkat</b>
-            </span>
-          )}
-          <span className="font-label text-xs text-ink-3">Foto JPG, PNG, atau WEBP. Foto di atas 2 MB diperkecil otomatis.</span>
-          <input
-            type="file"
-            accept={ACCEPT_IMAGES}
-            className="sr-only"
-            data-testid="proof-input"
-            onChange={(e) => {
-              upload.reset();
-              void photo.choose(e.target.files?.[0]);
-              e.target.value = ''; // allow picking the same file again after an error
-            }}
-          />
-        </label>
-        {photo.image?.changed && (
-          <p className="-mt-2 text-xs text-ink-2" data-testid="proof-compressed">
-            <Icon name="compress" className="text-[14px]" /> Foto diperkecil dari {fileSize(photo.image.originalSize)} menjadi {fileSize(photo.image.file.size)} agar bisa diunggah.
-          </p>
-        )}
-        {photo.error && (
-          <Alert tone="danger">
-            <span data-testid="proof-error">{photo.error}</span>
-          </Alert>
-        )}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Input
-            id="proof-ref"
-            label="No. referensi transfer (opsional)"
-            hint="Nomor referensi yang tertera di struk atau riwayat transfer Anda"
-            maxLength={64}
-            value={payer.payer_reference}
-            onChange={(e) => setPayer({ ...payer, payer_reference: e.target.value })}
-            data-testid="payer-reference"
-          />
-          <Input
-            id="proof-name"
-            label="Nama pengirim (opsional)"
-            hint="Nama di aplikasi bank / e-wallet"
-            maxLength={100}
-            value={payer.payer_name}
-            onChange={(e) => setPayer({ ...payer, payer_name: e.target.value })}
-            data-testid="payer-name"
-          />
-        </div>
-        <div className="flex items-start gap-3 rounded-lg bg-surface-low p-3 text-xs text-ink-2">
-          <Icon name="verified_user" className="text-primary" />
-          <p>
-            <b className="text-ink">Diverifikasi langsung:</b> bengkel mencocokkan bukti dengan mutasi QRIS mereka. Status pembayaran di aplikasi berubah otomatis setelah diverifikasi.
-          </p>
-        </div>
-        <MissingFields
-          items={[
-            !file && !photo.busy && { label: 'Foto bukti pembayaran', target: 'proof-drop' },
-            !!payer.payer_reference.trim() && payer.payer_reference.trim().length < 3 && { label: 'No. referensi min. 3 karakter', target: 'proof-ref' },
-            !!payer.payer_name.trim() && payer.payer_name.trim().length < 2 && { label: 'Nama pengirim min. 2 huruf', target: 'proof-name' },
-          ]}
         />
-        {upload.error && <Alert tone="danger">{errorMessage(upload.error)}</Alert>}
-        <Button
-          type="submit"
-          size="lg"
-          icon="task_alt"
-          disabled={!file || photo.busy || (!!payer.payer_reference.trim() && payer.payer_reference.trim().length < 3) || (!!payer.payer_name.trim() && payer.payer_name.trim().length < 2)}
-          loading={upload.isPending}
-          data-testid="proof-submit"
-        >
-          Saya Sudah Membayar &amp; Kirim Bukti
-        </Button>
-      </form>
-    </section>
+      </label>
+      {photo.image?.changed && (
+        <p className="-mt-2 text-xs text-ink-2" data-testid="proof-compressed">
+          Foto diperkecil dari {fileSize(photo.image.originalSize)} menjadi {fileSize(photo.image.file.size)} agar bisa diunggah.
+        </p>
+      )}
+      {photo.error && (
+        <Alert tone="danger">
+          <span data-testid="proof-error">{photo.error}</span>
+        </Alert>
+      )}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input
+          id="proof-ref"
+          label="No. referensi transfer (opsional)"
+          hint="Tertera di struk atau riwayat transfer"
+          maxLength={64}
+          value={payer.payer_reference}
+          onChange={(e) => setPayer({ ...payer, payer_reference: e.target.value })}
+          data-testid="payer-reference"
+        />
+        <Input
+          id="proof-name"
+          label="Nama pengirim (opsional)"
+          hint="Nama di aplikasi bank atau e-wallet"
+          maxLength={100}
+          value={payer.payer_name}
+          onChange={(e) => setPayer({ ...payer, payer_name: e.target.value })}
+          data-testid="payer-name"
+        />
+      </div>
+      <p className="text-xs text-ink-2">Bengkel mencocokkan bukti dengan mutasi QRIS mereka. Status pembayaran berubah otomatis setelah diverifikasi.</p>
+      <MissingFields
+        items={[
+          !file && !photo.busy && { label: 'Foto bukti pembayaran', target: 'proof-drop' },
+          refBad && { label: 'No. referensi min. 3 karakter', target: 'proof-ref' },
+          nameBad && { label: 'Nama pengirim min. 2 huruf', target: 'proof-name' },
+        ]}
+      />
+      {upload.error && <Alert tone="danger">{errorMessage(upload.error)}</Alert>}
+      <BottomBar caption="Total bayar" amount={rupiah(order.payment.amount || order.total_amount)}>
+        <ScreenAction type="submit" disabled={!file || photo.busy || refBad || nameBad} loading={upload.isPending} data-testid="proof-submit">
+          Kirim bukti →
+        </ScreenAction>
+      </BottomBar>
+    </form>
   );
 }
 
@@ -1071,19 +879,23 @@ export function ProofUploadCard({ order, onUploaded }: { order: Order; onUploade
 export function CustomerPaymentPanel({ order }: { order: Order }) {
   const ps = PAYMENT_STATUS[order.payment.status];
   return (
-    <Card title="Pembayaran QRIS" icon="qr_code_2" actions={<Badge tone={ps.tone}>{ps.label}</Badge>} accent={canUploadProof(order) ? 'primary' : undefined}>
-      <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg bg-surface-low p-4">
+    <section className="rounded-2xl border border-line bg-card p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-subtitle font-bold text-primary">QRIS</p>
+        <Badge tone={ps.tone}>{ps.label}</Badge>
+      </div>
+      <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Total pembayaran</p>
-          <p className="text-2xl font-extrabold text-ink">{order.payment.amount > 0 ? rupiah(order.payment.amount) : '-'}</p>
+          <p className="text-xs text-ink-2">Total pembayaran</p>
+          <p className="text-3xl font-bold text-ink">{order.payment.amount > 0 ? rupiah(order.payment.amount) : '-'}</p>
         </div>
         {canUploadProof(order) && (
-          <Link to={`/orders/${order.id}/pay`} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-on-primary hover:bg-primary-dark" data-testid="pay-now">
-            <Icon name="qr_code_scanner" /> Bayar Sekarang
+          <Link to={`/orders/${order.id}/pay`} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-on-primary hover:bg-primary-dark" data-testid="pay-now">
+            Bayar sekarang →
           </Link>
         )}
       </div>
-      <div className="mt-4">
+      <div className="mt-3 empty:hidden">
         {!isPayable(order) && order.payment.status === 'UNPAID' && <Alert tone="neutral">Pembayaran tersedia setelah pesanan dikonfirmasi dan harga ditetapkan bengkel.</Alert>}
         {order.payment.status === 'REJECTED' && <Alert tone="danger">Bukti ditolak: {order.payment.rejection_reason}. Silakan unggah ulang.</Alert>}
         {order.payment.status === 'PENDING_VERIFICATION' && (
@@ -1103,7 +915,7 @@ export function CustomerPaymentPanel({ order }: { order: Order }) {
         )}
         {order.payment.status === 'VERIFIED' && <Alert tone="success">Pembayaran lunas, diverifikasi {dateTime(order.payment.verified_at)}.</Alert>}
       </div>
-    </Card>
+    </section>
   );
 }
 
@@ -1523,33 +1335,45 @@ const PAYMENT_HISTORY_LABEL: Record<string, string> = {
 };
 const ACTOR_LABEL: Record<string, string> = { CUSTOMER: 'Pelanggan', GUEST: 'Tamu', WORKSHOP_OWNER: 'Bengkel', ADMIN: 'Admin', SYSTEM: 'Otomatis' };
 
-/** Every status change of the order and its payment, with who did it (recorded by the database). */
+/** Every status change of the order and its payment (recorded by the database), as the Figma timeline. */
 export function StatusHistoryCard({ order }: { order: Order }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ['order-history', order.id, order.status, order.payment.status],
     queryFn: () => orderApi.history(order.id),
   });
+  const items = data ?? [];
   return (
-    <Card title="Riwayat Status" icon="history" subtitle="Dicatat otomatis setiap kali status pesanan atau pembayaran berubah.">
+    <section>
+      <h2 className="mb-3 text-xl font-bold text-ink">Status pengerjaan</h2>
       {isLoading ? (
         <SkeletonTimeline />
       ) : error ? (
         <Alert tone="danger">{errorMessage(error)}</Alert>
       ) : (
-        <ol className="relative flex flex-col gap-4 border-l border-line pl-5" data-testid="status-history">
-          {(data ?? []).map((h, i) => (
-            <li key={i} className="relative">
-              <span className={cx('absolute top-1 -left-[25px] h-2.5 w-2.5 rounded-full ring-4 ring-card', h.kind === 'PAYMENT' ? 'bg-success' : 'bg-primary')} />
-              <p className="text-sm font-semibold text-ink">{(h.kind === 'PAYMENT' ? PAYMENT_HISTORY_LABEL : HISTORY_LABEL)[h.to_status] ?? h.to_status}</p>
-              <p className="font-label text-xs text-ink-3">
-                {dateTime(h.created_at)}
-                {h.actor_role && ` · ${ACTOR_LABEL[h.actor_role] ?? h.actor_role}${h.actor_name ? ` (${h.actor_name})` : ''}`}
-              </p>
-            </li>
-          ))}
+        <ol className="flex flex-col" data-testid="status-history">
+          {items.map((h, i) => {
+            const last = i === items.length - 1;
+            const bad = h.to_status === 'CANCELLED' || h.to_status === 'REJECTED' || h.to_status === 'UNASSIGNED';
+            return (
+              <li key={i} className="relative flex gap-4 pb-5 last:pb-0">
+                {!last && <span aria-hidden className="absolute top-4 bottom-0 left-[6.5px] w-[3px] bg-line" />}
+                <span aria-hidden className={cx('relative mt-0.5 h-4 w-4 shrink-0 rounded-full', bad ? 'bg-emergency-ink' : 'bg-primary')} />
+                <div className="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+                  <p className="text-subtitle font-bold text-ink">{(h.kind === 'PAYMENT' ? PAYMENT_HISTORY_LABEL : HISTORY_LABEL)[h.to_status] ?? h.to_status}</p>
+                  <p className="text-xs text-ink-2">{dateTime(h.created_at)}</p>
+                  {h.actor_role && (
+                    <p className="w-full text-xs text-ink-2">
+                      {ACTOR_LABEL[h.actor_role] ?? h.actor_role}
+                      {h.actor_name ? ` (${h.actor_name})` : ''}
+                    </p>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ol>
       )}
-    </Card>
+    </section>
   );
 }
 

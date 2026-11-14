@@ -101,7 +101,7 @@ export async function fetchImageUrl(path: string): Promise<string> {
     const data = axios.isAxiosError(err) ? err.response?.data : null;
     if (data instanceof Blob) {
       const body = JSON.parse(await data.text().catch(() => '{}')) as Partial<ApiErrorBody>;
-      if (body.error?.message) throw new Error(body.error.message);
+      if (body.error?.message) throw new Error(translateApiError(body.error.code, body.error.details?.issues) ?? body.error.message);
     }
     throw err;
   }

@@ -449,7 +449,7 @@ function WorkshopApprovalCard({
     <section className={cx('overflow-hidden rounded-xl border bg-card shadow-sm', w.status === 'PENDING' ? 'border-warning/40' : 'border-line')} data-testid="admin-workshop">
       <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_auto]">
         <div className="flex min-w-0 gap-4">
-          <span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-navy text-white">
+          <span className="grid h-16 w-16 shrink-0 place-items-center rounded-lg bg-surface-high text-primary">
             <Icon name="storefront" className="text-[24px]" />
           </span>
           <div className="min-w-0">

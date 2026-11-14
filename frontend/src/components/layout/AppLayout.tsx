@@ -126,7 +126,7 @@ const isPortalPath = (p: string) => p.startsWith('/owner') || p.startsWith('/adm
 
 function UnreadBadge() {
   const n = useOptionalNotifications();
-  return n && n.unread > 0 ? <span className="rounded-full bg-emergency-ink px-1.5 py-0.5 text-[10px] font-bold text-white">{n.unread}</span> : null;
+  return n && n.unread > 0 ? <span className="rounded-full bg-emergency px-1.5 py-0.5 text-[10px] font-bold text-white">{n.unread}</span> : null;
 }
 
 /** Where each role's notification history lives (inside its own shell). */
@@ -145,7 +145,7 @@ function NotificationBell({ role }: { role: Role }) {
         <span className="relative grid h-10 w-10 place-items-center rounded-lg bg-surface-low text-ink hover:bg-surface" data-testid="notif-bell">
           <Icon name={n.unread ? 'notifications_active' : 'notifications'} />
           {n.unread > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-emergency-ink px-1 font-label text-[10px] font-bold text-white">{n.unread > 99 ? '99+' : n.unread}</span>
+            <span className="absolute -top-0.5 -right-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-emergency px-1 font-label text-[10px] font-bold text-white">{n.unread > 99 ? '99+' : n.unread}</span>
           )}
         </span>
       )}
@@ -223,6 +223,8 @@ const PUBLIC_NAV: NavItem[] = [
   { to: '/register/workshop', label: 'Gabung Mitra', icon: 'handshake' },
 ];
 
+const FLOW_SCREEN = /^\/(workshops\/[^/]+|orders\/[^/]+(\/pay)?)\/?$/;
+
 function PublicShell() {
   const { user } = useAuth();
   const doLogout = useLogout();
@@ -233,11 +235,14 @@ function PublicShell() {
   }, [pathname, hash, search]);
   const portal = user ? PORTAL_HOME[user.role] : undefined;
   const isActive = (l: NavItem) => (l.search ? pathname === l.to && search === l.search : l.end ? pathname === l.to && !hash : pathname.startsWith(l.to));
+  // Booking flow screens (Figma): on phones they run full screen with their own back button and bottom bar, so the
+  // site header, footer and SOS button step aside.
+  const flow = FLOW_SCREEN.test(pathname);
 
   return (
     // overflow-x-clip: full-bleed landing bands use 100vw; clip (not hidden) keeps the sticky header working.
     <div className="flex min-h-screen flex-col overflow-x-clip">
-      <header className="sticky top-0 z-[1000] bg-card shadow-header sm:bg-card/95 sm:backdrop-blur-xl">
+      <header className={cx('sticky top-0 z-[1000] bg-card shadow-header sm:bg-card/95 sm:backdrop-blur-xl', flow && 'hidden md:block')}>
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-4 px-4 sm:h-20 sm:px-8 lg:px-20">
           <Link to="/" aria-label="BengkelGo beranda" className="shrink-0">
             <Brand />
@@ -362,13 +367,13 @@ function PublicShell() {
       </header>
 
       <VerifyEmailStrip />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-8 sm:px-8 sm:py-12 lg:px-20">
+      <main className={cx('mx-auto w-full max-w-6xl flex-1', flow ? 'px-[22px] pt-5 pb-36 sm:px-8 md:pt-10' : 'px-5 py-8 sm:px-8 sm:py-12 lg:px-20')}>
         <PageFade key={pathname}>
           <Outlet />
         </PageFade>
       </main>
 
-      <footer className="border-t border-line bg-card">
+      <footer className={cx('border-t border-line bg-card', flow && 'hidden')}>
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8 md:grid-cols-[1.6fr_1fr_1fr_1fr] lg:px-20">
           <div className="max-w-sm">
             <Brand />
@@ -432,7 +437,7 @@ function PublicShell() {
       </footer>
 
       {/* Floating SOS button (FAB): always bottom-right while scrolling. Hidden on the SOS form itself, which has its own send bar. */}
-      {!portal && pathname !== '/emergency' && (
+      {!portal && !flow && pathname !== '/emergency' && (
         <Link
           to="/emergency"
           data-testid="nav-sos"
@@ -561,7 +566,7 @@ function OwnerShell({ user }: { user: User }) {
           }
         >
           <Icon name={l.icon} /> <span className="flex-1">{l.label}</span>
-          {l.to === '/owner/emergency' && sosCount > 0 && <span className="rounded-full bg-emergency-ink px-1.5 py-0.5 text-[10px] font-bold text-white">{sosCount} Baru</span>}
+          {l.to === '/owner/emergency' && sosCount > 0 && <span className="rounded-full bg-emergency px-1.5 py-0.5 text-[10px] font-bold text-white">{sosCount} Baru</span>}
           {l.to === '/owner/payments' && payCount > 0 && <span className="rounded-full bg-warning px-1.5 py-0.5 text-[10px] font-bold text-white">{payCount}</span>}
           {l.to === '/owner/notifications' && <UnreadBadge />}
         </NavLink>

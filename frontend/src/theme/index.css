@@ -185,6 +185,31 @@
   .animate-beacon::after { animation: none; }
 }
 
+/* Landing globe (components/ui/globe.tsx): meridians and workshop pins drift sideways. */
+.globe-spin {
+  background-image:
+    radial-gradient(circle at 30px 70px, #baf48f 0 3px, transparent 4px),
+    radial-gradient(circle at 95px 150px, #baf48f 0 3px, transparent 4px),
+    radial-gradient(circle at 60px 210px, #baf48f 0 2.5px, transparent 3.5px),
+    radial-gradient(circle at 120px 100px, rgb(186 244 143 / 0.6) 0 2px, transparent 3px),
+    repeating-linear-gradient(90deg, transparent 0 34px, rgb(186 244 143 / 0.28) 34px 35px);
+  background-size: 140px 280px, 140px 280px, 140px 280px, 140px 280px, 140px 100%;
+  animation: globe-turn 24s linear infinite;
+}
+@keyframes globe-turn {
+  to { background-position: 280px 0, 280px 0, 280px 0, 280px 0, 280px 0; }
+}
+/* Section label beside the landing dot nav: shows, then fades out. */
+.animate-label-out { animation: label-out 2.4s ease forwards; }
+@keyframes label-out {
+  0%, 70% { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(0.5rem) scale(0.95); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .globe-spin, .animate-label-out { animation: none; }
+  .animate-label-out { opacity: 0; }
+}
+
 /* Leaflet sits below the sticky header */
 .leaflet-container {
   font-family: var(--font-sans);

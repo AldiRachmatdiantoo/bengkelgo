@@ -29,19 +29,18 @@ const PERKS = [
 
 function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle: string; children: ReactNode; footer: ReactNode }) {
   return (
-    <div className="mx-auto grid max-w-5xl overflow-hidden rounded-xl border border-line bg-card shadow-lift lg:grid-cols-[1fr_1.1fr]">
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-primary to-navy p-10 text-white lg:flex">
-        <div className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full bg-white/10" />
+    <div className="mx-auto grid max-w-5xl overflow-hidden rounded-2xl border border-line bg-card lg:grid-cols-[1fr_1.1fr]">
+      <div className="relative hidden flex-col justify-between overflow-hidden border-r border-line bg-surface-low p-10 text-ink lg:flex">
         <div className="relative">
-          <span className="inline-flex items-center gap-2 text-2xl font-extrabold tracking-tight">
+          <span className="inline-flex items-center gap-2 text-2xl font-bold text-primary">
             <Icon name="car_repair" filled /> BengkelGo
           </span>
           <p className="mt-6 text-3xl leading-tight font-bold">Servis & bantuan darurat kendaraan, dalam satu genggaman.</p>
         </div>
         <ul className="relative mt-10 space-y-4">
           {PERKS.map((p) => (
-            <li key={p.text} className="flex items-center gap-3 text-sm text-white/90">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/15">
+            <li key={p.text} className="flex items-center gap-3 text-sm text-ink-2">
+              <span className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-lg bg-surface-high text-primary">
                 <Icon name={p.icon} />
               </span>
               {p.text}
@@ -300,10 +299,10 @@ export function RegisterWorkshopPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <div className="mb-6 rounded-xl bg-navy p-6 text-white sm:p-8">
-        <p className="font-label text-xs font-bold tracking-[0.06em] text-sky uppercase">Kemitraan BengkelGo</p>
-        <h1 className="mt-1 text-[20px] leading-tight font-bold sm:text-[24px]">Daftarkan bengkel Anda</h1>
-        <p className="mt-2 max-w-2xl text-subtitle text-white/80">
+      <div className="mb-6">
+        <p className="text-xs font-bold tracking-[0.04em] text-primary uppercase">Kemitraan BengkelGo</p>
+        <h1 className="mt-1 text-display text-ink">Daftarkan bengkel Anda</h1>
+        <p className="mt-1.5 max-w-2xl text-subtitle text-ink-2">
           Kelola antrean per jam, mekanik, panggilan darurat, dan pembayaran QRIS. Bengkel tampil ke pelanggan setelah diverifikasi admin.
         </p>
       </div>

@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQueries, useQuery } from '@tanstack/react-query';
-import { statsApi, workshopApi } from '@/services/api/endpoints';
+import { apiAsset, statsApi, workshopApi } from '@/services/api/endpoints';
+import { useAuth } from '@/services/auth/AuthProvider';
 import type { Workshop } from '@/services/api/types';
 import { StarRow } from '@/components/workshop/WorkshopComponents';
-import { Icon, SectionHeading, Segmented, cx } from '@/components/ui';
+import { Icon, SectionHeading, Segmented, cx, SkeletonList } from '@/components/ui';
+import { WorkshopArt } from '@/components/ui/screen';
+import { ScrollGlobe, type ScrollGlobeSection } from '@/components/ui/landing-page';
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/motion';
-import { m } from 'framer-motion';
-import heroWorkshop from '@/assets/hero-workshop.webp';
 
 const ADVANTAGES = [
   { icon: 'hourglass_disabled', tone: 'bg-primary', title: 'Jadwal Anti-Bentrok', text: 'Setiap jam punya batas jumlah pelanggan. Begitu Anda konfirmasi, jam itu langsung jadi milik Anda dan tidak bisa diambil orang lain.', foot: 'Diuji 100 pemesan sekaligus, tidak ada yang bentrok', footIcon: 'check_circle', footTone: 'text-primary' },
@@ -39,40 +40,13 @@ const FAQ = [
   },
 ];
 
-/** What visitors can do here: three clear entry points (the tools themselves live on /workshops). */
-const SERVICES: { icon: string; tone: string; title: string; text: string; cta: string; to: string; sos?: boolean }[] = [
-  {
-    icon: 'calendar_month',
-    tone: 'bg-primary',
-    title: 'Booking Servis Terjadwal',
-    text: 'Pilih bengkel, paket servis, dan jam kedatangan. Jumlah pelanggan tiap jam dibatasi sehingga Anda tidak perlu antre lama.',
-    cta: 'Booking servis',
-    to: '/workshops?tab=booking',
-  },
-  {
-    icon: 'e911_emergency',
-    tone: 'bg-emergency',
-    title: 'Bantuan Darurat SOS',
-    text: 'Kendaraan mogok di jalan? Kirim lokasi, bengkel terdekat dalam radius 5 km akan dihubungi otomatis. Tanpa akun pun bisa.',
-    cta: 'Panggil SOS',
-    to: '/emergency',
-    sos: true,
-  },
-  {
-    icon: 'storefront',
-    tone: 'bg-navy',
-    title: 'Cari Bengkel Terdekat',
-    text: 'Temukan bengkel terverifikasi di sekitar Anda. Bandingkan rating, jam buka, dan jenis kendaraan yang dilayani.',
-    cta: 'Cari bengkel',
-    to: '/workshops?tab=cari',
-  },
-];
-
 export default function HomePage() {
   const navigate = useNavigate();
   const { hash } = useLocation();
   const howRef = useRef<HTMLElement>(null);
-  // Only used to pick real reviews for the testimonials section.
+  const { user } = useAuth();
+  const [q, setQ] = useState('');
+  // Verified list on the page, and real reviews for the testimonials section.
   const workshops = useQuery({ queryKey: ['workshops', {}], queryFn: () => workshopApi.list({}) });
 
   useEffect(() => {
@@ -87,76 +61,41 @@ export default function HomePage() {
   }, [hash, navigate]);
 
   return (
-    <div className="flex flex-col gap-20">
-      {/* ------------------------------------------------ hero: what BengkelGo is */}
-      <section className="relative -mx-5 -mt-8 overflow-hidden px-5 pt-12 pb-4 sm:-mx-8 sm:-mt-12 sm:px-8 sm:pt-16 lg:-mx-20 lg:px-20">
-        <div className="relative grid items-center gap-12 lg:grid-cols-[1.15fr_1fr]">
-          <Reveal>
-            <p className="inline-flex items-center gap-2 font-label text-xs font-bold text-primary" data-testid="hero-location-chip">
-              <Icon name="location_on" className="text-[20px]" />
-              Temukan bengkel terdekat, di mana pun Anda berada
-            </p>
-            <h1 className="mt-5 text-display-mobile text-ink sm:text-display">Solusi Lengkap Servis Kendaraan &amp; <span className="text-primary">Bantuan Darurat 24 Jam</span></h1>
-            <p className="mt-4 max-w-xl text-subtitle leading-relaxed text-ink-2 sm:text-[15px]">
-              BengkelGo menghubungkan pemilik motor dan mobil dengan bengkel UMKM terverifikasi di sekitar Anda. Pesan jadwal servis tanpa antre lama, atau panggil mekanik saat kendaraan mogok di jalan.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/workshops?tab=booking" className="inline-flex h-12 items-center gap-2 rounded-lg bg-primary px-6 font-label text-sm font-bold text-on-primary shadow-sm hover:bg-primary-dark" data-testid="hero-booking">
-                <Icon name="calendar_month" /> Cari &amp; Booking Bengkel
-              </Link>
-              <Link to="/emergency" className="inline-flex h-12 items-center gap-2 rounded-lg border-[1.5px] border-emergency bg-transparent px-6 font-label text-sm font-bold text-emergency-ink transition hover:bg-emergency-soft">
-                <Icon name="e911_emergency" filled /> Bantuan Darurat SOS
-              </Link>
-            </div>
-            <Link to="/#cara-kerja" className="mt-4 inline-flex items-center gap-1.5 font-label text-sm font-bold text-primary hover:underline">
-              <Icon name="help" className="text-[18px]" /> Baru pertama kali? Lihat cara kerjanya
-            </Link>
-            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 font-label text-xs font-semibold text-ink-2">
-              {[
-                ['verified', 'Bengkel diverifikasi admin'],
-                ['lock', 'Jadwal per jam, tidak bentrok'],
-                ['qr_code_2', 'Bayar via QRIS bengkel'],
-              ].map(([icon, t]) => (
-                <li key={t} className="inline-flex items-center gap-1.5">
-                  <Icon name={icon} className="text-[18px] text-success" /> {t}
-                </li>
-              ))}
-            </ul>
-          </Reveal>
-          <Reveal delay={0.12} className="hidden lg:block">
-            <HeroVisual />
-          </Reveal>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-14">
+      {/* ------------------------------------------------ scroll globe hero */}
+      <ScrollGlobe sections={heroSections(user?.name.split(' ')[0])} />
+
+      {/* ------------------------------------------------ verified workshops (Figma "Bengkel Terverifikasi") */}
+      <section>
+        <h2 className="text-2xl font-semibold text-ink">Bengkel terverifikasi</h2>
+        <p className="mt-1 text-sm text-ink-2">Cek profil bengkel yang sudah diverifikasi admin.</p>
+        <form
+          role="search"
+          className="mt-4 flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card pr-1.5 pl-4 focus-within:border-primary"
+          onSubmit={(e) => {
+            e.preventDefault();
+            navigate(`/workshops?tab=cari${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`);
+          }}
+        >
+          <Icon name="search" className="text-ink-2" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari bengkel" aria-label="Cari bengkel" className="h-full min-w-0 flex-1 bg-transparent text-sm text-ink placeholder:text-ink-2/70 focus:outline-none" />
+          <button type="submit" className="h-8 shrink-0 rounded-full bg-primary px-4 text-xs font-bold text-on-primary hover:bg-primary-dark">
+            Cari
+          </button>
+        </form>
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          {workshops.isLoading ? (
+            <SkeletonList rows={3} label="Memuat bengkel…" />
+          ) : (
+            (workshops.data ?? []).slice(0, 6).map((w) => <WorkshopRow key={w.id} workshop={w} />)
+          )}
         </div>
+        <Link to="/workshops?tab=cari" className="mt-4 inline-flex min-h-11 items-center gap-1 text-sm font-bold text-primary hover:underline">
+          Lihat semua bengkel <Icon name="arrow_forward" className="text-[18px]" />
+        </Link>
       </section>
 
       <PlatformNumbers />
-
-      {/* ------------------------------------------------ what you can do */}
-      <Reveal as="section">
-        <SectionHeading eyebrow="Layanan BengkelGo" title="Apa yang Bisa Anda Lakukan?" subtitle="Tiga kebutuhan utama pemilik kendaraan, dalam satu tempat." />
-        <RevealGroup className="grid gap-5 md:grid-cols-3">
-          {SERVICES.map((s) => (
-            <RevealItem key={s.title} className="flex">
-            <Link to={s.to} className="group flex flex-1 flex-col gap-4 rounded-xl border border-line bg-card p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lift">
-              <span className={cx('grid h-12 w-12 place-items-center rounded-lg text-white', s.tone)}>
-                <Icon name={s.icon} />
-              </span>
-              <h3 className="text-headline-sm text-ink">{s.title}</h3>
-              <p className="flex-1 text-sm leading-relaxed text-ink-2">{s.text}</p>
-              {s.sos ? (
-                <span className="inline-flex h-10 items-center gap-1.5 self-start rounded-lg bg-emergency px-5 font-label text-sm font-bold text-white shadow-sm transition group-hover:bg-emergency-dark">
-                  <Icon name="e911_emergency" filled className="text-[18px]" /> {s.cta}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 font-label text-sm font-bold text-primary group-hover:underline">
-                  {s.cta} <Icon name="arrow_forward" className="text-[18px]" />
-                </span>
-              )}
-            </Link>
-            </RevealItem>
-          ))}
-        </RevealGroup>
-      </Reveal>
 
       {/* ------------------------------------------------ how it works */}
       <HowItWorks sectionRef={howRef} />
@@ -170,7 +109,7 @@ export default function HomePage() {
           <RevealGroup className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {ADVANTAGES.map((a) => (
               <RevealItem key={a.title} className="flex flex-col gap-4 rounded-2xl bg-card p-6 shadow-sm transition-shadow hover:shadow-lift">
-                <span className={cx('grid h-12 w-12 place-items-center rounded-xl text-white shadow-soft', a.tone)}>
+                <span className={cx('grid h-[46px] w-[46px] place-items-center rounded-lg', a.tone === 'bg-emergency' ? 'bg-emergency-soft text-emergency-ink' : 'bg-surface-high text-primary')}>
                   <Icon name={a.icon} className="text-[24px]" />
                 </span>
                 <h3 className="text-headline-sm font-bold text-ink">{a.title}</h3>
@@ -186,32 +125,6 @@ export default function HomePage() {
 
       {/* ------------------------------------------------ real reviews */}
       <ReviewsSection workshops={workshops.data ?? []} />
-
-      {/* ------------------------------------------------ partner banner */}
-      <Reveal as="section" className="relative overflow-hidden rounded-xl border border-line bg-surface p-8 text-ink sm:p-12">
-        <div className="relative grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-center">
-          <div>
-            <span className="inline-flex rounded-md bg-card px-3 py-1 font-label text-xs font-bold text-primary">Portal Pemilik Bengkel UMKM</span>
-            <h2 className="mt-4 text-[20px] leading-tight font-bold tracking-[-0.015em] sm:text-headline-lg">Kelola Antrean Bengkel Anda Lebih Rapi bersama BengkelGo</h2>
-            <p className="mt-3 max-w-xl text-subtitle text-ink-2">Tinggalkan catatan antrean kertas. Atur kapasitas per jam, mekanik, panggilan darurat dalam radius 5 km, dan verifikasi pembayaran QRIS dari satu dashboard.</p>
-            <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2 font-label text-xs font-semibold">
-              {['Pendaftaran online', 'Kelola antrean & kapasitas per jam', 'Terima panggilan darurat sekitar'].map((t) => (
-                <li key={t} className="inline-flex items-center gap-1.5">
-                  <Icon name="check_circle" className="text-[16px] text-success" /> {t}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="flex flex-col gap-3 lg:items-end">
-            <Link to="/register/workshop" className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-7 font-label text-sm font-bold text-on-primary hover:bg-primary-dark">
-              Daftarkan Bengkel Sekarang
-            </Link>
-            <Link to="/login" className="inline-flex h-12 items-center justify-center rounded-lg border border-line bg-card px-7 font-label text-sm font-bold text-ink hover:bg-sky">
-              Masuk Portal Mitra
-            </Link>
-          </div>
-        </div>
-      </Reveal>
 
       {/* ------------------------------------------------ FAQ */}
       <Reveal as="section">
@@ -232,38 +145,76 @@ export default function HomePage() {
   );
 }
 
-/** Hero illustration (isometric workshop, from the Stitch project) with the three feature labels floating around it. */
-function HeroVisual() {
-  const chips = [
-    { icon: 'event_available', text: 'Jadwal terjamin', tone: 'text-primary', pos: '-left-6 top-[38%]' },
-    { icon: 'two_wheeler', text: 'Mekanik menuju lokasi', tone: 'text-emergency-ink', pos: '-right-4 top-[60%]' },
-    { icon: 'qr_code_2', text: 'Bayar via QRIS', tone: 'text-success', pos: 'left-[14%] bottom-[20%]' },
+/** The four stops of the landing globe; every claim here is something the app really does. */
+function heroSections(firstName?: string): ScrollGlobeSection[] {
+  return [
+    {
+      id: 'mulai',
+      badge: 'Beranda',
+      title: `Halo${firstName ? `, ${firstName}` : ''}!`,
+      subtitle: 'Mau servis apa hari ini?',
+      description: 'Booking jam servis di bengkel terverifikasi tanpa antre lama, atau minta bantuan saat kendaraan mogok di jalan.',
+      actions: [
+        { label: 'Servis motor', to: '/workshops?tab=booking&vehicle=MOTOR', variant: 'primary', icon: 'two_wheeler', testId: 'hero-booking' },
+        { label: 'Servis mobil', to: '/workshops?tab=booking&vehicle=MOBIL', variant: 'secondary', icon: 'directions_car' },
+      ],
+    },
+    {
+      id: 'bengkel',
+      badge: 'Bengkel terverifikasi',
+      title: 'Bengkel di sekitar Anda',
+      description: 'Setiap bengkel diperiksa admin sebelum tampil. Bandingkan rating, jam buka, dan sisa tempat di tiap jam sebelum berangkat.',
+      align: 'right',
+      actions: [{ label: 'Cari bengkel', to: '/workshops?tab=cari', variant: 'secondary', icon: 'search' }],
+    },
+    {
+      id: 'darurat',
+      badge: 'Bantuan darurat',
+      title: 'Mogok di jalan?',
+      subtitle: 'Bengkel dalam radius 5 km dihubungi otomatis',
+      description: 'Tentukan lokasi lewat GPS, pilih masalahnya, lalu kirim.',
+      features: [
+        { icon: 'person_off', title: 'Tanpa akun pun bisa', description: 'Cukup isi nama dan nomor WhatsApp.' },
+        { icon: 'timer', title: 'Dialihkan otomatis', description: 'Bengkel punya 2 menit untuk merespons, kalau tidak permintaan pindah ke bengkel berikutnya.' },
+        { icon: 'qr_code_2', title: 'Bayar lewat QRIS bengkel', description: 'Setelah selesai, scan QRIS dan unggah bukti bayar.' },
+      ],
+      actions: [{ label: 'Kirim SOS', to: '/emergency', variant: 'danger', icon: 'e911_emergency' }],
+    },
+    {
+      id: 'mitra',
+      badge: 'Untuk pemilik bengkel',
+      title: 'Punya bengkel?',
+      subtitle: 'Kelola antrean lebih rapi',
+      description: 'Atur kapasitas per jam, mekanik, panggilan darurat dalam radius 5 km, dan verifikasi pembayaran QRIS dari satu dashboard.',
+      align: 'center',
+      actions: [
+        { label: 'Daftarkan bengkel', to: '/register/workshop', variant: 'primary', icon: 'app_registration' },
+        { label: 'Masuk portal mitra', to: '/login', variant: 'secondary', icon: 'login' },
+      ],
+    },
   ];
+}
+
+/** Verified workshop row (Figma list): photo on the left, name, one-line description, rating. */
+function WorkshopRow({ workshop: w }: { workshop: Workshop }) {
   return (
-    <div className="relative mx-auto w-full max-w-lg" aria-hidden>
-      {/* soft brand glow behind the tile */}
-      <m.img
-        src={heroWorkshop}
-        alt=""
-        width={1536}
-        height={1536}
-        draggable={false}
-        className="relative aspect-square w-full mix-blend-multiply select-none [mask-image:radial-gradient(closest-side,#000_78%,transparent)]"
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      {chips.map((c, i) => (
-        <m.span
-          key={c.text}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.35 + i * 0.12, ease: 'easeOut' }}
-          className={cx('absolute flex items-center gap-2 rounded-xl bg-card/95 px-4 py-3 font-label text-sm font-bold text-ink shadow-lift ring-1 ring-line/60 backdrop-blur', c.pos)}
-        >
-          <Icon name={c.icon} className={c.tone} /> {c.text}
-        </m.span>
-      ))}
-    </div>
+    <Link to={`/workshops/${w.id}`} className="flex min-h-[72px] items-stretch overflow-hidden rounded-[20px] border border-line bg-card transition hover:border-primary/60">
+      <span className="relative w-28 shrink-0 overflow-hidden bg-art sm:w-32">
+        {w.cover_photo_url ? (
+          <img src={apiAsset(`${w.cover_photo_url}?size=sm`)!} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <WorkshopArt className="absolute inset-0 h-full w-full" />
+        )}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col justify-center px-3.5 py-2.5">
+        <span className="truncate text-subtitle font-bold text-ink">{w.name}</span>
+        <span className="truncate text-xs text-ink-2">{w.description || w.address}</span>
+        <span className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-ink">
+          <Icon name="star" filled className="text-[14px] text-star" />
+          {w.avg_rating > 0 ? `${w.avg_rating.toFixed(1)}/5` : 'Belum ada ulasan'}
+        </span>
+      </span>
+    </Link>
   );
 }
 
@@ -274,7 +225,7 @@ const GUIDES: Record<Guide, { label: string; icon: string; tone: string; intro: 
   booking: {
     label: 'Booking Servis Terjadwal',
     icon: 'calendar_month',
-    tone: 'bg-primary',
+    tone: 'bg-primary text-on-primary',
     intro: 'Untuk servis rutin tanpa antre lama. Pilih jam kedatangan, datang sesuai jadwal.',
     steps: [
       { icon: 'storefront', title: 'Cari bengkel', text: 'Cari nama bengkel atau tekan “Deteksi lokasi GPS” untuk melihat bengkel terdekat. Bandingkan rating, jam buka, dan jenis kendaraan yang dilayani.', note: 'Halaman Cari & Booking Bengkel' },
@@ -287,7 +238,7 @@ const GUIDES: Record<Guide, { label: string; icon: string; tone: string; intro: 
   sos: {
     label: 'Bantuan Darurat SOS',
     icon: 'e911_emergency',
-    tone: 'bg-emergency',
+    tone: 'bg-emergency text-white',
     intro: 'Untuk kendaraan yang mogok di jalan. Bisa dipakai tanpa akun.',
     steps: [
       { icon: 'e911_emergency', title: 'Tekan SOS', text: 'Tekan tombol bulat oranye “SOS” di kanan bawah layar. Belum punya akun? Cukup isi nama dan nomor WhatsApp, Anda masuk sebagai tamu.', note: 'Tombol SOS di kanan bawah' },
@@ -300,7 +251,7 @@ const GUIDES: Record<Guide, { label: string; icon: string; tone: string; intro: 
   mitra: {
     label: 'Untuk Pemilik Bengkel',
     icon: 'handshake',
-    tone: 'bg-navy',
+    tone: 'bg-navy text-white',
     intro: 'Untuk UMKM bengkel yang ingin antrean lebih rapi dan dijangkau pelanggan baru.',
     steps: [
       { icon: 'app_registration', title: 'Daftarkan bengkel', text: 'Isi data pemilik dan bengkel, jam buka, kapasitas booking per jam, lalu tandai lokasi bengkel di peta.', note: 'Menu “Gabung Mitra”' },
@@ -338,7 +289,7 @@ function HowItWorks({ sectionRef }: { sectionRef: React.RefObject<HTMLElement | 
         <RevealGroup key={guide} as="ol" className="relative grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {g.steps.map((s, i) => (
             <RevealItem as="li" key={s.title} className="relative flex flex-col items-center text-center">
-              <span className={cx('relative z-10 grid h-14 w-14 place-items-center rounded-full text-white shadow-lift ring-8 ring-canvas', g.tone)}>
+              <span className={cx('relative z-10 grid h-14 w-14 place-items-center rounded-full ring-8 ring-canvas', g.tone)}>
                 <Icon name={s.icon} className="text-[20px]" />
                 <span className="absolute -top-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-card font-label text-xs font-bold text-ink shadow-sm">{i + 1}</span>
               </span>
@@ -357,7 +308,7 @@ function HowItWorks({ sectionRef }: { sectionRef: React.RefObject<HTMLElement | 
       <div className="mt-8 flex">
         <Link
           to={g.cta.to}
-          className={cx('inline-flex h-12 items-center gap-2 rounded-lg px-6 font-label text-sm font-bold text-white shadow-sm transition hover:brightness-110', g.tone)}
+          className={cx('inline-flex h-12 items-center gap-2 rounded-lg px-6 text-sm font-bold transition hover:brightness-110', g.tone)}
         >
           <Icon name={g.cta.icon} /> {g.cta.label}
         </Link>
