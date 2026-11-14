@@ -124,6 +124,7 @@ const actionBase =
 const actionVariant = {
   primary: 'bg-primary text-on-primary hover:bg-primary-dark',
   secondary: 'border border-line bg-card text-ink hover:bg-surface',
+  danger: 'bg-emergency text-white hover:bg-emergency-dark',
 } as const;
 
 /** The 52px action used in the bottom bar (button). */

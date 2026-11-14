@@ -128,9 +128,17 @@ test('customer: saved vehicle, booking with it, reschedule, history and cancel r
 test('SOS: category, range and vehicle; owner picks the mechanic and edits the price; RRN, invoice, review reply', async () => {
   await c.goto('/emergency');
   await c.getByTestId('sos-gps').click();
-  await c.getByTestId('sos-vehicle').selectOption({ index: 1 });
+  await expect(c.getByTestId('sos-position')).toBeVisible();
+  await c.getByTestId('step-next').click();
+  await expect(c.getByTestId('sos-workshops')).toBeVisible();
+  await c.getByTestId('step-next').click();
+  // The saved vehicle is picked already; the contact step is skipped for a customer with a phone number.
+  await expect(c.getByTestId('sos-vehicle-option').first()).toHaveAttribute('aria-checked', 'true');
+  await c.getByTestId('step-next').click();
   await c.getByRole('button', { name: 'Kunci tertinggal' }).click();
   await c.getByRole('radio', { name: 'Rp100–250rb' }).click();
+  await c.getByTestId('step-next').click();
+  await expect(c.getByTestId('sos-review')).toContainText('Honda Vario 125');
   await c.getByTestId('sos-submit').click();
   await expect(c).toHaveURL(/\/orders\/[0-9a-f-]+$/);
   sosId = c.url().split('/').pop()!;

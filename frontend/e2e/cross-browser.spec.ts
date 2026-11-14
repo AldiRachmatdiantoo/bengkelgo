@@ -49,7 +49,8 @@ test('SOS page loads the map and lets you drop a pin', async ({ page }) => {
   const map = page.locator('.leaflet-container').first();
   await expect(map).toBeVisible();
   await map.click();
-  await expect(page.getByTestId('sos-guest-name')).toBeVisible();
+  await expect(page.getByTestId('sos-position')).toBeVisible();
+  await expect(page.getByTestId('step-next')).toBeVisible();
   await noSideScroll(page);
   expect(errors).toEqual([]);
 });

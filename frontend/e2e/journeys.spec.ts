@@ -102,11 +102,19 @@ test('journey 1: guest SOS with price range -> accept -> pay -> verify -> comple
   const guest = await newPage(browser, { geolocation: { latitude: location.lat, longitude: location.lng }, permissions: ['geolocation'] });
   const g = guest.page;
   await g.goto('/emergency');
+  // Step flow: location -> workshops nearby -> problem -> contact -> review.
   await g.getByTestId('sos-gps').click();
+  await expect(g.getByTestId('sos-position')).toBeVisible();
+  await g.getByTestId('step-next').click();
+  await expect(g.getByTestId('sos-workshops')).toContainText(workshopName);
+  await g.getByTestId('step-next').click();
   await g.getByRole('button', { name: 'Ban bocor / pecah' }).click();
   await g.getByRole('radio', { name: 'Rp100–250rb' }).click();
+  await g.getByTestId('step-next').click();
   await g.getByTestId('sos-guest-name').fill('Tamu E2E');
   await g.getByTestId('sos-guest-wa').fill(`0815${digits()}`);
+  await g.getByTestId('step-next').click();
+  await expect(g.getByTestId('sos-review')).toContainText('Tamu E2E');
   await g.getByTestId('sos-submit').click();
   await expect(g).toHaveURL(/\/orders\/[0-9a-f-]+$/);
   orderId = g.url().split('/').pop()!;
@@ -162,9 +170,15 @@ test('cancelling a paid order: blocked while the proof is checked, then needs a 
   const g = guest.page;
   await g.goto('/emergency');
   await g.getByTestId('sos-gps').click();
+  await expect(g.getByTestId('sos-position')).toBeVisible();
+  await g.getByTestId('step-next').click();
+  await expect(g.getByTestId('sos-workshops')).toBeVisible();
+  await g.getByTestId('step-next').click();
   await g.getByRole('button', { name: 'Ban bocor / pecah' }).click();
+  await g.getByTestId('step-next').click();
   await g.getByTestId('sos-guest-name').fill('Tamu Refund E2E');
   await g.getByTestId('sos-guest-wa').fill(`0815${digits()}`);
+  await g.getByTestId('step-next').click();
   await g.getByTestId('sos-submit').click();
   await expect(g).toHaveURL(/\/orders\/[0-9a-f-]+$/);
   const id = g.url().split('/').pop()!;

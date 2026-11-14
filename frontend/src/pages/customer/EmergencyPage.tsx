@@ -10,7 +10,9 @@ import { MapPicker, PointsMap, type LatLng } from '@/components/map/Maps';
 import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { AddressHint } from '@/components/map/AddressHint';
 import { SafetyBanner } from '@/components/orders/OrderComponents';
-import { Alert, Badge, Button, Card, EmptyState, Icon, Input, MissingFields, Segmented, Select, Stars, TextArea, cx } from '@/components/ui';
+import { Alert, Badge, Button, Icon, Input, MissingFields, Segmented, Skeleton, Stars, TextArea, cx } from '@/components/ui';
+import { BottomBar, OptionCard, ScreenAction, ScreenHeader } from '@/components/ui/screen';
+import { ReviewRow, StepHeading, StepProgress, useStepDraft, useStepFlow } from '@/components/ui/steps';
 import { isIdPhone } from '@/utils/formChecks';
 import { distance, vehicleName } from '@/utils/format';
 import { PRICE_PRESETS, rangeLabel, type PriceRange } from '@/utils/priceRange';
@@ -24,295 +26,283 @@ const PROBLEMS: { category: ProblemCategory; icon: string; label: string; text: 
   { category: 'LOCKOUT', icon: 'key_off', label: 'Kunci tertinggal', text: 'Kunci tertinggal di dalam kendaraan.' },
 ];
 
+type StepId = 'lokasi' | 'bengkel' | 'kendaraan' | 'keluhan' | 'kontak' | 'kirim';
+
+type Draft = {
+  position: LatLng | null;
+  addressNote: string;
+  vehicle: VehicleType;
+  /** The customer chose Motor/Mobil (or a saved vehicle) themself, so saved vehicles no longer override it. */
+  vehicleTouched: boolean;
+  vehicleId: string;
+  plate: string;
+  category?: ProblemCategory;
+  problem: string;
+  range: PriceRange;
+  guest: { name: string; whatsapp: string };
+};
+
+const EMPTY: Draft = {
+  position: null,
+  addressNote: '',
+  vehicle: 'MOTOR',
+  vehicleTouched: false,
+  vehicleId: '',
+  plate: '',
+  problem: '',
+  range: {},
+  guest: { name: '', whatsapp: '' },
+};
+
+/**
+ * SOS as a short step-by-step flow: location, the workshops on standby around it, vehicle, problem, contact, then a
+ * review before sending. Steps whose data is already known are skipped (no saved vehicle of that type, or a
+ * signed-in customer with a phone number).
+ */
 export default function EmergencyPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  // Prefill from the SOS tab on the landing page (location + chosen problem).
+  // Prefill from the landing page (location + chosen problem).
   const prefill = (useLocation().state as { position?: LatLng | null; problem?: string } | null) ?? {};
   const geo = useGeolocation();
-  const [vehicle, setVehicle] = useState<VehicleType>('MOTOR');
-  const [problem, setProblem] = useState(prefill.problem ?? '');
-  const [category, setCategory] = useState<ProblemCategory | undefined>(() => PROBLEMS.find((p) => p.text === prefill.problem)?.category);
-  const [vehicleId, setVehicleId] = useState('');
+  const [draft, update, clearDraft] = useStepDraft<Draft>('sos-draft', EMPTY);
+  const [tried, setTried] = useState<StepId | null>(null);
   const canSaveVehicles = user?.role === 'CUSTOMER' || user?.role === 'GUEST';
   const vehicles = useQuery({ queryKey: ['vehicles'], queryFn: vehicleApi.list, enabled: canSaveVehicles });
+  // Signed in with Google and no phone number yet: the mechanic needs one to call, so it is asked here.
+  const needsPhone = !!user && !user.phone;
+
+  // Arrival: landing prefill wins over the draft; then the GPS runs by itself if the browser already allows it.
   useEffect(() => {
-    if (prefill.position) geo.setPosition(prefill.position);
+    if (prefill.problem) update({ problem: prefill.problem, category: PROBLEMS.find((p) => p.text === prefill.problem)?.category });
+    const start = prefill.position ?? draft.position;
+    if (start) geo.setPosition(start);
+    else
+      navigator.permissions
+        ?.query({ name: 'geolocation' })
+        .then((s) => {
+          if (s.state === 'granted') void geo.locate();
+        })
+        .catch(() => undefined);
     // Only once, on arrival.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const [addressNote, setAddressNote] = useState('');
-  const [plate, setPlate] = useState('');
-  const [guest, setGuest] = useState({ name: '', whatsapp: '' });
-  // Signed in with Google and no phone number yet: the mechanic needs one to call, so it is asked here.
-  const needsPhone = !!user && !user.phone;
-  // Default: price is negotiated with the workshop; the customer may set a budget range.
-  const [range, setRange] = useState<PriceRange>({});
+  useEffect(() => {
+    if (geo.position) update({ position: geo.position });
+  }, [geo.position, update]);
 
-  const scan = useMutation({ mutationFn: () => emergencyApi.scan({ latitude: geo.position!.lat, longitude: geo.position!.lng, vehicle_type: vehicle }) });
+  // A saved vehicle sets the type until the customer picks one themself.
+  useEffect(() => {
+    const first = vehicles.data?.[0];
+    if (first && !draft.vehicleTouched && !draft.vehicleId) update({ vehicle: first.vehicle_type, vehicleId: first.id, plate: first.plate ?? '' });
+  }, [vehicles.data, draft.vehicleTouched, draft.vehicleId, update]);
+
+  // The draft's point counts on the first render too (geo picks it up in an effect), so a refresh stays on its step.
+  const position = geo.position ?? draft.position;
+  const matching = (vehicles.data ?? []).filter((v) => v.vehicle_type === draft.vehicle);
+  const flow = useStepFlow<StepId>([
+    { id: 'lokasi', label: 'Lokasi' },
+    { id: 'bengkel', label: 'Bengkel terdekat' },
+    { id: 'kendaraan', label: 'Kendaraan', skip: matching.length === 0 },
+    { id: 'keluhan', label: 'Keluhan' },
+    { id: 'kontak', label: 'Kontak', skip: !!user && !needsPhone },
+    { id: 'kirim', label: 'Periksa & kirim' },
+  ]);
+  const step = flow.active.id;
+
+  const scan = useQuery({
+    queryKey: ['sos-scan', position?.lat, position?.lng, draft.vehicle],
+    queryFn: () => emergencyApi.scan({ latitude: position!.lat, longitude: position!.lng, vehicle_type: draft.vehicle }),
+    enabled: !!position && step !== 'lokasi',
+    staleTime: 60_000,
+  });
+  const workshops = scan.data?.workshops ?? [];
+  // Routing skips workshops without a free mechanic, so the "priority" pick is the first one that has one.
+  const priority = workshops.find((w) => w.available_mechanics > 0);
 
   const request = useMutation({
     mutationFn: async () => {
-      const pos = geo.position!;
+      const pos = position!;
       // Not logged in -> quick guest session (name + WhatsApp + GPS), then send the SOS.
-      if (!user) await authApi.guest({ name: guest.name, whatsapp: guest.whatsapp, latitude: pos.lat, longitude: pos.lng });
-      else if (needsPhone) await accountApi.update({ phone: guest.whatsapp.trim() });
+      if (!user) await authApi.guest({ name: draft.guest.name, whatsapp: draft.guest.whatsapp, latitude: pos.lat, longitude: pos.lng });
+      else if (needsPhone) await accountApi.update({ phone: draft.guest.whatsapp.trim() });
       return emergencyApi.request({
         latitude: pos.lat,
         longitude: pos.lng,
-        vehicle_type: vehicle,
-        problem_description: problem.trim(),
-        problem_category: category,
-        price_min: range.min,
-        price_max: range.max,
-        address_note: addressNote || undefined,
-        vehicle_plate: plate || undefined,
-        vehicle_id: vehicleId || undefined,
+        vehicle_type: draft.vehicle,
+        problem_description: draft.problem.trim(),
+        problem_category: draft.category,
+        price_min: draft.range.min,
+        price_max: draft.range.max,
+        address_note: draft.addressNote || undefined,
+        vehicle_plate: draft.plate || undefined,
+        vehicle_id: draft.vehicleId || undefined,
       });
     },
-    onSuccess: (o) => navigate(`/orders/${o.id}`),
+    onSuccess: (o) => {
+      clearDraft();
+      navigate(`/orders/${o.id}`, { replace: true });
+    },
   });
+
+  const badRange = !!draft.range.min && !!draft.range.max && draft.range.min > draft.range.max;
+  const missingFor = (id: StepId) => {
+    switch (id) {
+      case 'lokasi':
+        return [!position && { label: 'Titik lokasi (GPS, cari lokasi, atau ketuk peta)', target: 'sos-gps' }];
+      case 'bengkel':
+        return [scan.isSuccess && workshops.length === 0 && { label: 'Belum ada bengkel siaga di sekitar titik ini' }];
+      case 'keluhan':
+        return [
+          draft.problem.trim().length < 5 && { label: 'Apa yang terjadi (min. 5 karakter)', target: 'sos-problem' },
+          badRange && { label: 'Kisaran biaya: minimum melebihi maksimum', target: 'sos-price' },
+        ];
+      case 'kontak':
+        return [
+          !user && draft.guest.name.trim().length < 2 && { label: 'Nama Anda', target: 'sos-guest-name' },
+          (!user || needsPhone) &&
+            !isIdPhone(draft.guest.whatsapp) && { label: draft.guest.whatsapp.trim() ? 'Nomor WhatsApp belum benar (mis. 0812…)' : 'Nomor WhatsApp', target: 'sos-guest-wa' },
+        ];
+      default:
+        return [];
+    }
+  };
+  const isValid = (id: StepId) => !missingFor(id).some(Boolean);
+
+  // Opened on a later step (refresh, shared link) with an earlier step incomplete: go back to that step.
+  const firstInvalid = flow.steps.findIndex((s) => s.id !== 'kirim' && !isValid(s.id));
+  useEffect(() => {
+    if (firstInvalid !== -1 && firstInvalid < flow.index) flow.go(flow.steps[firstInvalid].id, true);
+  }, [firstInvalid, flow]);
 
   if (user && (user.role === 'WORKSHOP_OWNER' || user.role === 'ADMIN')) {
     return <Alert tone="warning">Fitur darurat hanya untuk pelanggan. Keluar terlebih dahulu untuk mencoba sebagai tamu.</Alert>;
   }
 
-  const workshops = scan.data?.workshops ?? [];
-  // Routing skips workshops without a free mechanic, so the "priority" pick is the first one that has one.
-  const priorityId = workshops.find((w) => w.available_mechanics > 0)?.id;
-  const badRange = !!range.min && !!range.max && range.min > range.max;
-  const canSend =
-    !!geo.position && problem.trim().length >= 5 && !badRange && (user ? !needsPhone || isIdPhone(guest.whatsapp) : guest.name.trim().length >= 2 && isIdPhone(guest.whatsapp));
-  const missing = [
-    !geo.position && { label: 'Lokasi Anda (GPS atau titik di peta)', target: 'sos-location' },
-    problem.trim().length < 5 && { label: 'Apa yang terjadi (min. 5 karakter)', target: 'sos-problem' },
-    badRange && { label: 'Kisaran biaya: minimum melebihi maksimum', target: 'sos-price' },
-    !user && guest.name.trim().length < 2 && { label: 'Nama Anda', target: 'sos-guest-name' },
-    (!user || needsPhone) && !isIdPhone(guest.whatsapp) && { label: guest.whatsapp.trim() ? 'Nomor WhatsApp belum benar (mis. 0812…)' : 'Nomor WhatsApp', target: 'sos-guest-wa' },
-  ];
+  const next = () => {
+    if (!isValid(step)) return setTried(step);
+    setTried(null);
+    flow.next();
+  };
+  const selectedVehicle = vehicles.data?.find((v) => v.id === draft.vehicleId);
+  const problemLabel = PROBLEMS.find((p) => p.category === draft.category)?.label;
+  const plateInput = <Input label="Plat nomor (opsional)" value={draft.plate} onChange={(e) => update({ plate: e.target.value })} placeholder="B 1234 XYZ" data-testid="sos-plate" />;
+
+  const titles: Record<StepId, { title: string; description?: string }> = {
+    lokasi: { title: 'Di mana kendaraan Anda?', description: 'Pakai GPS, cari nama jalan, atau ketuk peta di titik kendaraan.' },
+    bengkel: { title: 'Bengkel siaga di sekitar Anda', description: 'Bengkel dalam radius 5 km yang melayani kendaraan Anda.' },
+    kendaraan: { title: 'Kendaraan yang mogok', description: 'Pilih dari kendaraan tersimpan atau isi plat kendaraan lain.' },
+    keluhan: { title: 'Apa masalahnya?', description: 'Pilih yang paling dekat, lalu ceritakan singkat. Mekanik membaca ini sebelum berangkat.' },
+    kontak: needsPhone
+      ? { title: 'Nomor WhatsApp Anda', description: 'Akun Google tidak menyertakan nomor telepon. Mekanik menghubungi Anda lewat nomor ini.' }
+      : { title: 'Siapa yang bisa dihubungi?', description: 'Tanpa akun tidak masalah, Anda masuk sebagai tamu.' },
+    kirim: { title: 'Periksa sebelum mengirim', description: 'Setelah dikirim, bengkel prioritas langsung menerima panggilan Anda.' },
+  };
 
   return (
-    <div className="flex flex-col gap-6 pb-20 lg:pb-0">
-      <div>
-        <h1 className="text-display text-ink">Bantuan darurat</h1>
-        <p className="mt-1.5 max-w-2xl text-subtitle text-ink-2">Kendaraan mogok? Kirim lokasi Anda. Bengkel terdekat yang punya mekanik siaga dihubungi lebih dulu.</p>
-        <div className="mt-4 flex max-w-2xl items-start gap-3 rounded-lg border border-emergency/40 bg-emergency-soft px-4 py-3.5">
-          <span className="grid h-10 w-10 shrink-0 animate-beacon place-items-center rounded-full bg-emergency text-white">
-            <Icon name="e911_emergency" filled />
-          </span>
-          <div className="min-w-0">
-            <p className="text-subtitle font-bold text-emergency-ink">Bengkel siaga dalam radius 5 km</p>
-            <p className="mt-0.5 text-sm text-ink-2">Jika bengkel tidak merespons dalam 2 menit, permintaan dialihkan otomatis ke bengkel berikutnya.</p>
+    <div className="mx-auto w-full max-w-xl">
+      <ScreenHeader
+        title="Bantuan darurat"
+        back={flow.isFirst ? '/' : undefined}
+        onBack={flow.isFirst ? undefined : flow.back}
+        backLabel={flow.isFirst ? 'Kembali ke beranda' : 'Langkah sebelumnya'}
+      />
+      <StepProgress index={flow.index} total={flow.total} label={flow.active.label} tone="emergency" />
+      <StepHeading stepKey={step} index={flow.index} total={flow.total} {...titles[step]} />
+
+      {step === 'lokasi' && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="danger" icon="my_location" onClick={geo.locate} loading={geo.locating} data-testid="sos-gps" id="sos-gps">
+              {position ? 'Ambil ulang GPS' : 'Gunakan GPS saya'}
+            </Button>
+            {position && (
+              <span className="inline-flex items-center gap-1.5 font-label text-xs text-ink-2" data-testid="sos-position">
+                <Icon name="check_circle" filled className="text-success" />
+                {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
+              </span>
+            )}
           </div>
+          {geo.error && <Alert tone="warning">{geo.error}</Alert>}
+          <PlaceSearch near={position} placeholder="Atau cari lokasi: nama jalan, daerah, patokan" onPick={(p) => geo.setPosition({ lat: p.lat, lng: p.lng })} />
+          <MapPicker value={position} onChange={geo.setPosition} height={280} />
+          <p className="-mt-2 font-label text-xs text-ink-3">Hasil pencarian menandai titik perkiraan. Ketuk peta untuk menggeser ke posisi kendaraan yang tepat.</p>
+          <AddressHint
+            point={position}
+            useLabel="Salin ke patokan"
+            onUse={(a) => update({ addressNote: (draft.addressNote.trim() && !draft.addressNote.includes(a) ? `${draft.addressNote.trim()} (${a})` : a).slice(0, 300) })}
+          />
+          <Input
+            label="Patokan lokasi (opsional)"
+            icon="pin_drop"
+            value={draft.addressNote}
+            onChange={(e) => update({ addressNote: e.target.value })}
+            placeholder="mis. Depan minimarket, sebelah SPBU"
+          />
         </div>
-      </div>
+      )}
 
-      <form
-        className="grid gap-6 lg:grid-cols-[1fr_400px]"
-        onSubmit={(e) => {
-          e.preventDefault();
-          request.mutate();
-        }}
-      >
-        <div className="flex min-w-0 flex-col gap-6">
-          {/* 1. Location */}
-          <Card id="sos-location" title="1. Lokasi Anda" icon="my_location" subtitle="Gunakan GPS atau klik peta untuk menandai titik kendaraan.">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <Button variant="danger" icon="my_location" onClick={geo.locate} loading={geo.locating} data-testid="sos-gps">
-                  Gunakan GPS saya
-                </Button>
-                {geo.position && (
-                  <span className="inline-flex items-center gap-1.5 font-label text-xs text-ink-2">
-                    <Icon name="check_circle" filled className="text-success" />
-                    {geo.position.lat.toFixed(5)}, {geo.position.lng.toFixed(5)}
-                  </span>
-                )}
-              </div>
-              {geo.error && <Alert tone="warning">{geo.error}</Alert>}
-              <PlaceSearch
-                near={geo.position}
-                placeholder="Atau cari lokasi: nama jalan, daerah, patokan"
-                onPick={(p) => geo.setPosition({ lat: p.lat, lng: p.lng })}
-              />
-              <MapPicker value={geo.position} onChange={geo.setPosition} height={300} />
-              <p className="-mt-2 font-label text-xs text-ink-3">Hasil pencarian menandai titik perkiraan. Klik peta untuk menggeser ke posisi kendaraan yang tepat.</p>
-              <AddressHint
-                point={geo.position}
-                useLabel="Salin ke patokan"
-                onUse={(a) => setAddressNote((prev) => (prev.trim() && !prev.includes(a) ? `${prev.trim()} (${a})` : a).slice(0, 300))}
-              />
-              <Input label="Patokan lokasi (opsional)" icon="pin_drop" value={addressNote} onChange={(e) => setAddressNote(e.target.value)} placeholder="mis. Depan minimarket, sebelah SPBU" />
-            </div>
-          </Card>
-
-          {/* 2. Problem */}
-          <Card title="2. Kendaraan & kendala" icon="car_crash">
-            <div className="flex flex-col gap-5">
-              {!!vehicles.data?.length && (
-                <Select
-                  label="Kendaraan tersimpan"
-                  icon="garage"
-                  value={vehicleId}
-                  data-testid="sos-vehicle"
-                  onChange={(e) => {
-                    const v = vehicles.data!.find((x) => x.id === e.target.value);
-                    setVehicleId(e.target.value);
-                    if (v) {
-                      setVehicle(v.vehicle_type);
-                      setPlate(v.plate ?? '');
-                    }
-                  }}
-                >
-                  <option value="">Pilih kendaraan lain / isi manual</option>
-                  {vehicles.data.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {vehicleName(v)}
-                      {v.plate ? ` (${v.plate})` : ''}
-                    </option>
-                  ))}
-                </Select>
-              )}
-              <div className="flex flex-wrap items-end gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <span className="font-label text-xs font-semibold">Jenis kendaraan</span>
-                  <Segmented
-                    label="Jenis kendaraan"
-                    value={vehicle}
-                    onChange={(v) => {
-                      setVehicle(v);
-                      setVehicleId(''); // a manual type no longer matches the saved vehicle
-                    }}
-                    options={[
-                      { value: 'MOTOR', label: 'Motor', icon: 'two_wheeler' },
-                      { value: 'MOBIL', label: 'Mobil', icon: 'directions_car' },
-                    ]}
-                  />
-                </div>
-                <div className="min-w-48 flex-1">
-                  <Input label="Plat nomor (opsional)" value={plate} onChange={(e) => setPlate(e.target.value)} placeholder="B 1234 XYZ" />
-                </div>
-              </div>
-              <div>
-                <p className="mb-2 font-label text-xs font-semibold">Pilih masalah kendaraan</p>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {PROBLEMS.map((p) => {
-                    const selected = category === p.category;
-                    return (
-                      <button
-                        type="button"
-                        key={p.label}
-                        aria-pressed={selected}
-                        onClick={() => {
-                          setCategory(p.category);
-                          // Keep what the customer already typed; only fill in an empty box or replace another preset.
-                          if (!problem.trim() || PROBLEMS.some((x) => x.text === problem)) setProblem(p.text);
-                        }}
-                        className={cx(
-                          'flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition',
-                          selected ? 'border-emergency bg-emergency-soft ring-1 ring-emergency' : 'border-line bg-card hover:border-emergency/50',
-                        )}
-                      >
-                        <Icon name={p.icon} className={selected ? 'text-emergency' : 'text-ink-2'} />
-                        <span className="text-sm font-semibold text-ink">{p.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <TextArea
-                label="Apa yang terjadi?"
-                required
-                value={problem}
-                onChange={(e) => setProblem(e.target.value)}
-                placeholder="mis. Ban belakang bocor, motor tidak bisa jalan"
-                maxLength={900}
-                id="sos-problem"
-                data-testid="sos-problem"
-              />
-              <div id="sos-price">
-                <PriceRangeField value={range} onChange={setRange} />
-              </div>
-            </div>
-          </Card>
-
-          {/* 3. Guest contact */}
-          {!user && (
-            <Card title="3. Kontak Anda" icon="contact_phone" subtitle="Tanpa akun? Tidak masalah, Anda masuk sebagai tamu.">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Input id="sos-guest-name" label="Nama Anda" icon="person" required value={guest.name} onChange={(e) => setGuest({ ...guest, name: e.target.value })} data-testid="sos-guest-name" />
-                <Input
-                  label="Nomor WhatsApp"
-                  icon="call"
-                  required
-                  value={guest.whatsapp}
-                  onChange={(e) => setGuest({ ...guest, whatsapp: e.target.value })}
-                  placeholder="08xxxxxxxxxx"
-                  id="sos-guest-wa"
-                  data-testid="sos-guest-wa"
-                />
-              </div>
-              <p className="mt-3 text-sm text-ink-2">
-                Sudah punya akun?{' '}
-                <Link to="/login" state={{ from: '/emergency' }} className="font-semibold text-primary hover:underline">
-                  Masuk
-                </Link>
-              </p>
-            </Card>
-          )}
-          {needsPhone && (
-            <Card title="3. Nomor WhatsApp Anda" icon="contact_phone" subtitle="Akun Google tidak menyertakan nomor telepon. Mekanik menghubungi Anda lewat nomor ini.">
-              <div className="max-w-sm">
-                <Input
-                  label="Nomor WhatsApp"
-                  icon="call"
-                  inputMode="tel"
-                  required
-                  value={guest.whatsapp}
-                  onChange={(e) => setGuest({ ...guest, whatsapp: e.target.value })}
-                  placeholder="08xxxxxxxxxx"
-                  hint="Disimpan di akun Anda, jadi cukup diisi sekali."
-                  id="sos-guest-wa"
-                  data-testid="sos-user-wa"
-                />
-              </div>
-            </Card>
-          )}
-          {/* Phones: the full checklist sits here in the page; the fixed send bar only shows a one-line summary. */}
-          <div id="sos-missing" className="lg:hidden">
-            <MissingFields items={missing} />
+      {step === 'bengkel' && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <span className="font-label text-xs font-semibold">Jenis kendaraan</span>
+            <Segmented
+              label="Jenis kendaraan"
+              value={draft.vehicle}
+              onChange={(v) => update({ vehicle: v, vehicleTouched: true, ...(selectedVehicle && selectedVehicle.vehicle_type !== v ? { vehicleId: '', plate: '' } : {}) })}
+              options={[
+                { value: 'MOTOR', label: 'Motor', icon: 'two_wheeler' },
+                { value: 'MOBIL', label: 'Mobil', icon: 'directions_car' },
+              ]}
+            />
           </div>
-        </div>
-
-        {/* Nearby + send */}
-        <aside className="flex flex-col gap-6 lg:sticky lg:top-24 lg:self-start">
-          <Card
-            title="Bengkel siaga dalam 5 km"
-            icon="radar"
-            actions={
-              <Button size="sm" variant="secondary" icon="search" disabled={!geo.position} loading={scan.isPending} onClick={() => scan.mutate()}>
-                Pindai
-              </Button>
-            }
-          >
-            {!scan.data ? (
-              <EmptyState icon="travel_explore">Tentukan lokasi lalu tekan “Pindai” untuk melihat bengkel yang siap membantu.</EmptyState>
-            ) : (
-              <div className="flex flex-col gap-4">
-                <PointsMap
-                  origin={geo.position!}
-                  originLabel="Titik mogok Anda"
-                  radiusMeters={scan.data.radius_meters}
-                  points={workshops.map((w) => ({ id: w.id, lat: w.latitude, lng: w.longitude, label: w.name, highlight: w.id === priorityId }))}
-                  height={220}
-                />
-                {workshops.length === 0 ? (
-                  <Alert tone="danger">Tidak ada bengkel tersedia dalam radius 5 km.</Alert>
-                ) : (
-                  <ul className="flex flex-col gap-2">
+          {scan.isPending ? (
+            <div className="flex flex-col gap-3" aria-busy="true" aria-label="Mencari bengkel siaga">
+              <Skeleton className="h-[220px] w-full rounded-xl" />
+              <Skeleton className="h-16 w-full rounded-xl" />
+              <Skeleton className="h-16 w-full rounded-xl" />
+            </div>
+          ) : scan.isError ? (
+            <Alert tone="danger">
+              {errorMessage(scan.error)}{' '}
+              <button type="button" className="font-semibold underline" onClick={() => scan.refetch()}>
+                Coba lagi
+              </button>
+            </Alert>
+          ) : (
+            <>
+              <PointsMap
+                origin={position!}
+                originLabel="Titik mogok Anda"
+                radiusMeters={scan.data.radius_meters}
+                points={workshops.map((w) => ({ id: w.id, lat: w.latitude, lng: w.longitude, label: w.name, highlight: w.id === priority?.id }))}
+                height={220}
+              />
+              {workshops.length === 0 ? (
+                <div className="flex flex-col items-start gap-3 rounded-lg border border-emergency/40 bg-emergency-soft px-4 py-3.5" data-testid="sos-no-workshops">
+                  <p className="text-sm text-ink">Belum ada bengkel siaga dalam 5 km dari titik ini. Periksa lagi titiknya, atau pilih jenis kendaraan lain bila keliru.</p>
+                  <Button variant="secondary" icon="edit_location_alt" onClick={() => flow.go('lokasi')}>
+                    Geser lokasi
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-start gap-3 rounded-lg border border-emergency/40 bg-emergency-soft px-4 py-3.5">
+                    <Icon name="route" className="mt-px text-emergency-ink" />
+                    <p className="text-sm text-ink-2">
+                      Bengkel dipilih otomatis: yang ditandai <b className="text-ink">Prioritas</b> dihubungi lebih dulu. Jika tidak merespons dalam 2 menit, permintaan pindah ke bengkel
+                      berikutnya.
+                    </p>
+                  </div>
+                  <ul className="flex flex-col gap-2" data-testid="sos-workshops">
                     {workshops.map((w, i) => (
-                      <li key={w.id} className={cx('flex items-center gap-3 rounded-xl border p-3', w.id === priorityId ? 'border-success/40 bg-success-soft/50' : 'border-line')}>
-                        <span className={cx('grid h-9 w-9 shrink-0 place-items-center rounded-full font-label text-sm font-bold', w.id === priorityId ? 'bg-success text-on-primary' : 'bg-canvas text-ink-2')}>
+                      <li key={w.id} className={cx('flex items-center gap-3 rounded-xl border p-3', w.id === priority?.id ? 'border-success/40 bg-success-soft/50' : 'border-line bg-card')}>
+                        <span
+                          className={cx(
+                            'grid h-9 w-9 shrink-0 place-items-center rounded-full font-label text-sm font-bold',
+                            w.id === priority?.id ? 'bg-success text-on-primary' : 'bg-canvas text-ink-2',
+                          )}
+                        >
                           {i + 1}
                         </span>
                         <div className="min-w-0 flex-1">
@@ -321,20 +311,153 @@ export default function EmergencyPage() {
                             {distance(w.distance_meters)} · <Stars value={w.top_mechanic_rating} />
                           </p>
                         </div>
-                        {w.id === priorityId ? <Badge tone="success">Prioritas</Badge> : w.available_mechanics === 0 && <Badge>Mekanik sibuk</Badge>}
+                        {w.id === priority?.id ? <Badge tone="success">Prioritas</Badge> : w.available_mechanics === 0 && <Badge>Mekanik sibuk</Badge>}
                       </li>
                     ))}
                   </ul>
-                )}
-              </div>
-            )}
-            {scan.error && (
-              <div className="mt-3">
-                <Alert tone="danger">{errorMessage(scan.error)}</Alert>
-              </div>
-            )}
-          </Card>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
+      {step === 'kendaraan' && (
+        <div className="flex flex-col gap-3" role="radiogroup" aria-label="Kendaraan">
+          {matching.map((v) => (
+            <OptionCard
+              key={v.id}
+              checked={draft.vehicleId === v.id}
+              onSelect={() => update({ vehicleId: v.id, plate: v.plate ?? '', vehicleTouched: true })}
+              title={vehicleName(v)}
+              description={v.plate || undefined}
+              data-testid="sos-vehicle-option"
+            />
+          ))}
+          <OptionCard
+            checked={!draft.vehicleId}
+            onSelect={() => update({ vehicleId: '', plate: '', vehicleTouched: true })}
+            title={`${draft.vehicle === 'MOBIL' ? 'Mobil' : 'Motor'} lain`}
+            description="Isi platnya di bawah (opsional)"
+            data-testid="sos-vehicle-other"
+          />
+          {!draft.vehicleId && plateInput}
+        </div>
+      )}
+
+      {step === 'keluhan' && (
+        <div className="flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {PROBLEMS.map((p) => {
+              const selected = draft.category === p.category;
+              return (
+                <button
+                  type="button"
+                  key={p.label}
+                  aria-pressed={selected}
+                  onClick={() =>
+                    // Keep what the customer already typed; only fill in an empty box or replace another preset.
+                    update({ category: p.category, ...(!draft.problem.trim() || PROBLEMS.some((x) => x.text === draft.problem) ? { problem: p.text } : {}) })
+                  }
+                  className={cx(
+                    'flex min-h-11 flex-col items-start gap-2 rounded-xl border p-3 text-left transition',
+                    selected ? 'border-emergency bg-emergency-soft ring-1 ring-emergency' : 'border-line bg-card hover:border-emergency/50',
+                  )}
+                >
+                  <Icon name={p.icon} className={selected ? 'text-emergency-ink' : 'text-ink-2'} />
+                  <span className="text-sm font-semibold text-ink">{p.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <TextArea
+            label="Apa yang terjadi?"
+            required
+            value={draft.problem}
+            onChange={(e) => update({ problem: e.target.value })}
+            placeholder="mis. Ban belakang bocor, motor tidak bisa jalan"
+            maxLength={900}
+            id="sos-problem"
+            data-testid="sos-problem"
+          />
+          {matching.length === 0 && plateInput}
+          <div id="sos-price">
+            <PriceRangeField value={draft.range} onChange={(range) => update({ range })} />
+          </div>
+        </div>
+      )}
+
+      {step === 'kontak' && (
+        <div className="flex flex-col gap-4">
+          {!user && (
+            <Input
+              id="sos-guest-name"
+              label="Nama Anda"
+              icon="person"
+              required
+              value={draft.guest.name}
+              onChange={(e) => update({ guest: { ...draft.guest, name: e.target.value } })}
+              data-testid="sos-guest-name"
+            />
+          )}
+          <Input
+            label="Nomor WhatsApp"
+            icon="call"
+            inputMode="tel"
+            required
+            value={draft.guest.whatsapp}
+            onChange={(e) => update({ guest: { ...draft.guest, whatsapp: e.target.value } })}
+            placeholder="08xxxxxxxxxx"
+            hint={needsPhone ? 'Disimpan di akun Anda, jadi cukup diisi sekali.' : 'Mekanik menghubungi Anda lewat nomor ini.'}
+            id="sos-guest-wa"
+            data-testid={needsPhone ? 'sos-user-wa' : 'sos-guest-wa'}
+          />
+          {!user && (
+            <p className="text-sm text-ink-2">
+              Sudah punya akun?{' '}
+              <Link to="/login" state={{ from: '/emergency?langkah=kontak' }} className="font-semibold text-primary hover:underline">
+                Masuk
+              </Link>{' '}
+              (isian Anda tetap tersimpan)
+            </p>
+          )}
+        </div>
+      )}
+
+      {step === 'kirim' && (
+        <div className="flex flex-col gap-5">
+          <div className="rounded-xl border border-line bg-card px-4" data-testid="sos-review">
+            <ReviewRow label="Lokasi" onEdit={() => flow.go('lokasi')}>
+              {draft.addressNote || 'Titik di peta'}
+              {position && (
+                <span className="block font-label text-xs font-normal text-ink-2">
+                  {position.lat.toFixed(5)}, {position.lng.toFixed(5)}
+                </span>
+              )}
+            </ReviewRow>
+            <ReviewRow label="Bengkel prioritas" onEdit={() => flow.go('bengkel')}>
+              {priority ? priority.name : 'Semua bengkel sedang sibuk, permintaan menunggu mekanik kosong'}
+              {workshops.length > 1 && <span className="block text-xs font-normal text-ink-2">{workshops.length - 1} bengkel lain siaga sebagai cadangan</span>}
+            </ReviewRow>
+            <ReviewRow label="Kendaraan" onEdit={() => flow.go(matching.length ? 'kendaraan' : 'bengkel')}>
+              <span className="inline-flex items-center gap-2">
+                <Icon name={draft.vehicle === 'MOBIL' ? 'directions_car' : 'two_wheeler'} className="text-[20px] text-primary" />
+                {selectedVehicle ? vehicleName(selectedVehicle) : draft.vehicle === 'MOBIL' ? 'Mobil' : 'Motor'}
+              </span>
+              {draft.plate && <span className="block text-xs font-normal text-ink-2">{draft.plate}</span>}
+            </ReviewRow>
+            <ReviewRow label="Masalah" onEdit={() => flow.go('keluhan')}>
+              {problemLabel && <span className="block">{problemLabel}</span>}
+              <span className="block font-normal text-ink-2">{draft.problem.trim()}</span>
+            </ReviewRow>
+            <ReviewRow label="Kisaran biaya" onEdit={() => flow.go('keluhan')}>
+              {rangeLabel(draft.range)}
+            </ReviewRow>
+            <ReviewRow label="Kontak" onEdit={flow.steps.some((s) => s.id === 'kontak') ? () => flow.go('kontak') : undefined}>
+              {user ? user.name : draft.guest.name}
+              <span className="block text-xs font-normal text-ink-2">{needsPhone || !user ? draft.guest.whatsapp : user.phone}</span>
+            </ReviewRow>
+          </div>
           {request.error && (
             <Alert tone="danger">
               {errorMessage(request.error)}
@@ -348,41 +471,28 @@ export default function EmergencyPage() {
               )}
             </Alert>
           )}
+          <SafetyBanner />
+        </div>
+      )}
 
-          {/* Mobile: one slim bar pinned to the bottom edge (thumb reach, little screen taken). Desktop: inline. */}
-          <div className="fixed inset-x-0 bottom-0 z-[900] border-t border-line bg-card px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:border-0 lg:bg-transparent lg:p-0">
-            <div className="flex items-center gap-2 lg:block">
-              {missing.some(Boolean) && (
-                <button
-                  type="button"
-                  onClick={() => document.getElementById('sos-missing')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                  aria-label={`Lengkapi ${missing.filter(Boolean).length} isian lagi`}
-                  className="flex h-10 shrink-0 items-center gap-1 rounded-lg bg-warning-soft px-2.5 font-label text-xs font-semibold text-warning-ink lg:hidden"
-                >
-                  <Icon name="checklist" className="text-[16px]" /> {missing.filter(Boolean).length} lagi
-                </button>
-              )}
-              <Button
-                type="submit"
-                variant="danger"
-                size="lg"
-                icon="e911_emergency"
-                className="min-w-0 flex-1 max-lg:h-10 max-lg:px-3 max-lg:text-sm lg:w-full"
-                disabled={!canSend}
-                loading={request.isPending}
-                data-testid="sos-submit"
-              >
-                Kirim permintaan bantuan
-              </Button>
-            </div>
-            <div className="hidden lg:block">
-              <MissingFields className="mt-2" items={missing} />
-            </div>
-          </div>
-        </aside>
-      </form>
+      {tried === step && <MissingFields className="mt-5" items={missingFor(step)} />}
 
-      <SafetyBanner />
+      <BottomBar>
+        {!flow.isFirst && (
+          <ScreenAction variant="secondary" className="!w-auto shrink-0 px-5" onClick={flow.back} data-testid="step-back">
+            Kembali
+          </ScreenAction>
+        )}
+        {flow.isLast ? (
+          <ScreenAction variant="danger" className="flex-1" onClick={() => request.mutate()} loading={request.isPending} data-testid="sos-submit">
+            Kirim SOS
+          </ScreenAction>
+        ) : (
+          <ScreenAction className="flex-1" onClick={next} disabled={step === 'bengkel' && scan.isPending} data-testid="step-next">
+            Lanjut
+          </ScreenAction>
+        )}
+      </BottomBar>
       {geo.dialog}
     </div>
   );

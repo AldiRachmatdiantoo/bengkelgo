@@ -1,6 +1,6 @@
 # Rancangan alur bertahap (wizard)
 
-**Dibuat:** 15 November 2026 · **Status:** usulan, belum dikerjakan
+**Dibuat:** 15 November 2026 · **Status:** tahap 1 (darurat) selesai 15 Nov, tahap 2 dan seterusnya belum
 **Usulan dari:** tim (Aldi). Tampilan sekarang sudah bagus, tapi formulir yang panjang dalam satu halaman membuat pengguna bingung harus mulai dari mana. Usulannya: isian dipecah per langkah dengan tombol **Lanjut**, berurutan, dan tidak hanya untuk darurat.
 
 Dokumen ini berisi rancangan saja. Kode belum diubah.
@@ -42,12 +42,17 @@ Target: dari membuka halaman sampai SOS terkirim **di bawah 1 menit**. Karena it
 |---|---|---|---|
 | 1 | **Lokasi** | Judul "Di mana kendaraan Anda?". GPS langsung diminta saat halaman dibuka (dengan dialog izin yang sudah ada). Peta dengan titik yang bisa digeser, kotak cari lokasi, kolom patokan (opsional). Lanjut aktif setelah titik ada. | Tidak |
 | 2 | **Bengkel terdekat** | Pindai dijalankan otomatis begitu masuk langkah ini (endpoint scan yang sudah ada). Peta radius 5 km + daftar bengkel siaga beserta jarak, label "Prioritas" dan "Mekanik sibuk". Teks jelas: *"Sistem menghubungi bengkel prioritas lebih dulu. Jika tidak merespons dalam 2 menit, permintaan pindah ke bengkel berikutnya."* Pengguna **tidak memilih** bengkel (sesuai backend sekarang). Bila 0 bengkel: pesan kosong + tombol "Geser lokasi" kembali ke langkah 1, Lanjut nonaktif. | Tidak |
-| 3 | **Kendaraan** | Kendaraan tersimpan sebagai kartu pilihan, atau jenis kendaraan (motor/mobil) + plat (opsional). | Otomatis terpilih bila pengguna punya tepat 1 kendaraan tersimpan (tetap bisa diubah dari ringkasan) |
+| 3 | **Kendaraan** | Kendaraan tersimpan sejenis sebagai kartu pilihan (yang pertama sudah terpilih), atau "Motor/Mobil lain" + plat (opsional). | Dilewati bila tidak ada kendaraan tersimpan sejenis; plat lalu diisi di langkah Keluhan |
 | 4 | **Keluhan** | Kategori masalah (aki, ban, mesin, bensin, derek, kunci) sebagai kartu pilihan; mengisi otomatis teks keluhan. Kolom "Apa yang terjadi?" (min. 5 karakter). Kisaran biaya yang disiapkan (opsional, default "Bisa dibicarakan"). | Tidak |
 | 5 | **Kontak** | Tamu: nama + nomor WhatsApp. Akun Google tanpa nomor: nomor WhatsApp saja (disimpan ke akun). | Dilewati bila sudah masuk dan punya nomor |
 | 6 | **Periksa & kirim** | Ringkasan: titik lokasi (peta kecil), bengkel prioritas, kendaraan, keluhan, kisaran, kontak. Tombol merah **Kirim SOS**. Setelah terkirim langsung ke halaman status darurat yang sudah ada. | Tidak |
 
-Jumlah layar: **4** untuk pelanggan yang sudah masuk dengan 1 kendaraan tersimpan (1, 2, 4, 6), **6** untuk tamu.
+Jumlah layar: **4** untuk pelanggan yang sudah masuk tanpa kendaraan tersimpan (1, 2, 4, 6), **5** untuk pelanggan dengan kendaraan tersimpan dan untuk tamu.
+
+**Yang berubah saat dikerjakan (15 Nov):**
+- Pilihan Motor/Mobil pindah ke langkah 2, karena daftar bengkel siaga bergantung pada jenis kendaraan. Langkah 3 tinggal memilih kendaraan tersimpan.
+- GPS hanya jalan sendiri bila browser sudah pernah diizinkan. Bila belum, tombol "Gunakan GPS saya" tetap ditekan pengguna, supaya penjelasan izin lokasi muncul sebelum browser bertanya.
+- Tombol Lanjut tidak dinonaktifkan; bila isian kurang, daftar "Lengkapi dulu" muncul di langkah itu.
 
 Catatan:
 - Urutan mengikuti usulan tim: GPS → bengkel → keluhan → nama. Kendaraan dipisah dari keluhan karena untuk pelanggan tetap ia sering terlewati otomatis.

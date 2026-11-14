@@ -148,7 +148,19 @@ Permintaan tim: seluruh tampilan mengikuti file Figma tim. Keputusan tim: nama t
 - ⏳ Fitur di Figma yang butuh backend/keputusan dan sengaja tidak ditampilkan: promo/voucher (BE-11), servis di rumah, DP/bayar sebagian (12.2, BE-5), peta & estimasi waktu mekanik live (BE-7), chat mekanik, persetujuan penggantian part, persentase progres servis.
 - ⏳ Layar Figma untuk portal pemilik/admin dan halaman masuk/daftar (belum ada di file Figma).
 
-**Yang tersisa tanpa tim:** baseline visual regression dan memperbarui branch `tugas-appservice` (lihat di atas). Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
+## Alur bertahap (15 Nov 2026)
+
+Usulan tim 15 Nov: formulir panjang satu halaman membingungkan, jadi isian dipecah per langkah dengan tombol **Lanjut**. Rancangan lengkap: [rencana_alur_bertahap.md](rencana_alur_bertahap.md).
+
+| Tahap | Isi | Status |
+|---|---|---|
+| 1 | Komponen langkah (`components/ui/steps.tsx`: langkah di URL `?langkah=`, penanda "Langkah n dari m", fokus ke judul langkah, draft per tab, baris ringkasan dengan "Ubah") + **alur darurat**: Lokasi (GPS jalan sendiri bila izin lokasi sudah diberikan) → Bengkel terdekat (dipindai otomatis, pilih motor/mobil di sini) → Kendaraan (hanya bila ada kendaraan tersimpan sejenis) → Keluhan → Kontak (dilewati bila sudah masuk dan punya nomor) → Periksa & kirim. Tamu 5 langkah, pelanggan tanpa kendaraan tersimpan 4 langkah. Data yang dikirim ke backend sama. Tes E2E SOS disesuaikan (journeys, backlog-features, cross-browser) | ✅ branch `landing-globe`, belum di-push |
+| 2 | Alur booking + halaman profil bengkel terpisah | ⏳ |
+| 3 | Pembayaran 2 langkah | ⏳ |
+| 4 | Daftar mitra 5 langkah | ⏳ |
+| 5 | Tes E2E lainnya, baseline visual, deploy | ⏳ |
+
+**Yang tersisa tanpa tim:** alur bertahap tahap 2–5 (di atas), baseline visual regression, dan memperbarui branch `tugas-appservice`. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).
 

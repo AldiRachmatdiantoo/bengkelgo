@@ -223,7 +223,7 @@ const PUBLIC_NAV: NavItem[] = [
   { to: '/register/workshop', label: 'Gabung mitra', icon: 'handshake' },
 ];
 
-const FLOW_SCREEN = /^\/(workshops\/[^/]+|orders\/[^/]+(\/pay)?)\/?$/;
+const FLOW_SCREEN = /^\/(emergency|workshops\/[^/]+|orders\/[^/]+(\/pay)?)\/?$/;
 
 function PublicShell() {
   const { user } = useAuth();
