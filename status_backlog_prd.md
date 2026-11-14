@@ -43,7 +43,7 @@ Satu tempat untuk semua hal yang **tidak bisa diselesaikan tanpa tim**, dengan t
 | 15 | ~~Dua temuan backend 19 Okt (penugasan mekanik vs SOS, refund pesanan lunas)~~ ✅ diperbaiki 20 Okt atas persetujuan tim | Backend | [Temuan nomor 4–5](#temuan-selama-pengujian) |
 | 16 | ~~Potong otomatis QRIS~~ ❌ tidak dikerjakan (keputusan tim 21 Okt): gambar QRIS tetap disimpan utuh | Keputusan | – |
 | 17 | Pengamanan penyalahgunaan booking: ~~batas booking aktif, batas per bengkel per hari, pembatas kecepatan, verifikasi email~~ ✅ selesai 21 Okt; sisa: keputusan wajib bayar/DP (butuh keputusan tim) | Keputusan | [Pengamanan penyalahgunaan booking](#pengamanan-penyalahgunaan-booking-dicatat-20-okt-2026) |
-| 18 | Desain Figma (15 Nov): putuskan kapan branch `landing-globe` digabung dan di-deploy; fitur Figma tanpa backend (promo, servis di rumah, DP, lacak mekanik live, chat, persetujuan part) masuk cakupan atau tidak | Keputusan | [Desain baru dari Figma](#desain-baru-dari-figma-1415-nov-2026) |
+| 18 | Desain Figma (live 15 Nov): fitur Figma tanpa backend (promo, servis di rumah, DP, lacak mekanik live, chat, persetujuan part) masuk cakupan atau tidak | Keputusan | [Desain baru dari Figma](#desain-baru-dari-figma-1415-nov-2026) |
 
 **Sudah dikerjakan tanpa tim (19 Okt 2026, frontend saja, backend tidak diubah):** ubah layanan lengkap (nama/deskripsi/harga/durasi), cek + kompres foto sebelum unggah, pesan error berbahasa Indonesia, alur login Google PKCE (tombol tersembunyi sampai Client ID diisi), tes lintas browser (WebKit/Safari desktop & iPhone), tes tata letak 375px untuk semua portal. Rinciannya di [Pekerjaan frontend 19 Oktober](#pekerjaan-frontend-19-oktober-2026-tanpa-mengubah-backend).
 
@@ -136,18 +136,19 @@ Permintaan tim: seluruh tampilan mengikuti file Figma tim. Keputusan tim: nama t
 | 5 | Pembayaran | Kotak menunggu pembayaran, kartu QRIS, ringkasan booking, unggah bukti, bilah bawah "Total bayar" | ✅ |
 | 6 | Status pesanan & nota | Status, QR check-in + nomor antrean, riwayat status (timeline), mekanik, rincian biaya, kontak bengkel | ✅ |
 | 7 | Portal pemilik & admin, halaman masuk/daftar | Ikut token baru (kartu, tabel, tombol, modal); tata letak belum digambar ulang per layar karena Figma belum punya layarnya | ✅ token, ⏳ tata letak per layar |
-| 8 | Beranda | Radar bengkel terdekat yang berpindah posisi saat digulir (pindai, ikon bengkel, cincin SOS 5 km), daftar bengkel terverifikasi, cara kerja, FAQ | ✅ di branch `landing-globe` (commit `6d3f9d5`, `ca9bdcb`) |
-| 9 | Copywriting | Pemeriksaan antislop di semua portal (lihat bawah) | ✅ di branch `landing-globe` |
+| 8 | Beranda | Radar bengkel terdekat yang berpindah posisi saat digulir (pindai, ikon bengkel, cincin SOS 5 km). Bagian di bawahnya (bengkel terverifikasi, angka platform, cara kerja, aturan, ulasan, FAQ) memakai gaya yang sama dengan bagian radar: badge lime, judul besar rata kiri, kartu transparan berbingkai, tanpa pita warna dan bayangan. Teks beranda diperkecil (judul 44 px desktop, 24 px HP) | ✅ live 15 Nov |
+| 9 | Copywriting | Pemeriksaan antislop di semua portal (lihat bawah) | ✅ live 15 Nov |
 
 **Copywriting (15 Nov):** judul dan menu diubah ke huruf kapital di awal saja ("Akun saya", "Semua pesanan", "Verifikasi pembayaran QRIS"); klaim yang tidak didukung sistem dihapus ("Hotline Darurat 24/7 Nasional" padahal tombolnya membuka SOS, "Layanan 24 jam", "mekanik terbaik", "Tanpa Tipu-tipu", "Bengkel dengan foto lebih dipercaya"); istilah Inggris diganti ("Dashboard Overview" jadi "Ringkasan", "Auto-fallback" jadi "Pengalihan otomatis", "Roadside Breakdown", "Digital Pass", "Pipeline"); tanda pisah panjang/pendek di teks tampilan diganti tanda hubung atau kata. Klaim "Diuji 100 pemesan sekaligus" dipertahankan karena didukung [hasil k6](#hasil-pbi-306-k6-stress-test). Rentang harga SOS (`Rp100.000 – Rp250.000`) tidak diubah karena ikut tersimpan di data pesanan.
 
 **Belum (desain Figma):**
-- ⏳ Branch `landing-globe` belum digabung ke `tugas-appservice`/`main` dan belum di-push; perubahan tata letak Figma di `tugas-appservice` juga belum di-commit di branch itu.
+- ✅ **Di-push ke `main` dan live 15 Nov** (Vercel + Render deploy otomatis): branch `landing-globe` digabung fast-forward, termasuk commit Azure App Service (fitur `WEB_DIST_DIR` mati bila tidak diisi, jadi Render tidak berubah).
+- ⏳ Branch `tugas-appservice` (Azure) belum diperbarui ke desain baru; di folder kerja utama masih ada salinan tata letak Figma yang belum di-commit.
 - ⏳ Baseline visual regression (`e2e/visual.spec.ts`) perlu dibuat ulang karena semua halaman berubah tampilan.
 - ⏳ Fitur di Figma yang butuh backend/keputusan dan sengaja tidak ditampilkan: promo/voucher (BE-11), servis di rumah, DP/bayar sebagian (12.2, BE-5), peta & estimasi waktu mekanik live (BE-7), chat mekanik, persetujuan penggantian part, persentase progres servis.
 - ⏳ Layar Figma untuk portal pemilik/admin dan halaman masuk/daftar (belum ada di file Figma).
 
-**Yang tersisa tanpa tim:** baseline visual regression dan penggabungan branch desain (lihat di atas). Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
+**Yang tersisa tanpa tim:** baseline visual regression dan memperbarui branch `tugas-appservice` (lihat di atas). Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).
 

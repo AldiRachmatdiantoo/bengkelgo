@@ -88,7 +88,7 @@ export function ScrollRadar({ sections, positions = DEFAULT_POSITIONS, className
   const pos = positions[Math.min(active, positions.length - 1)];
 
   return (
-    <div ref={rootRef} className={cx('relative', className)}>
+    <div ref={rootRef} className={cx('relative overflow-clip', className)}>
       {/* radar layer: sticks to the screen while this block scrolls past, takes no height of its own */}
       <div aria-hidden className="pointer-events-none sticky top-0 z-0 -mb-[100svh] h-[100svh] overflow-hidden">
         <div

@@ -5,7 +5,7 @@ import { apiAsset, statsApi, workshopApi } from '@/services/api/endpoints';
 import { useAuth } from '@/services/auth/AuthProvider';
 import type { Workshop } from '@/services/api/types';
 import { StarRow } from '@/components/workshop/WorkshopComponents';
-import { Icon, SectionHeading, Segmented, cx, SkeletonList } from '@/components/ui';
+import { Icon, Segmented, cx, SkeletonList } from '@/components/ui';
 import { WorkshopArt } from '@/components/ui/screen';
 import { ScrollRadar, type ScrollRadarSection } from '@/components/ui/landing-page';
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/motion';
@@ -61,86 +61,110 @@ export default function HomePage() {
   }, [hash, navigate]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-14">
+    <div className="mx-auto flex w-full max-w-5xl flex-col">
       {/* ------------------------------------------------ scroll radar hero */}
       <ScrollRadar sections={heroSections(user?.name.split(' ')[0])} />
 
-      {/* ------------------------------------------------ verified workshops (Figma "Bengkel Terverifikasi") */}
-      <section>
-        <h2 className="text-2xl font-semibold text-ink">Bengkel terverifikasi</h2>
-        <p className="mt-1 text-sm text-ink-2">Cek profil bengkel yang sudah diverifikasi admin.</p>
-        <form
-          role="search"
-          className="mt-4 flex h-11 items-center gap-2 rounded-full border border-line-strong bg-card pr-1.5 pl-4 focus-within:border-primary"
-          onSubmit={(e) => {
-            e.preventDefault();
-            navigate(`/workshops?tab=cari${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`);
-          }}
-        >
-          <Icon name="search" className="text-ink-2" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari bengkel" aria-label="Cari bengkel" className="h-full min-w-0 flex-1 bg-transparent text-sm text-ink placeholder:text-ink-2/70 focus:outline-none" />
-          <button type="submit" className="h-8 shrink-0 rounded-full bg-primary px-4 text-xs font-bold text-on-primary hover:bg-primary-dark">
-            Cari
-          </button>
-        </form>
-        <div className="mt-4 grid gap-3 lg:grid-cols-2">
-          {workshops.isLoading ? (
-            <SkeletonList rows={3} label="Memuat bengkel…" />
-          ) : (
-            (workshops.data ?? []).slice(0, 6).map((w) => <WorkshopRow key={w.id} workshop={w} />)
-          )}
-        </div>
-        <Link to="/workshops?tab=cari" className="mt-4 inline-flex min-h-11 items-center gap-1 text-sm font-bold text-primary hover:underline">
-          Lihat semua bengkel <Icon name="arrow_forward" className="text-[18px]" />
-        </Link>
-      </section>
+      {/* Everything below follows the radar sections: lime badge, big left-aligned heading, muted body,
+          translucent bordered cards on the canvas. No coloured bands or shadows. */}
+      <div className="flex flex-col gap-20 pb-6 sm:gap-28">
+        {/* ---------------------------------------------- verified workshops */}
+        <section>
+          <LandingHeading
+            badge="Bengkel terverifikasi"
+            title="Pilih dari bengkel yang sudah diperiksa"
+            description="Data dan lokasi setiap bengkel dicek admin sebelum tampil di pencarian."
+            action={
+              <Link to="/workshops?tab=cari" className={cx(LANDING_BUTTON, 'border border-line bg-card text-ink hover:border-primary/60 [&_.material-symbols-outlined]:text-primary')}>
+                Lihat semua <Icon name="arrow_forward" className="text-[18px]" />
+              </Link>
+            }
+          />
+          <form
+            role="search"
+            className="flex h-12 max-w-xl items-center gap-2 rounded-full border border-line bg-card/80 pr-1.5 pl-4 backdrop-blur-sm focus-within:border-primary"
+            onSubmit={(e) => {
+              e.preventDefault();
+              navigate(`/workshops?tab=cari${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`);
+            }}
+          >
+            <Icon name="search" className="text-ink-2" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari nama bengkel" aria-label="Cari bengkel" className="h-full min-w-0 flex-1 bg-transparent text-sm text-ink placeholder:text-ink-2/70 focus:outline-none" />
+            <button type="submit" className="h-9 shrink-0 rounded-full bg-primary px-5 text-sm font-bold text-on-primary hover:bg-primary-dark">
+              Cari
+            </button>
+          </form>
+          <div className="mt-5 grid gap-3 lg:grid-cols-2">
+            {workshops.isLoading ? (
+              <SkeletonList rows={3} label="Memuat bengkel…" />
+            ) : (
+              (workshops.data ?? []).slice(0, 6).map((w) => <WorkshopRow key={w.id} workshop={w} />)
+            )}
+          </div>
+          <PlatformNumbers />
+        </section>
 
-      <PlatformNumbers />
+        {/* ---------------------------------------------- how it works */}
+        <HowItWorks sectionRef={howRef} />
 
-      {/* ------------------------------------------------ how it works */}
-      <HowItWorks sectionRef={howRef} />
-
-      {/* ------------------------------------------------ advantages */}
-      <section className="bg-sky py-16 shadow-[0_0_0_100vmax_var(--color-sky)] [clip-path:inset(0_-100vmax)]" data-testid="advantages">
-        <div>
-          <Reveal>
-            <SectionHeading eyebrow="Kenapa BengkelGo" title="Aturan yang berlaku di semua bengkel mitra" subtitle="Empat aturan yang dijalankan sistem di setiap pesanan." />
-          </Reveal>
-          <RevealGroup className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* ---------------------------------------------- advantages */}
+        <section data-testid="advantages">
+          <LandingHeading badge="Kenapa BengkelGo" title="Aturan yang berlaku di semua bengkel mitra" description="Empat aturan yang dijalankan sistem di setiap pesanan." />
+          <RevealGroup className="grid gap-3 sm:grid-cols-2">
             {ADVANTAGES.map((a) => (
-              <RevealItem key={a.title} className="flex flex-col gap-4 rounded-2xl bg-card p-6 shadow-sm transition-shadow hover:shadow-lift">
-                <span className={cx('grid h-[46px] w-[46px] place-items-center rounded-lg', a.tone === 'bg-emergency' ? 'bg-emergency-soft text-emergency-ink' : 'bg-surface-high text-primary')}>
-                  <Icon name={a.icon} className="text-[24px]" />
+              <RevealItem key={a.title} className={cx(LANDING_CARD, 'flex items-start gap-4')}>
+                <span className={cx('grid h-[46px] w-[46px] shrink-0 place-items-center rounded-lg', a.tone === 'bg-emergency' ? 'bg-emergency-soft text-emergency-ink' : 'bg-surface-high text-primary')}>
+                  <Icon name={a.icon} />
                 </span>
-                <h3 className="text-headline-sm font-bold text-ink">{a.title}</h3>
-                <p className="flex-1 text-sm leading-relaxed text-ink-2">{a.text}</p>
-                <p className={cx('flex items-center gap-1.5 font-label text-label-sm', a.footTone)}>
-                  {a.foot} <Icon name={a.footIcon} className="text-[16px]" />
-                </p>
+                <span className="min-w-0">
+                  <h3 className="text-subtitle font-bold text-ink">{a.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-ink-2">{a.text}</p>
+                  <p className={cx('mt-3 flex items-center gap-1.5 text-xs font-bold', a.footTone)}>
+                    <Icon name={a.footIcon} className="text-[16px]" /> {a.foot}
+                  </p>
+                </span>
               </RevealItem>
             ))}
           </RevealGroup>
-        </div>
-      </section>
+        </section>
 
-      {/* ------------------------------------------------ real reviews */}
-      <ReviewsSection workshops={workshops.data ?? []} />
+        {/* ---------------------------------------------- real reviews */}
+        <ReviewsSection workshops={workshops.data ?? []} />
 
-      {/* ------------------------------------------------ FAQ */}
-      <Reveal as="section">
-        <SectionHeading eyebrow="FAQ" title="Pertanyaan yang sering diajukan" subtitle="Cara kerja bantuan darurat, antrean, dan pembayaran." />
-        <div className="flex max-w-3xl flex-col gap-3">
-          {FAQ.map((f) => (
-            <details key={f.q} className="group rounded-xl bg-surface-low px-5 py-4 open:bg-card open:shadow-sm open:ring-1 open:ring-line">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-bold text-ink [&::-webkit-details-marker]:hidden">
-                {f.q}
-                <Icon name="expand_more" className="text-primary transition group-open:rotate-180" />
-              </summary>
-              <p className="mt-3 text-sm leading-relaxed text-ink-2">{f.a}</p>
-            </details>
-          ))}
-        </div>
-      </Reveal>
+        {/* ---------------------------------------------- FAQ */}
+        <Reveal as="section">
+          <LandingHeading badge="FAQ" title="Pertanyaan yang sering diajukan" description="Cara kerja bantuan darurat, antrean, dan pembayaran." />
+          <div className="flex max-w-3xl flex-col gap-3">
+            {FAQ.map((f) => (
+              <details key={f.q} className="group rounded-2xl border border-line bg-card/80 px-5 py-4 backdrop-blur-sm open:border-primary/40">
+                <summary className="flex min-h-7 cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-ink sm:text-subtitle [&::-webkit-details-marker]:hidden">
+                  {f.q}
+                  <Icon name="expand_more" className="shrink-0 text-primary transition group-open:rotate-180" />
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-ink-2">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </div>
+  );
+}
+
+/** Same button and card shapes as the radar sections above (components/ui/landing-page.tsx). */
+const LANDING_BUTTON = 'inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-sm font-bold transition';
+const LANDING_CARD = 'rounded-2xl border border-line bg-card/80 p-5 backdrop-blur-sm';
+
+/** Section heading in the radar sections' voice: lime badge, large heading, muted line, optional action on the right. */
+function LandingHeading({ badge, title, description, action }: { badge: string; title: string; description?: string; action?: React.ReactNode }) {
+  return (
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8">
+      <div className="max-w-2xl">
+        <p className="text-sm font-bold text-primary">{badge}</p>
+        <h2 className="mt-2 text-2xl leading-tight font-bold tracking-tight text-ink sm:text-[34px]">{title}</h2>
+        {description && <p className="mt-3 text-sm leading-relaxed text-ink-2 sm:text-subtitle">{description}</p>}
+      </div>
+      {action}
     </div>
   );
 }
@@ -198,7 +222,7 @@ function heroSections(firstName?: string): ScrollRadarSection[] {
 /** Verified workshop row (Figma list): photo on the left, name, one-line description, rating. */
 function WorkshopRow({ workshop: w }: { workshop: Workshop }) {
   return (
-    <Link to={`/workshops/${w.id}`} className="flex min-h-[72px] items-stretch overflow-hidden rounded-[20px] border border-line bg-card transition hover:border-primary/60">
+    <Link to={`/workshops/${w.id}`} className="flex min-h-[76px] items-stretch overflow-hidden rounded-2xl border border-line bg-card/80 backdrop-blur-sm transition hover:border-primary/60">
       <span className="relative w-28 shrink-0 overflow-hidden bg-art sm:w-32">
         {w.cover_photo_url ? (
           <img src={apiAsset(`${w.cover_photo_url}?size=sm`)!} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
@@ -263,56 +287,51 @@ const GUIDES: Record<Guide, { label: string; icon: string; tone: string; intro: 
   },
 };
 
-/** Step-by-step guide for first-time visitors (not in the Stitch mockup; requested by the team). */
+/** Step-by-step guide for first-time visitors (requested by the team). */
 function HowItWorks({ sectionRef }: { sectionRef: React.RefObject<HTMLElement | null> }) {
   const [guide, setGuide] = useState<Guide>('booking');
   const g = GUIDES[guide];
   return (
     <section ref={sectionRef} id="cara-kerja" className="scroll-mt-24">
-      <SectionHeading eyebrow="Cara kerja" title="Cara pakai BengkelGo" subtitle="Pilih kebutuhan Anda. Setiap panduan terdiri dari 4 langkah." />
-      <div className="mb-4 flex">
-        <div className="no-scrollbar max-w-full overflow-x-auto">
-          <Segmented
-            nowrap
-            label="Panduan"
-            value={guide}
-            onChange={setGuide}
-            options={(Object.keys(GUIDES) as Guide[]).map((k) => ({ value: k, label: GUIDES[k].label, icon: GUIDES[k].icon }))}
-          />
-        </div>
+      <LandingHeading badge="Cara kerja" title="Cara pakai BengkelGo" description="Pilih kebutuhan Anda. Setiap panduan terdiri dari 4 langkah." />
+      <div className="no-scrollbar max-w-full overflow-x-auto">
+        <Segmented
+          nowrap
+          label="Panduan"
+          value={guide}
+          onChange={setGuide}
+          options={(Object.keys(GUIDES) as Guide[]).map((k) => ({ value: k, label: GUIDES[k].label, icon: GUIDES[k].icon }))}
+        />
       </div>
-      <p className="mb-8 max-w-2xl text-subtitle text-ink-2">{g.intro}</p>
-      <div className="relative">
-        {/* connector behind the step numbers (desktop); outside the <ol> so the list only holds <li> */}
-        <span className="absolute top-7 right-[12.5%] left-[12.5%] hidden border-t-2 border-dashed border-line-strong lg:block" aria-hidden />
-        {/* keyed by guide: switching tabs remounts the list so the new steps animate in (a once-only reveal would leave them hidden) */}
-        <RevealGroup key={guide} as="ol" className="relative grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          {g.steps.map((s, i) => (
-            <RevealItem as="li" key={s.title} className="relative flex flex-col items-center text-center">
-              <span className={cx('relative z-10 grid h-14 w-14 place-items-center rounded-full ring-8 ring-canvas', g.tone)}>
-                <Icon name={s.icon} className="text-[20px]" />
-                <span className="absolute -top-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-card font-label text-xs font-bold text-ink shadow-sm">{i + 1}</span>
+      <p className="mt-4 mb-5 max-w-2xl text-sm text-ink-2 sm:text-subtitle">{g.intro}</p>
+      {/* keyed by guide: switching tabs remounts the list so the new steps animate in (a once-only reveal would leave them hidden) */}
+      <RevealGroup key={guide} as="ol" className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        {g.steps.map((s, i) => (
+          <RevealItem as="li" key={s.title} className={cx(LANDING_CARD, 'flex flex-col')}>
+            <div className="flex items-center justify-between gap-3">
+              <span className={cx('grid h-[46px] w-[46px] place-items-center rounded-lg', guide === 'sos' ? 'bg-emergency-soft text-emergency-ink' : 'bg-surface-high text-primary')}>
+                <Icon name={s.icon} />
               </span>
-              <div className="mt-4 flex w-full flex-1 flex-col rounded-xl border border-line bg-card p-5 shadow-sm">
-                <p className="font-label text-[11px] font-bold tracking-[0.04em] text-ink-3 uppercase">Langkah {i + 1}</p>
-                <h3 className="mt-1 text-headline-sm text-ink">{s.title}</h3>
-                <p className="mt-2 flex-1 text-sm text-ink-2">{s.text}</p>
-                <p className="mt-4 inline-flex items-center justify-center gap-1 self-center rounded-full bg-surface-low px-3 py-1 font-label text-[11px] font-semibold text-ink-2">
-                  <Icon name="touch_app" className="text-[14px] text-primary" /> {s.note}
-                </p>
-              </div>
-            </RevealItem>
-          ))}
-        </RevealGroup>
-      </div>
-      <div className="mt-8 flex">
-        <Link
-          to={g.cta.to}
-          className={cx('inline-flex h-12 items-center gap-2 rounded-lg px-6 text-sm font-bold transition hover:brightness-110', g.tone)}
-        >
-          <Icon name={g.cta.icon} /> {g.cta.label}
-        </Link>
-      </div>
+              <span className="text-xs font-bold text-ink-2">Langkah {i + 1}</span>
+            </div>
+            <h3 className="mt-4 text-subtitle font-bold text-ink">{s.title}</h3>
+            <p className="mt-1.5 flex-1 text-sm leading-relaxed text-ink-2">{s.text}</p>
+            <p className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-primary">
+              <Icon name="touch_app" className="text-[16px]" /> {s.note}
+            </p>
+          </RevealItem>
+        ))}
+      </RevealGroup>
+      <Link
+        to={g.cta.to}
+        className={cx(
+          LANDING_BUTTON,
+          'mt-6',
+          guide === 'sos' ? 'bg-emergency text-white hover:brightness-110' : guide === 'booking' ? 'bg-primary text-on-primary hover:bg-primary-dark' : 'border border-line bg-card text-ink hover:border-primary/60 [&_.material-symbols-outlined]:text-primary',
+        )}
+      >
+        <Icon name={g.cta.icon} className="text-[20px]" /> {g.cta.label}
+      </Link>
     </section>
   );
 }
@@ -330,23 +349,23 @@ function ReviewsSection({ workshops }: { workshops: Workshop[] }) {
   const avg = rated.reduce((s, w) => s + w.avg_rating * w.total_reviews, 0) / Math.max(1, total);
   return (
     <section data-testid="real-reviews">
-      <SectionHeading
-        eyebrow="Cerita pengendara"
+      <LandingHeading
+        badge="Cerita pengendara"
         title="Ulasan dari pelanggan"
         action={
           <span className="flex items-center gap-2">
             <StarRow rating={Math.round(avg)} className="[&_span]:text-[20px]" />
-            <span className="text-headline-sm text-ink">{avg.toFixed(1)} / 5.0</span>
+            <span className="text-subtitle font-bold text-ink">{avg.toFixed(1)} / 5</span>
           </span>
         }
       />
-      <div className="grid gap-5 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3">
         {reviews.map((r) => (
-          <figure key={r.id} className="flex flex-col gap-4 rounded-xl border border-line bg-card p-6 shadow-sm">
+          <figure key={r.id} className={cx(LANDING_CARD, 'flex flex-col gap-4')}>
             <StarRow rating={r.rating} />
-            <blockquote className="flex-1 text-sm leading-relaxed text-ink italic">“{r.comment}”</blockquote>
+            <blockquote className="flex-1 text-sm leading-relaxed text-ink">“{r.comment}”</blockquote>
             <figcaption className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-sky font-label text-sm font-bold text-primary">
+              <span className="grid h-10 w-10 place-items-center rounded-full bg-surface-high text-sm font-bold text-primary">
                 {r.customer_name
                   .split(' ')
                   .map((p) => p[0])
@@ -356,7 +375,7 @@ function ReviewsSection({ workshops }: { workshops: Workshop[] }) {
               </span>
               <span>
                 <span className="block text-sm font-bold text-ink">{r.customer_name}</span>
-                <span className="block font-label text-xs text-ink-3">{r.workshop}</span>
+                <span className="block text-xs text-ink-2">{r.workshop}</span>
               </span>
             </figcaption>
           </figure>
@@ -378,13 +397,13 @@ function PlatformNumbers() {
     s.avg_emergency_response_minutes != null ? { value: `${Number(s.avg_emergency_response_minutes).toLocaleString('id-ID')} mnt`, label: 'rata-rata bengkel merespons SOS' } : null,
   ].filter((x): x is { value: string; label: string } => !!x);
   return (
-    <section aria-label="BengkelGo dalam angka" className="grid grid-cols-2 gap-4 rounded-xl border border-line bg-card p-5 shadow-sm sm:grid-cols-3 lg:grid-cols-5" data-testid="platform-numbers">
+    <div role="group" aria-label="BengkelGo dalam angka" className="mt-8 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-line pt-6 sm:grid-cols-3 lg:grid-cols-5" data-testid="platform-numbers">
       {items.map((i) => (
         <div key={i.label}>
-          <p className="text-headline-md font-extrabold text-ink tabular-nums">{i.value}</p>
-          <p className="font-label text-xs text-ink-2">{i.label}</p>
+          <p className="text-[28px] leading-none font-bold text-ink tabular-nums">{i.value}</p>
+          <p className="mt-1.5 text-xs text-ink-2">{i.label}</p>
         </div>
       ))}
-    </section>
+    </div>
   );
 }
