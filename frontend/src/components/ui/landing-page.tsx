@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import Globe from './globe';
+import Radar, { type RadarMode } from './radar';
 import { cx, Icon } from './index';
 
-export type ScrollGlobeSection = {
+export type ScrollRadarSection = {
   id: string;
   badge: string;
   title: string;
@@ -14,14 +14,14 @@ export type ScrollGlobeSection = {
   actions?: { label: string; to: string; variant: 'primary' | 'secondary' | 'danger'; icon?: string; testId?: string }[];
 };
 
-/** Where the globe sits for each section: % of the block's width and of the screen height. */
-export type GlobePosition = { top: number; left: number; scale: number; dim?: boolean };
+/** Where the radar sits and how it looks for each section: % of the block's width and of the screen height. */
+export type RadarPosition = { top: number; left: number; scale: number; mode: RadarMode };
 
-const DEFAULT_POSITIONS: GlobePosition[] = [
-  { top: 50, left: 78, scale: 1.3 },
-  { top: 50, left: 20, scale: 1.05 },
-  { top: 42, left: 82, scale: 1 },
-  { top: 50, left: 50, scale: 1.9, dim: true },
+const DEFAULT_POSITIONS: RadarPosition[] = [
+  { top: 50, left: 78, scale: 1.3, mode: 'scan' },
+  { top: 50, left: 20, scale: 1.1, mode: 'workshops' },
+  { top: 42, left: 82, scale: 1.05, mode: 'sos' },
+  { top: 50, left: 50, scale: 1.9, mode: 'dim' },
 ];
 
 const ACTION = {
@@ -31,11 +31,11 @@ const ACTION = {
 };
 
 /**
- * Landing block where a globe glides to a new spot as each section reaches the middle of the
- * screen, with a dot nav on the right (sm and up). The globe stays inside this block (sticky,
+ * Landing block where a radar of nearby workshops glides to a new spot as each section reaches the middle of the
+ * screen, with a dot nav on the right (sm and up). The radar stays inside this block (sticky,
  * not fixed), so the sections after it scroll normally.
  */
-export function ScrollGlobe({ sections, positions = DEFAULT_POSITIONS, className }: { sections: ScrollGlobeSection[]; positions?: GlobePosition[]; className?: string }) {
+export function ScrollRadar({ sections, positions = DEFAULT_POSITIONS, className }: { sections: ScrollRadarSection[]; positions?: RadarPosition[]; className?: string }) {
   const [active, setActive] = useState(0);
   const [inView, setInView] = useState(true);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -89,13 +89,13 @@ export function ScrollGlobe({ sections, positions = DEFAULT_POSITIONS, className
 
   return (
     <div ref={rootRef} className={cx('relative', className)}>
-      {/* globe layer: sticks to the screen while this block scrolls past, takes no height of its own */}
+      {/* radar layer: sticks to the screen while this block scrolls past, takes no height of its own */}
       <div aria-hidden className="pointer-events-none sticky top-0 z-0 -mb-[100svh] h-[100svh] overflow-hidden">
         <div
           className="absolute transition-all duration-[1400ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-none"
           style={{ left: `${pos.left}%`, top: `${pos.top}%`, transform: `translate(-50%, -50%) scale(${pos.scale})` }}
         >
-          <Globe className={cx('transition-opacity duration-700 max-sm:opacity-30', pos.dim ? 'opacity-35' : 'opacity-90')} />
+          <Radar mode={pos.mode} className={cx('transition-opacity duration-700 max-sm:opacity-30', pos.mode === 'dim' ? 'opacity-35' : 'opacity-90')} />
         </div>
       </div>
 

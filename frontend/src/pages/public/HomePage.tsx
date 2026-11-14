@@ -7,7 +7,7 @@ import type { Workshop } from '@/services/api/types';
 import { StarRow } from '@/components/workshop/WorkshopComponents';
 import { Icon, SectionHeading, Segmented, cx, SkeletonList } from '@/components/ui';
 import { WorkshopArt } from '@/components/ui/screen';
-import { ScrollGlobe, type ScrollGlobeSection } from '@/components/ui/landing-page';
+import { ScrollRadar, type ScrollRadarSection } from '@/components/ui/landing-page';
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/motion';
 
 const ADVANTAGES = [
@@ -62,8 +62,8 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-14">
-      {/* ------------------------------------------------ scroll globe hero */}
-      <ScrollGlobe sections={heroSections(user?.name.split(' ')[0])} />
+      {/* ------------------------------------------------ scroll radar hero */}
+      <ScrollRadar sections={heroSections(user?.name.split(' ')[0])} />
 
       {/* ------------------------------------------------ verified workshops (Figma "Bengkel Terverifikasi") */}
       <section>
@@ -145,8 +145,8 @@ export default function HomePage() {
   );
 }
 
-/** The four stops of the landing globe; every claim here is something the app really does. */
-function heroSections(firstName?: string): ScrollGlobeSection[] {
+/** The four stops of the landing radar; every claim here is something the app really does. */
+function heroSections(firstName?: string): ScrollRadarSection[] {
   return [
     {
       id: 'mulai',
