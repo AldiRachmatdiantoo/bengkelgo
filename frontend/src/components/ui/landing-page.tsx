@@ -140,18 +140,18 @@ export function ScrollRadar({ sections, positions = DEFAULT_POSITIONS, className
               sectionRefs.current[i] = el;
             }}
             className={cx(
-              'relative z-10 flex min-h-[78svh] flex-col justify-center py-12 sm:min-h-[85svh]',
+              'relative z-10 flex min-h-[70svh] flex-col justify-center py-10 sm:min-h-[80svh]',
               align === 'center' && 'items-center text-center',
               align === 'right' && 'items-end text-right',
             )}
           >
             <div className={cx('w-full max-w-xl', align === 'center' && 'max-w-2xl')}>
               <p className="text-sm font-bold text-primary">{s.badge}</p>
-              <Heading className={cx('mt-2 font-bold tracking-tight text-ink', i === 0 ? 'text-4xl leading-[1.1] sm:text-6xl' : 'text-3xl leading-tight sm:text-5xl')}>
+              <Heading className={cx('mt-2 font-bold tracking-tight text-ink', i === 0 ? 'text-3xl leading-[1.15] sm:text-[44px]' : 'text-2xl leading-tight sm:text-[34px]')}>
                 {s.title}
-                {s.subtitle && <span className="mt-1 block text-[0.62em] font-semibold text-ink-2">{s.subtitle}</span>}
+                {s.subtitle && <span className="mt-1.5 block text-[0.6em] font-semibold text-ink-2">{s.subtitle}</span>}
               </Heading>
-              <div className="mt-5 text-subtitle leading-relaxed text-ink-2 sm:text-lg">{s.description}</div>
+              <div className="mt-4 text-sm leading-relaxed text-ink-2 sm:text-subtitle">{s.description}</div>
 
               {s.features && (
                 <ul className="mt-6 grid gap-3 text-left">
@@ -161,7 +161,7 @@ export function ScrollRadar({ sections, positions = DEFAULT_POSITIONS, className
                         <Icon name={f.icon} />
                       </span>
                       <span className="min-w-0">
-                        <span className="block text-subtitle font-bold text-ink">{f.title}</span>
+                        <span className="block text-sm font-bold text-ink">{f.title}</span>
                         <span className="mt-0.5 block text-sm text-ink-2">{f.description}</span>
                       </span>
                     </li>
@@ -170,13 +170,13 @@ export function ScrollRadar({ sections, positions = DEFAULT_POSITIONS, className
               )}
 
               {s.actions && (
-                <div className={cx('mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap', align === 'center' && 'sm:justify-center', align === 'right' && 'sm:justify-end')}>
+                <div className={cx('mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap', align === 'center' && 'sm:justify-center', align === 'right' && 'sm:justify-end')}>
                   {s.actions.map((a) => (
                     <Link
                       key={a.label}
                       to={a.to}
                       data-testid={a.testId}
-                      className={cx('inline-flex h-13 items-center justify-center gap-2 rounded-lg px-7 text-subtitle font-bold transition', ACTION[a.variant])}
+                      className={cx('inline-flex h-12 items-center justify-center gap-2 rounded-lg px-6 text-sm font-bold transition', ACTION[a.variant])}
                     >
                       {a.icon && <Icon name={a.icon} className="text-[20px]" />}
                       {a.label}
