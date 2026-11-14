@@ -19,10 +19,10 @@ export function AdminLiveStats() {
   const users = s ? Object.values(s.users_by_role).reduce((a, b) => a + (b ?? 0), 0) : null;
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" data-testid="admin-live-stats">
-      <StatCard label="SOS berjalan" icon="e911_emergency" tone={s?.live_emergencies ? 'danger' : 'neutral'} value={s?.live_emergencies ?? '–'} hint={s ? `${s.orders_today} pesanan hari ini` : undefined} />
-      <StatCard label="Bukti bayar menunggu" icon="hourglass_top" tone={s?.payments_to_verify ? 'warning' : 'neutral'} value={s?.payments_to_verify ?? '–'} hint="Diverifikasi oleh masing-masing bengkel" />
-      <StatCard label="Pendapatan 30 hari" icon="payments" tone="success" value={s ? rupiah(s.verified_revenue_30d) : '–'} hint={s ? `${rupiah(s.refunded_30d)} dikembalikan` : undefined} />
-      <StatCard label="Pengguna aktif" icon="group" value={users ?? '–'} hint={s ? `${s.users_by_role.CUSTOMER ?? 0} pelanggan · ${s.users_by_role.WORKSHOP_OWNER ?? 0} mitra` : undefined} />
+      <StatCard label="SOS berjalan" icon="e911_emergency" tone={s?.live_emergencies ? 'danger' : 'neutral'} value={s?.live_emergencies ?? '-'} hint={s ? `${s.orders_today} pesanan hari ini` : undefined} />
+      <StatCard label="Bukti bayar menunggu" icon="hourglass_top" tone={s?.payments_to_verify ? 'warning' : 'neutral'} value={s?.payments_to_verify ?? '-'} hint="Diverifikasi oleh masing-masing bengkel" />
+      <StatCard label="Pendapatan 30 hari" icon="payments" tone="success" value={s ? rupiah(s.verified_revenue_30d) : '-'} hint={s ? `${rupiah(s.refunded_30d)} dikembalikan` : undefined} />
+      <StatCard label="Pengguna aktif" icon="group" value={users ?? '-'} hint={s ? `${s.users_by_role.CUSTOMER ?? 0} pelanggan · ${s.users_by_role.WORKSHOP_OWNER ?? 0} mitra` : undefined} />
     </div>
   );
 }
@@ -86,7 +86,7 @@ export function AdminSearchPage() {
                       {o.order_number}
                     </Link>
                     <span className="text-right text-xs text-ink-2">
-                      {o.workshop_name ?? '–'} · {ORDER_STATUS[o.status]?.label ?? o.status}
+                      {o.workshop_name ?? '-'} · {ORDER_STATUS[o.status]?.label ?? o.status}
                     </span>
                   </li>
                 ))}
@@ -163,7 +163,7 @@ export function AdminAuditPage() {
   const { data, isLoading, error } = useQuery({ queryKey: ['audit-logs', action, from], queryFn: () => adminApi.auditLogs({ action: action || undefined, from, limit: 100 }) });
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader eyebrow="Kepatuhan" title="Audit Log" subtitle="Jejak tindakan penting. Catatan ini tidak bisa diubah atau dihapus, termasuk oleh admin." />
+      <PageHeader eyebrow="Kepatuhan" title="Log audit" subtitle="Jejak tindakan penting. Catatan ini tidak bisa diubah atau dihapus, termasuk oleh admin." />
       <div className="flex flex-wrap items-end gap-3">
         <Select label="Tindakan" value={action} onChange={(e) => setAction(e.target.value)} data-testid="audit-action">
           <option value="">Semua tindakan</option>
@@ -186,7 +186,7 @@ export function AdminAuditPage() {
               <tr key={l.id}>
                 <Td className="whitespace-nowrap">{dateTime(l.created_at)}</Td>
                 <Td>
-                  <p className="font-semibold">{l.actor_name ?? '–'}</p>
+                  <p className="font-semibold">{l.actor_name ?? '-'}</p>
                   <p className="text-xs text-ink-3">{l.actor_role ? ROLE[l.actor_role] ?? l.actor_role : ''}</p>
                 </Td>
                 <Td>{ACTION[l.action] ?? l.action}</Td>
@@ -258,7 +258,7 @@ export function AdminHealthPage() {
                     {h.redis.ok ? `${h.redis.detail} · ${h.redis.latency_ms} ms` : h.redis.error}
                   </HealthRow>
                   <HealthRow label="Penjadwal (cron)" ok={h.scheduler.enabled}>
-                    {h.scheduler.enabled ? `Pengingat berikutnya ${h.scheduler.next_reminder_run ? dateTime(h.scheduler.next_reminder_run) : '–'}` : 'Nonaktif di server ini'}
+                    {h.scheduler.enabled ? `Pengingat berikutnya ${h.scheduler.next_reminder_run ? dateTime(h.scheduler.next_reminder_run) : '-'}` : 'Nonaktif di server ini'}
                   </HealthRow>
                   {h.email_queue && (
                     <HealthRow label="Antrean email" ok={h.email_queue.failed_7d === 0}>
@@ -453,7 +453,7 @@ export function AdminUsersPage() {
             {toggling?.is_active
               ? 'Akun ini tidak bisa masuk lagi dan semua sesinya dicabut. Data dan riwayat pesanannya tetap tersimpan.'
               : 'Akun ini bisa masuk kembali seperti biasa.'}
-            {toggling?.role === 'WORKSHOP_OWNER' && toggling.is_active && ' Bengkelnya tidak ikut nonaktif; nonaktifkan lewat Persetujuan Mitra bila perlu.'}
+            {toggling?.role === 'WORKSHOP_OWNER' && toggling.is_active && ' Bengkelnya tidak ikut nonaktif; nonaktifkan lewat Persetujuan mitra bila perlu.'}
           </p>
           <TextArea label="Alasan (tercatat di audit log)" maxLength={300} rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
           {toggle.error && <Alert tone="danger">{errorMessage(toggle.error)}</Alert>}

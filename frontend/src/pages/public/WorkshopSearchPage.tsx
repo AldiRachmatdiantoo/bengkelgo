@@ -343,7 +343,7 @@ function RadarSection({ workshops, origin }: { workshops: Workshop[]; origin: { 
     <section>
       <SectionHeading
         eyebrow={<span className="text-emergency-ink">Peta bengkel terdekat</span>}
-        title="Pantau Bengkel Aktif di Sekitar Anda"
+        title="Bengkel aktif di sekitar Anda"
         subtitle="Lokasi bengkel mitra dari data terbaru. Panggilan darurat menjangkau bengkel dalam radius 5 km."
         action={
           <span className="inline-flex items-center gap-2 rounded-full bg-sky px-3 py-1.5 font-label text-xs font-bold text-primary">
@@ -373,7 +373,7 @@ function RadarSection({ workshops, origin }: { workshops: Workshop[]; origin: { 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div className="rounded-lg bg-surface-low px-2.5 py-2">
                 <p className="font-label text-[10px] font-bold text-ink-3 uppercase">{origin ? 'Jarak' : 'Jam buka'}</p>
-                <p className="text-sm font-bold text-ink">{origin ? distance(top.distance_meters) : `${top.open_time}–${top.close_time}`}</p>
+                <p className="text-sm font-bold text-ink">{origin ? distance(top.distance_meters) : `${top.open_time}-${top.close_time}`}</p>
               </div>
               <div className="rounded-lg bg-surface-low px-2.5 py-2">
                 <p className="font-label text-[10px] font-bold text-ink-3 uppercase">Rating bengkel</p>

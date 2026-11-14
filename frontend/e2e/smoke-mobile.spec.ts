@@ -81,10 +81,10 @@ test('workshop results on a phone: two cards per row, 10 per page', async ({ pag
     expect(Math.round(a!.y)).toBe(Math.round(b!.y)); // side by side, not one under the other
   }
   if (total > 10) {
-    await expect(page.getByTestId('pagination')).toContainText(`Menampilkan 1–10 dari ${total}`);
+    await expect(page.getByTestId('pagination')).toContainText(`Menampilkan 1-10 dari ${total}`);
     await page.getByRole('button', { name: 'Halaman 2' }).click();
     await expect(cards).toHaveCount(Math.min(total - 10, 10));
-    await expect(page.getByTestId('pagination')).toContainText(`Menampilkan 11–${Math.min(total, 20)} dari ${total}`);
+    await expect(page.getByTestId('pagination')).toContainText(`Menampilkan 11-${Math.min(total, 20)} dari ${total}`);
   } else {
     await expect(page.getByTestId('pagination')).toHaveCount(0);
   }

@@ -12,7 +12,7 @@ export const vehicleIcon = (v: VehicleType) => (v === 'MOTOR' ? 'two_wheeler' : 
 /** "09:00" -> "09:00 – 10:00" (slots are hourly). */
 export const slotRange = (slot: string) => {
   const h = Number(slot.slice(0, 2));
-  return `${slot} – ${String((h + 1) % 24).padStart(2, '0')}:${slot.slice(3, 5)}`;
+  return `${slot}-${String((h + 1) % 24).padStart(2, '0')}:${slot.slice(3, 5)}`;
 };
 
 /** "09:00" + 75 min -> "10:15". */
@@ -101,7 +101,7 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
             </span>
           ) : (
             <span className={cx('text-xs font-bold', workshop.is_open ? 'text-primary' : 'text-ink-3')}>
-              {workshop.is_open ? `Buka ${workshop.open_time}–${workshop.close_time}` : 'Sedang tutup'}
+              {workshop.is_open ? `Buka ${workshop.open_time}-${workshop.close_time}` : 'Sedang tutup'}
             </span>
           )}
           <span className="inline-flex items-center gap-1 text-ink-2">

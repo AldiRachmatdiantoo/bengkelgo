@@ -61,11 +61,11 @@ export function OrderCard({ order, to }: { order: Order; to: string }) {
 
 // ================================================================ booking: status page (Stitch "Status Booking & E-Receipt")
 const BOOKING_HERO: Partial<Record<OrderStatus, { icon: string; title: string; text: string; tone: 'success' | 'warning' | 'info' | 'neutral' }>> = {
-  CONFIRMED: { icon: 'check_circle', title: 'Booking Berhasil Dikonfirmasi!', text: 'Jadwal servis dan nomor antrean Anda sudah diterima bengkel. Tunjukkan kode QR atau nomor pesanan saat tiba di bengkel.', tone: 'success' },
-  IN_QUEUE: { icon: 'hourglass_top', title: 'Anda Masuk Daftar Tunggu', text: 'Jam ini sedang penuh. Booking Anda otomatis terkonfirmasi begitu ada tempat kosong. Halaman ini diperbarui otomatis.', tone: 'warning' },
-  IN_PROGRESS: { icon: 'build', title: 'Kendaraan Sedang Dikerjakan', text: 'Mekanik sedang menangani kendaraan Anda di bengkel.', tone: 'info' },
-  COMPLETED: { icon: 'task_alt', title: 'Servis Selesai', text: 'Terima kasih telah menggunakan BengkelGo. Bagikan pengalaman Anda lewat ulasan di bawah.', tone: 'success' },
-  CANCELLED: { icon: 'cancel', title: 'Booking Dibatalkan', text: 'Pesanan ini sudah tidak aktif.', tone: 'neutral' },
+  CONFIRMED: { icon: 'check_circle', title: 'Booking dikonfirmasi', text: 'Jadwal servis dan nomor antrean Anda sudah diterima bengkel. Tunjukkan kode QR atau nomor pesanan saat tiba di bengkel.', tone: 'success' },
+  IN_QUEUE: { icon: 'hourglass_top', title: 'Anda masuk daftar tunggu', text: 'Jam ini sedang penuh. Booking Anda otomatis terkonfirmasi begitu ada tempat kosong. Halaman ini diperbarui otomatis.', tone: 'warning' },
+  IN_PROGRESS: { icon: 'build', title: 'Kendaraan sedang dikerjakan', text: 'Mekanik sedang menangani kendaraan Anda di bengkel.', tone: 'info' },
+  COMPLETED: { icon: 'task_alt', title: 'Servis selesai', text: 'Kendaraan sudah selesai diservis. Beri ulasan di bawah supaya pelanggan lain tahu kualitas bengkel ini.', tone: 'success' },
+  CANCELLED: { icon: 'cancel', title: 'Booking dibatalkan', text: 'Pesanan ini sudah tidak aktif.', tone: 'neutral' },
 };
 /** "Dibatalkan oleh bengkel: Mekanik sakit" (API cancelled_by / cancel_reason). */
 export function cancellationText(order: Order) {
@@ -89,7 +89,7 @@ function icsFor(order: Order) {
     `DTSTAMP:${f(new Date())}`,
     `DTSTART:${f(start)}`,
     `DTEND:${f(end)}`,
-    `SUMMARY:Servis ${b.service_name} – ${order.workshop?.name ?? 'BengkelGo'}`,
+    `SUMMARY:Servis ${b.service_name} di ${order.workshop?.name ?? 'BengkelGo'}`,
     `DESCRIPTION:No. pesanan ${order.order_number} · Antrean #${b.queue_number}`,
     `LOCATION:${(order.workshop?.address ?? '').replace(/[,;]/g, ' ')}`,
     'BEGIN:VALARM',
@@ -105,7 +105,7 @@ function icsFor(order: Order) {
 
 async function shareOrder(order: Order) {
   const url = window.location.href;
-  const title = `${order.order_number} – ${order.workshop?.name ?? 'BengkelGo'}`;
+  const title = `${order.order_number} · ${order.workshop?.name ?? 'BengkelGo'}`;
   try {
     if (navigator.share) await navigator.share({ title, url });
     else {
@@ -300,7 +300,7 @@ export function EmergencyHeader({ order }: { order: Order }) {
       </span>
       <div className="min-w-0 flex-1">
         <h1 className="flex flex-wrap items-center gap-2 text-headline-sm text-ink">
-          Layanan Darurat SOS 24 Jam <span className="font-normal text-ink-3">(Roadside Breakdown)</span>
+          Bantuan darurat
           <span className={cx('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 font-label text-[11px] font-bold uppercase', st.tone)}>
             {live && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />} {st.label}
           </span>
@@ -413,7 +413,7 @@ export function EmergencyTimeline({ order }: { order: Order }) {
     <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-headline-sm text-ink">Status Penanganan Darurat</h3>
+          <h3 className="text-headline-sm text-ink">Status penanganan darurat</h3>
           <p className="text-sm text-ink-2">Status diperbarui otomatis oleh bengkel yang menangani.</p>
         </div>
         {live ? (
@@ -449,7 +449,7 @@ export function EmergencyTimeline({ order }: { order: Order }) {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className={cx('text-sm font-bold', done || active ? 'text-ink' : 'text-ink-3')}>
                     {s.title}
-                    {active && <span className="ml-2 rounded-md bg-primary px-1.5 py-0.5 font-label text-[10px] text-on-primary">Sedang Berlangsung</span>}
+                    {active && <span className="ml-2 rounded-md bg-primary px-1.5 py-0.5 font-label text-[10px] text-on-primary">Sedang berjalan</span>}
                   </p>
                   {(done || active) && at && <span className="font-mono text-xs text-ink-3">{timeOnly(at)} WIB</span>}
                   {!done && !active && <span className="font-label text-[11px] text-ink-3">Menunggu</span>}
@@ -562,9 +562,9 @@ export function EmergencyCostCard({ order }: { order: Order }) {
     <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 text-headline-sm text-ink">
-          <Icon name="receipt_long" className="text-primary" /> {done ? 'Biaya Akhir' : 'Estimasi Biaya'}
+          <Icon name="receipt_long" className="text-primary" /> {done ? 'Biaya akhir' : 'Estimasi biaya'}
         </h3>
-        <span className="rounded-md bg-success-soft px-1.5 py-0.5 font-label text-[10px] font-bold text-success uppercase">Transparan</span>
+        <span className="rounded-md bg-success-soft px-1.5 py-0.5 font-label text-[10px] font-bold text-success uppercase">Tanpa biaya platform</span>
       </div>
       <dl className="mt-4 space-y-2 text-sm">
         <div className="flex justify-between gap-3">
@@ -609,7 +609,7 @@ export function SafetyBanner({ onCancel, cancelling }: { onCancel?: () => void; 
           <p className="flex items-center gap-2 font-label text-xs font-bold tracking-[0.06em] text-warning uppercase">
             <Icon name="warning" /> Prosedur keselamatan menunggu di jalan raya
           </p>
-          <h3 className="mt-2 text-headline-sm sm:text-headline-md">Prioritaskan Keselamatan Anda &amp; Penumpang Sembari Menunggu Mekanik</h3>
+          <h3 className="mt-2 text-headline-sm sm:text-headline-md">Selama menunggu mekanik, utamakan keselamatan Anda dan penumpang</h3>
           <ol className="mt-5 grid gap-4 sm:grid-cols-3">
             {tips.map(([a, b, c], i) => (
               <li key={b} className="flex gap-3 text-sm text-white/85">
@@ -668,7 +668,7 @@ export function CancelOrderModal({
       actions={
         <>
           <Button variant="ghost" onClick={onClose} className="bg-surface-low">
-            {emergency ? 'Kembali ke Peta' : 'Kembali'}
+            {emergency ? 'Kembali ke peta' : 'Kembali'}
           </Button>
           <Button variant="danger" loading={loading} onClick={() => onConfirm(reason.trim())} data-testid="cancel-confirm">
             {emergency ? 'Ya, Batalkan SOS' : 'Ya, Batalkan Booking'}
@@ -1084,7 +1084,7 @@ export function OwnerOrderActions({ order }: { order: Order }) {
   const activeMechanics = (mechanics.data ?? []).filter((m) => m.is_active);
 
   return (
-    <Card title="Tindakan Bengkel" icon="handyman" accent={isEmergencyPending ? 'emergency' : undefined}>
+    <Card title="Tindakan bengkel" icon="handyman" accent={isEmergencyPending ? 'emergency' : undefined}>
       {run.error && (
         <div className="mb-4">
           <Alert tone="danger">{errorMessage(run.error)}</Alert>
@@ -1190,7 +1190,7 @@ export function OwnerOrderActions({ order }: { order: Order }) {
 
         <div className="rounded-xl border border-line p-4">
           <p className="mb-3 flex items-center gap-2 font-bold text-ink">
-            <Icon name="qr_code_scanner" className="text-primary" /> Verifikasi Pembayaran QRIS
+            <Icon name="qr_code_scanner" className="text-primary" /> Verifikasi pembayaran QRIS
           </p>
           <ProofVerifyPanel order={order} />
         </div>

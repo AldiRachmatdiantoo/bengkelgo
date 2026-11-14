@@ -11,10 +11,10 @@ import { ScrollRadar, type ScrollRadarSection } from '@/components/ui/landing-pa
 import { Reveal, RevealGroup, RevealItem } from '@/components/ui/motion';
 
 const ADVANTAGES = [
-  { icon: 'hourglass_disabled', tone: 'bg-primary', title: 'Jadwal Anti-Bentrok', text: 'Setiap jam punya batas jumlah pelanggan. Begitu Anda konfirmasi, jam itu langsung jadi milik Anda dan tidak bisa diambil orang lain.', foot: 'Diuji 100 pemesan sekaligus, tidak ada yang bentrok', footIcon: 'check_circle', footTone: 'text-primary' },
-  { icon: 'location_on', tone: 'bg-emergency', title: 'Pencarian Darurat 5 KM', text: 'Bengkel aktif terdekat dengan mekanik terbaik dihubungi lebih dulu. Jika tidak merespons dalam 2 menit, dialihkan otomatis.', foot: 'Pengalihan otomatis 2 menit', footIcon: 'bolt', footTone: 'text-emergency-ink' },
-  { icon: 'qr_code_2', tone: 'bg-success', title: 'Pembayaran QRIS Bengkel', text: 'Bayar langsung ke QRIS milik bengkel, lalu unggah bukti. Bengkel memverifikasi dan status langsung terlihat di aplikasi.', foot: 'Transparan & tercatat', footIcon: 'check_circle', footTone: 'text-success' },
-  { icon: 'shield', tone: 'bg-navy', title: 'Rating Mekanik Dinamis', text: 'Setiap ulasan pelanggan memperbarui rating mekanik. Rating ini ikut menentukan prioritas penugasan panggilan darurat.', foot: 'Berdasarkan ulasan asli', footIcon: 'verified', footTone: 'text-ink' },
+  { icon: 'hourglass_disabled', tone: 'bg-primary', title: 'Jadwal tidak bentrok', text: 'Setiap jam punya batas jumlah pelanggan. Begitu Anda konfirmasi, jam itu langsung jadi milik Anda dan tidak bisa diambil orang lain.', foot: 'Diuji 100 pemesan sekaligus, tidak ada yang bentrok', footIcon: 'check_circle', footTone: 'text-primary' },
+  { icon: 'location_on', tone: 'bg-emergency', title: 'Bantuan darurat 5 km', text: 'Bengkel aktif terdekat yang punya mekanik siaga dihubungi lebih dulu. Jika tidak merespons dalam 2 menit, dialihkan otomatis.', foot: 'Pengalihan otomatis 2 menit', footIcon: 'bolt', footTone: 'text-emergency-ink' },
+  { icon: 'qr_code_2', tone: 'bg-success', title: 'Bayar ke QRIS bengkel', text: 'Bayar langsung ke QRIS milik bengkel, lalu unggah bukti. Bengkel memverifikasi dan status langsung terlihat di aplikasi.', foot: 'Setiap bukti bayar tercatat', footIcon: 'check_circle', footTone: 'text-success' },
+  { icon: 'shield', tone: 'bg-navy', title: 'Rating mekanik dari ulasan', text: 'Setiap ulasan pelanggan memperbarui rating mekanik. Rating ini ikut menentukan prioritas penugasan panggilan darurat.', foot: 'Berdasarkan ulasan asli', footIcon: 'verified', footTone: 'text-ink' },
 ];
 
 const FAQ = [
@@ -104,7 +104,7 @@ export default function HomePage() {
       <section className="bg-sky py-16 shadow-[0_0_0_100vmax_var(--color-sky)] [clip-path:inset(0_-100vmax)]" data-testid="advantages">
         <div>
           <Reveal>
-            <SectionHeading eyebrow="Kenapa BengkelGo berbeda?" title="Teknologi Andal, Servis Transparan Tanpa Tipu-tipu" subtitle="Dirancang untuk melindungi waktu dan uang pemilik kendaraan." />
+            <SectionHeading eyebrow="Kenapa BengkelGo" title="Aturan yang berlaku di semua bengkel mitra" subtitle="Empat aturan yang dijalankan sistem di setiap pesanan." />
           </Reveal>
           <RevealGroup className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {ADVANTAGES.map((a) => (
@@ -128,7 +128,7 @@ export default function HomePage() {
 
       {/* ------------------------------------------------ FAQ */}
       <Reveal as="section">
-        <SectionHeading eyebrow="Pusat informasi & panduan" title="Pertanyaan yang Sering Diajukan (FAQ)" subtitle="Cara kerja bantuan darurat, antrean, dan pembayaran." />
+        <SectionHeading eyebrow="FAQ" title="Pertanyaan yang sering diajukan" subtitle="Cara kerja bantuan darurat, antrean, dan pembayaran." />
         <div className="flex max-w-3xl flex-col gap-3">
           {FAQ.map((f) => (
             <details key={f.q} className="group rounded-xl bg-surface-low px-5 py-4 open:bg-card open:shadow-sm open:ring-1 open:ring-line">
@@ -223,43 +223,43 @@ type Step = { icon: string; title: string; text: string; note: string };
 
 const GUIDES: Record<Guide, { label: string; icon: string; tone: string; intro: string; steps: Step[]; cta: { label: string; to: string; icon: string } }> = {
   booking: {
-    label: 'Booking Servis Terjadwal',
+    label: 'Booking servis',
     icon: 'calendar_month',
     tone: 'bg-primary text-on-primary',
     intro: 'Untuk servis rutin tanpa antre lama. Pilih jam kedatangan, datang sesuai jadwal.',
     steps: [
-      { icon: 'storefront', title: 'Cari bengkel', text: 'Cari nama bengkel atau tekan “Deteksi lokasi GPS” untuk melihat bengkel terdekat. Bandingkan rating, jam buka, dan jenis kendaraan yang dilayani.', note: 'Halaman Cari & Booking Bengkel' },
+      { icon: 'storefront', title: 'Cari bengkel', text: 'Cari nama bengkel atau tekan “Pakai GPS saya” untuk melihat bengkel terdekat. Bandingkan rating, jam buka, dan jenis kendaraan yang dilayani.', note: 'Halaman Pilih bengkel' },
       { icon: 'event_available', title: 'Pilih paket & jadwal', text: 'Pilih paket servis, tanggal, lalu jam kedatangan. Sisa tempat tampil di setiap jam; jika penuh, Anda masuk daftar tunggu otomatis.', note: 'Halaman detail bengkel' },
-      { icon: 'qr_code_2', title: 'Konfirmasi & bayar QRIS', text: 'Masuk atau daftar akun, tekan konfirmasi untuk mendapat nomor antrean. Lalu scan QRIS bengkel dan unggah bukti bayar.', note: 'Langkah 3–4 booking' },
-      { icon: 'confirmation_number', title: 'Datang & servis', text: 'Tunjukkan Digital Pass (QR / nomor pesanan) ke petugas bengkel. Setelah selesai, beri ulasan untuk mekanik.', note: 'Menu “Pesanan saya”' },
+      { icon: 'qr_code_2', title: 'Konfirmasi & bayar QRIS', text: 'Masuk atau daftar akun, tekan konfirmasi untuk mendapat nomor antrean. Lalu scan QRIS bengkel dan unggah bukti bayar.', note: 'Halaman Pembayaran' },
+      { icon: 'confirmation_number', title: 'Datang & servis', text: 'Tunjukkan kode QR atau nomor pesanan ke petugas bengkel. Setelah selesai, beri ulasan untuk mekanik.', note: 'Menu “Pesanan saya”' },
     ],
-    cta: { label: 'Mulai Booking Sekarang', to: '/workshops?tab=booking', icon: 'calendar_month' },
+    cta: { label: 'Mulai booking', to: '/workshops?tab=booking', icon: 'calendar_month' },
   },
   sos: {
-    label: 'Bantuan Darurat SOS',
+    label: 'Bantuan darurat',
     icon: 'e911_emergency',
     tone: 'bg-emergency text-white',
     intro: 'Untuk kendaraan yang mogok di jalan. Bisa dipakai tanpa akun.',
     steps: [
       { icon: 'e911_emergency', title: 'Tekan SOS', text: 'Tekan tombol bulat oranye “SOS” di kanan bawah layar. Belum punya akun? Cukup isi nama dan nomor WhatsApp, Anda masuk sebagai tamu.', note: 'Tombol SOS di kanan bawah' },
-      { icon: 'my_location', title: 'Tentukan lokasi & kendala', text: 'Gunakan GPS atau klik titik di peta, lalu pilih masalahnya: aki, ban, mesin mogok, atau kehabisan bensin.', note: 'Halaman Bantuan Darurat' },
+      { icon: 'my_location', title: 'Tentukan lokasi & kendala', text: 'Gunakan GPS atau klik titik di peta, lalu pilih masalahnya: aki, ban, mesin mogok, atau kehabisan bensin.', note: 'Halaman Bantuan darurat' },
       { icon: 'radar', title: 'Bengkel terdekat dihubungi', text: 'Kami mencari bengkel aktif dalam radius 5 km. Bengkel punya 2 menit untuk merespons; jika tidak, otomatis dialihkan ke bengkel berikutnya.', note: 'Otomatis, tanpa perlu menelepon' },
       { icon: 'engineering', title: 'Mekanik datang', text: 'Pantau status secara langsung, hubungi mekanik lewat telepon atau WhatsApp. Setelah selesai, bayar via QRIS dan beri ulasan.', note: 'Halaman tracking SOS' },
     ],
-    cta: { label: 'Minta Bantuan Darurat', to: '/emergency', icon: 'e911_emergency' },
+    cta: { label: 'Minta bantuan darurat', to: '/emergency', icon: 'e911_emergency' },
   },
   mitra: {
-    label: 'Untuk Pemilik Bengkel',
+    label: 'Untuk pemilik bengkel',
     icon: 'handshake',
     tone: 'bg-navy text-white',
     intro: 'Untuk UMKM bengkel yang ingin antrean lebih rapi dan dijangkau pelanggan baru.',
     steps: [
-      { icon: 'app_registration', title: 'Daftarkan bengkel', text: 'Isi data pemilik dan bengkel, jam buka, kapasitas booking per jam, lalu tandai lokasi bengkel di peta.', note: 'Menu “Gabung Mitra”' },
+      { icon: 'app_registration', title: 'Daftarkan bengkel', text: 'Isi data pemilik dan bengkel, jam buka, kapasitas booking per jam, lalu tandai lokasi bengkel di peta.', note: 'Menu Gabung mitra' },
       { icon: 'verified', title: 'Diverifikasi admin', text: 'Admin memeriksa data bengkel. Setelah disetujui, bengkel tampil di pencarian dan bisa menerima panggilan darurat.', note: 'Status tampil di portal mitra' },
-      { icon: 'tune', title: 'Atur layanan & tim', text: 'Tambahkan layanan dan harga, daftarkan mekanik beserta keahliannya, atur kapasitas per jam, dan unggah QRIS bengkel.', note: 'Tab Pengaturan & Kelola Mekanik' },
-      { icon: 'space_dashboard', title: 'Terima pesanan & SOS', text: 'Pantau antrean hari ini, terima panggilan darurat dalam 2 menit, kerjakan pesanan, dan verifikasi bukti bayar pelanggan.', note: 'Dashboard Portal Mitra' },
+      { icon: 'tune', title: 'Atur layanan & tim', text: 'Tambahkan layanan dan harga, daftarkan mekanik beserta keahliannya, atur kapasitas per jam, dan unggah QRIS bengkel.', note: 'Menu Pengaturan bengkel dan Teknisi' },
+      { icon: 'space_dashboard', title: 'Terima pesanan & SOS', text: 'Pantau antrean hari ini, terima panggilan darurat dalam 2 menit, kerjakan pesanan, dan verifikasi bukti bayar pelanggan.', note: 'Ringkasan di portal mitra' },
     ],
-    cta: { label: 'Daftarkan Bengkel', to: '/register/workshop', icon: 'app_registration' },
+    cta: { label: 'Daftarkan bengkel', to: '/register/workshop', icon: 'app_registration' },
   },
 };
 
@@ -269,7 +269,7 @@ function HowItWorks({ sectionRef }: { sectionRef: React.RefObject<HTMLElement | 
   const g = GUIDES[guide];
   return (
     <section ref={sectionRef} id="cara-kerja" className="scroll-mt-24">
-      <SectionHeading eyebrow="Cara kerja" title="Cara Menggunakan BengkelGo" subtitle="Pilih kebutuhan Anda, lalu ikuti 4 langkah sederhana berikut." />
+      <SectionHeading eyebrow="Cara kerja" title="Cara pakai BengkelGo" subtitle="Pilih kebutuhan Anda. Setiap panduan terdiri dari 4 langkah." />
       <div className="mb-4 flex">
         <div className="no-scrollbar max-w-full overflow-x-auto">
           <Segmented
@@ -332,7 +332,7 @@ function ReviewsSection({ workshops }: { workshops: Workshop[] }) {
     <section data-testid="real-reviews">
       <SectionHeading
         eyebrow="Cerita pengendara"
-        title="Ulasan Asli dari Pelanggan BengkelGo"
+        title="Ulasan dari pelanggan"
         action={
           <span className="flex items-center gap-2">
             <StarRow rating={Math.round(avg)} className="[&_span]:text-[20px]" />

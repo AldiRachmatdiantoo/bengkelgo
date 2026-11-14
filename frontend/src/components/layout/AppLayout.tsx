@@ -217,10 +217,10 @@ export function AppLayout() {
 // ---------------------------------------------------------------- public / customer
 const PUBLIC_NAV: NavItem[] = [
   { to: '/', label: 'Beranda', icon: 'home', end: true },
-  { to: '/emergency', label: 'Bantuan Darurat SOS', icon: 'e911_emergency' },
-  { to: '/workshops', search: '?tab=booking', label: 'Booking Jadwal Servis', short: 'Booking Servis', icon: 'calendar_month' },
-  { to: '/workshops', search: '?tab=cari', label: 'Cari Bengkel Terdekat', short: 'Cari Bengkel', icon: 'storefront' },
-  { to: '/register/workshop', label: 'Gabung Mitra', icon: 'handshake' },
+  { to: '/emergency', label: 'Bantuan darurat', icon: 'e911_emergency' },
+  { to: '/workshops', search: '?tab=booking', label: 'Booking servis', short: 'Booking', icon: 'calendar_month' },
+  { to: '/workshops', search: '?tab=cari', label: 'Cari bengkel', short: 'Cari bengkel', icon: 'storefront' },
+  { to: '/register/workshop', label: 'Gabung mitra', icon: 'handshake' },
 ];
 
 const FLOW_SCREEN = /^\/(workshops\/[^/]+|orders\/[^/]+(\/pay)?)\/?$/;
@@ -386,13 +386,13 @@ function PublicShell() {
                 <Icon name="call" filled />
               </span>
               <span className="min-w-0">
-                <span className="block font-label text-label-sm text-emergency-ink uppercase">Hotline Darurat 24/7 Nasional</span>
+                <span className="block font-label text-label-sm text-emergency-ink uppercase">Kendaraan mogok?</span>
                 <span className="block text-sm font-bold text-ink">Kirim SOS dari BengkelGo</span>
               </span>
             </Link>
           </div>
           <FooterCol
-            title="Layanan Otomotif"
+            title="Layanan"
             links={[
               ['Cara kerja BengkelGo', '/#cara-kerja'],
               ['Booking servis terjadwal', '/workshops?tab=booking'],
@@ -510,15 +510,15 @@ function FooterCol({ title, links }: { title: string; links: [string, string][] 
 // ---------------------------------------------------------------- owner portal: sidebar + top bar (same pattern as admin)
 const OWNER_NAV: NavItem[] = [
   { to: '/owner', label: 'Ringkasan', icon: 'space_dashboard', end: true },
-  { to: '/owner/emergency', label: 'Panggilan Darurat', icon: 'e911_emergency' },
-  { to: '/owner/orders', label: 'Semua Pesanan', icon: 'receipt_long' },
-  { to: '/owner/quotas', label: 'Kalender & Kapasitas', icon: 'calendar_month' },
-  { to: '/owner/mechanics', label: 'Kelola Teknisi', icon: 'engineering' },
-  { to: '/owner/payments', label: 'Verifikasi Pembayaran', icon: 'qr_code_scanner' },
+  { to: '/owner/emergency', label: 'Panggilan darurat', icon: 'e911_emergency' },
+  { to: '/owner/orders', label: 'Semua pesanan', icon: 'receipt_long' },
+  { to: '/owner/quotas', label: 'Kalender & kapasitas', icon: 'calendar_month' },
+  { to: '/owner/mechanics', label: 'Teknisi', icon: 'engineering' },
+  { to: '/owner/payments', label: 'Verifikasi pembayaran', icon: 'qr_code_scanner' },
   { to: '/owner/reviews', label: 'Ulasan', icon: 'reviews' },
-  { to: '/owner/profile', label: 'Pengaturan Bengkel', icon: 'settings' },
+  { to: '/owner/profile', label: 'Pengaturan bengkel', icon: 'settings' },
   { to: '/owner/notifications', label: 'Notifikasi', icon: 'notifications' },
-  { to: '/owner/akun', label: 'Akun Saya', icon: 'account_circle' },
+  { to: '/owner/akun', label: 'Akun saya', icon: 'account_circle' },
 ];
 
 function OwnerShell({ user }: { user: User }) {
@@ -578,7 +578,7 @@ function OwnerShell({ user }: { user: User }) {
     <div className="min-h-screen lg:grid lg:grid-cols-[260px_1fr]">
       <aside className="sticky top-0 hidden h-screen flex-col gap-6 overflow-y-auto border-r border-line bg-card p-5 lg:flex">
         <Link to="/owner">
-          <Brand suffix="Mitra" sub="Portal Pemilik Bengkel" />
+          <Brand suffix="Mitra" sub="Portal pemilik bengkel" />
         </Link>
         {w && (
           <div className="rounded-lg bg-surface-low p-3">
@@ -625,7 +625,7 @@ function OwnerShell({ user }: { user: User }) {
                 title="Ubah status buka & siaga SOS"
               >
                 <span className={cx('h-2 w-2 rounded-full', live ? 'bg-success' : 'bg-ink-3')} />
-                <span className="hidden sm:inline">{live ? 'Buka & Siaga SOS' : w.is_open ? 'Buka · SOS nonaktif' : 'Tutup'}</span>
+                <span className="hidden sm:inline">{live ? 'Buka & siaga SOS' : w.is_open ? 'Buka · SOS nonaktif' : 'Tutup'}</span>
                 <Icon name={live ? 'toggle_on' : 'toggle_off'} className="text-[23px]" />
               </button>
             )}
@@ -670,15 +670,15 @@ function OwnerShell({ user }: { user: User }) {
 
 // ---------------------------------------------------------------- admin portal: sidebar + top bar
 const ADMIN_NAV: NavItem[] = [
-  { to: '/admin', label: 'Dashboard Overview', icon: 'grid_view', end: true },
-  { to: '/admin/workshops', label: 'Persetujuan Mitra', icon: 'verified' },
-  { to: '/admin/reports', label: 'Audit Transaksi', icon: 'account_balance_wallet' },
+  { to: '/admin', label: 'Ringkasan', icon: 'grid_view', end: true },
+  { to: '/admin/workshops', label: 'Persetujuan mitra', icon: 'verified' },
+  { to: '/admin/reports', label: 'Laporan transaksi', icon: 'account_balance_wallet' },
   { to: '/admin/users', label: 'Pengguna', icon: 'manage_accounts' },
   { to: '/admin/search', label: 'Cari', icon: 'search' },
-  { to: '/admin/audit', label: 'Audit Log', icon: 'policy' },
-  { to: '/admin/health', label: 'Kesehatan Sistem', icon: 'monitor_heart' },
+  { to: '/admin/audit', label: 'Log audit', icon: 'policy' },
+  { to: '/admin/health', label: 'Kesehatan sistem', icon: 'monitor_heart' },
   { to: '/admin/notifications', label: 'Notifikasi', icon: 'notifications' },
-  { to: '/admin/akun', label: 'Akun Saya', icon: 'account_circle' },
+  { to: '/admin/akun', label: 'Akun saya', icon: 'account_circle' },
 ];
 
 function AdminShell({ user }: { user: User }) {

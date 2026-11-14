@@ -53,7 +53,7 @@ export function MyOrdersPage() {
     <div className="mx-auto max-w-4xl">
       <PageHeader
         eyebrow="Akun saya"
-        title="Riwayat & Status Servis"
+        title="Riwayat & status servis"
         subtitle="Tiket booking, status bantuan darurat, dan pembayaran Anda."
         actions={
           <Link to="/workshops?tab=booking" className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-primary px-5 font-label text-sm font-semibold text-on-primary hover:bg-primary-dark">

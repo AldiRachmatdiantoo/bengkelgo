@@ -23,7 +23,7 @@ function useAfterAuth() {
 const PERKS = [
   { icon: 'event_available', text: 'Pesan jam servis, tanpa antre panjang' },
   { icon: 'e911_emergency', text: 'Bantuan darurat dari bengkel dalam radius 5 km' },
-  { icon: 'qr_code_2', text: 'Bayar mudah via QRIS bengkel' },
+  { icon: 'qr_code_2', text: 'Bayar lewat QRIS bengkel' },
   { icon: 'verified', text: 'Bengkel mitra diverifikasi admin' },
 ];
 
@@ -35,7 +35,7 @@ function AuthShell({ title, subtitle, children, footer }: { title: string; subti
           <span className="inline-flex items-center gap-2 text-2xl font-bold text-primary">
             <Icon name="car_repair" filled /> BengkelGo
           </span>
-          <p className="mt-6 text-3xl leading-tight font-bold">Servis & bantuan darurat kendaraan, dalam satu genggaman.</p>
+          <p className="mt-6 text-3xl leading-tight font-bold">Booking servis dan minta bantuan darurat dari satu aplikasi.</p>
         </div>
         <ul className="relative mt-10 space-y-4">
           {PERKS.map((p) => (
@@ -473,7 +473,7 @@ export function VerifyEmailPage() {
           <p className="text-center font-label text-xs text-ink-2">
             Salah ketik email?{' '}
             <Link to={user.role === 'WORKSHOP_OWNER' ? '/owner/akun' : '/akun'} className="font-semibold text-primary hover:underline" data-testid="verify-change-email">
-              Ganti email di Akun Saya
+              Ganti email di Akun saya
             </Link>
           </p>
         </form>

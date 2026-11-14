@@ -180,7 +180,7 @@ export function OwnerDashboardPage() {
           <section className="rounded-xl border border-line bg-card p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between gap-2">
               <h3 className="flex items-center gap-2 text-headline-sm text-ink">
-                <Icon name="qr_code_scanner" className="text-primary" /> Verifikasi Pembayaran QRIS
+                <Icon name="qr_code_scanner" className="text-primary" /> Verifikasi pembayaran QRIS
               </h3>
               {toVerify.length > 0 && <span className="rounded-full bg-warning-soft px-2 py-0.5 font-label text-[11px] font-bold text-warning-ink">{toVerify.length} menunggu validasi</span>}
             </div>
@@ -350,7 +350,7 @@ function ThroughputChart({ slots }: { slots: SlotAvailability[] }) {
     <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-headline-sm text-ink">Keterisian per Jam</h3>
+          <h3 className="text-headline-sm text-ink">Keterisian per jam</h3>
           <p className="text-sm text-ink-2">Booking terisi dibanding kapasitas di setiap jam operasional hari ini.</p>
         </div>
         {peak && peak.current_booked > 0 && (
@@ -466,7 +466,7 @@ function IncomingEmergency({ order }: { order: Order }) {
               <p className="font-mono text-xl font-bold text-emergency-ink">
                 <ResponseCountdown deadline={e.response_deadline} />
               </p>
-              <p className="font-label text-[10px] text-ink-3">Auto-fallback aktif</p>
+              <p className="font-label text-[10px] text-ink-3">Pengalihan otomatis aktif</p>
             </div>
           </div>
         )}
@@ -496,7 +496,7 @@ export function OwnerEmergencyPage() {
   const history = (all.data ?? []).filter((o) => !['PENDING', 'ACCEPTED', 'IN_PROGRESS'].includes(o.status));
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader eyebrow="Siaga SOS 5 km" title="Panggilan Darurat" subtitle="Panggilan baru harus direspons dalam 2 menit; jika tidak, panggilan dialihkan otomatis ke bengkel lain. Halaman ini diperbarui otomatis setiap 5 detik." />
+      <PageHeader eyebrow="Siaga SOS 5 km" title="Panggilan darurat" subtitle="Panggilan baru harus direspons dalam 2 menit; jika tidak, panggilan dialihkan otomatis ke bengkel lain. Halaman ini diperbarui otomatis setiap 5 detik." />
       {pending.data && pending.data.length > 0 ? (
         <div className="flex flex-col gap-4">
           {pending.data.map((o) => (
@@ -549,7 +549,7 @@ export function OwnerPaymentsPage() {
   const count = (k: keyof typeof map) => (recent.data ?? []).filter((o) => o.payment.status === map[k]).length;
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader eyebrow="Pembayaran" title="Verifikasi Pembayaran QRIS" subtitle="Cocokkan bukti transfer pelanggan dengan mutasi QRIS bengkel Anda, lalu verifikasi atau minta unggah ulang." />
+      <PageHeader eyebrow="Pembayaran" title="Verifikasi pembayaran QRIS" subtitle="Cocokkan bukti transfer pelanggan dengan mutasi QRIS bengkel Anda, lalu verifikasi atau minta unggah ulang." />
       <Segmented
         label="Status pembayaran"
         value={tab}
@@ -596,7 +596,7 @@ export function OwnerOrdersPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Operasional" title="Semua Pesanan" subtitle="Booking terjadwal dan panggilan darurat ke bengkel Anda." />
+      <PageHeader eyebrow="Operasional" title="Semua pesanan" subtitle="Booking terjadwal dan panggilan darurat ke bengkel Anda." />
       <div className="mb-5 flex flex-wrap items-end gap-4 rounded-xl border border-line bg-card p-4 shadow-sm">
         <div className="flex flex-col gap-1.5">
           <span className="font-label text-xs font-semibold">Tipe</span>
@@ -693,7 +693,7 @@ export function OwnerServicesPage({ embedded }: { embedded?: boolean } = {}) {
     f.name.trim().length < 2 && { label: 'Nama layanan', target: 'svc-name' },
     (f.price === '' || Number(f.price) < 0) && { label: 'Harga', target: 'svc-price' },
     !(Number.isInteger(Number(f.duration_minutes)) && Number(f.duration_minutes) >= 5 && Number(f.duration_minutes) <= 1440) && {
-      label: 'Durasi 5–1440 menit',
+      label: 'Durasi 5-1440 menit',
       target: 'svc-duration',
     },
   ];
@@ -897,7 +897,7 @@ function EditServiceModal({ s, onClose, onSaved }: { s: Service; onClose: () => 
             required
             value={f.duration_minutes}
             onChange={(e) => setF({ ...f, duration_minutes: e.target.value })}
-            error={f.duration_minutes !== '' && (duration < 5 || duration > 1440) ? '5–1440 menit' : undefined}
+            error={f.duration_minutes !== '' && (duration < 5 || duration > 1440) ? '5-1440 menit' : undefined}
           />
         </div>
         <p className="text-xs text-ink-3">Jenis kendaraan ({vehicleLabel(s.vehicle_type)}) tetap, agar pesanan lama tidak berubah. Untuk jenis kendaraan lain, buat layanan baru.</p>
@@ -905,7 +905,7 @@ function EditServiceModal({ s, onClose, onSaved }: { s: Service; onClose: () => 
           items={[
             f.name.trim().length < 2 && { label: 'Nama layanan', target: 'svc-edit-name' },
             (f.price === '' || !Number.isFinite(price) || price < 0) && { label: 'Harga', target: 'svc-edit-price' },
-            (!Number.isInteger(duration) || duration < 5 || duration > 1440) && { label: 'Durasi 5–1440 menit', target: 'svc-edit-duration' },
+            (!Number.isInteger(duration) || duration < 5 || duration > 1440) && { label: 'Durasi 5-1440 menit', target: 'svc-edit-duration' },
           ]}
         />
         {save.error && <Alert tone="danger">{errorMessage(save.error)}</Alert>}
@@ -1170,7 +1170,7 @@ export function OwnerQuotasPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Kalender & kapasitas" title="Kalender & Kapasitas" subtitle="Ubah kapasitas jam tertentu (mis. ada mekanik tambahan). Antrean otomatis naik saat kapasitas ditambah." />
+      <PageHeader eyebrow="Kalender & kapasitas" title="Kalender & kapasitas" subtitle="Ubah kapasitas jam tertentu (mis. ada mekanik tambahan). Antrean otomatis naik saat kapasitas ditambah." />
       <div className="mb-6 flex flex-col gap-4 rounded-xl border border-line bg-card p-4 shadow-sm sm:p-5">
         <DateStrip value={date} onChange={setDate} days={14} />
         <div className="flex flex-wrap items-end gap-4">
@@ -1270,21 +1270,21 @@ export function OwnerProfilePage() {
     !isIdPhone(f.phone ?? '') && { label: (f.phone ?? '').trim() ? 'Telepon belum benar (mis. 0812…)' : 'Telepon', target: 'prof-phone' },
     (f.address ?? '').trim().length < 5 && { label: 'Alamat (min. 5 karakter)', target: 'prof-address' },
     (!f.open_time || !f.close_time || f.open_time >= f.close_time) && { label: 'Jam tutup harus setelah jam buka', target: 'prof-close' },
-    !(Number.isInteger(quota) && quota >= 1 && quota <= 100) && { label: 'Kapasitas per jam 1–100', target: 'prof-quota' },
+    !(Number.isInteger(quota) && quota >= 1 && quota <= 100) && { label: 'Kapasitas per jam 1 sampai 100', target: 'prof-quota' },
   ];
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader eyebrow="Pengaturan" title="Pengaturan Bengkel" />
+      <PageHeader eyebrow="Pengaturan" title="Pengaturan bengkel" />
       <StatusNotice w={ws.data!} />
       <Segmented
         label="Bagian pengaturan"
         value={section}
         onChange={setSection}
         options={[
-          { value: 'profil', label: 'Profil & Operasional', icon: 'storefront' },
-          { value: 'layanan', label: 'Layanan Servis', icon: 'build' },
-          { value: 'jadwal', label: 'Jadwal & Libur', icon: 'event_busy' },
+          { value: 'profil', label: 'Profil & operasional', icon: 'storefront' },
+          { value: 'layanan', label: 'Layanan servis', icon: 'build' },
+          { value: 'jadwal', label: 'Jadwal & libur', icon: 'event_busy' },
           { value: 'foto', label: 'Foto', icon: 'photo_library' },
           { value: 'qris', label: 'QRIS Pembayaran', icon: 'qr_code_2' },
         ]}
@@ -1438,7 +1438,7 @@ export function OwnerReviewsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="Reputasi"
-        title="Ulasan Pelanggan"
+        title="Ulasan pelanggan"
         subtitle="Balasan Anda tampil publik di bawah ulasan, di halaman bengkel."
         actions={ws.data && <Stars value={ws.data.avg_rating} count={ws.data.total_reviews} />}
       />
@@ -1571,7 +1571,7 @@ function OwnerScheduleSection({ w }: { w: OwnWorkshop }) {
 
   return (
     <div className="grid gap-6 xl:grid-cols-2">
-      <Card title="Jadwal mingguan" icon="calendar_view_week" subtitle={`Jam buka ${w.open_time}–${w.close_time}. Ubah jam buka di tab Profil & Operasional.`}>
+      <Card title="Jadwal mingguan" icon="calendar_view_week" subtitle={`Jam buka ${w.open_time}-${w.close_time}. Ubah jam buka di tab Profil & operasional.`}>
         <form
           className="flex flex-col gap-5"
           onSubmit={(e) => {
@@ -1753,7 +1753,7 @@ function OwnerPhotosSection() {
             ))}
           </ul>
         ) : (
-          <EmptyState icon="add_photo_alternate">Belum ada foto. Bengkel dengan foto lebih dipercaya pelanggan.</EmptyState>
+          <EmptyState icon="add_photo_alternate">Belum ada foto. Foto membantu pelanggan mengenali bengkel saat datang.</EmptyState>
         )}
       </div>
     </Card>
@@ -1824,7 +1824,7 @@ function OwnerTodayStrip() {
     { icon: 'payments', label: 'Pendapatan terverifikasi hari ini', value: rupiah(s.verified_revenue) },
     { icon: 'receipt_long', label: 'Bukti bayar menunggu', value: String(s.payments_to_verify) },
     { icon: 'event_available', label: 'Booking hari ini', value: `${s.bookings}${s.waitlisted ? ` (+${s.waitlisted} antre)` : ''}` },
-    { icon: 'percent', label: 'Keterisian jadwal', value: s.quota_utilization == null ? '–' : `${Math.round(s.quota_utilization * 100)}%` },
+    { icon: 'percent', label: 'Keterisian jadwal', value: s.quota_utilization == null ? '-' : `${Math.round(s.quota_utilization * 100)}%` },
   ];
   return (
     <ul className="flex flex-wrap gap-x-6 gap-y-2 rounded-xl border border-line bg-card px-5 py-3 text-sm shadow-sm" data-testid="owner-today">

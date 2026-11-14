@@ -40,7 +40,7 @@ export default function VehiclesPage() {
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <PageHeader
         eyebrow="Akun"
-        title="Kendaraan Saya"
+        title="Kendaraan saya"
         subtitle="Simpan kendaraan sekali, lalu pilih saat booking servis atau meminta bantuan darurat."
         actions={
           <Button icon="add" onClick={() => setEditing('new')} disabled={vehicles.length >= 10} data-testid="vehicle-add">
@@ -156,14 +156,14 @@ function VehicleModal({ vehicle, onClose, onSaved }: { vehicle: Vehicle | null; 
         <div className="grid gap-3 sm:grid-cols-2">
           <Input id="veh-brand" label="Merek" required value={f.brand} onChange={(e) => setF({ ...f, brand: e.target.value })} placeholder="Honda" data-testid="vehicle-brand" />
           <Input label="Model (opsional)" value={f.model} onChange={(e) => setF({ ...f, model: e.target.value })} placeholder="Vario 125" />
-          <Input id="veh-year" label="Tahun (opsional)" type="number" min={1950} max={2100} value={f.year} onChange={(e) => setF({ ...f, year: e.target.value })} error={badYear ? '1950–2100' : undefined} />
+          <Input id="veh-year" label="Tahun (opsional)" type="number" min={1950} max={2100} value={f.year} onChange={(e) => setF({ ...f, year: e.target.value })} error={badYear ? '1950-2100' : undefined} />
           <Input label="Warna (opsional)" value={f.color} onChange={(e) => setF({ ...f, color: e.target.value })} placeholder="Hitam" />
           <Input label="Plat nomor (opsional)" value={f.plate} onChange={(e) => setF({ ...f, plate: e.target.value.toUpperCase() })} placeholder="B 1234 XYZ" maxLength={15} data-testid="vehicle-plate" />
         </div>
         <MissingFields
           items={[
             f.brand.trim().length < 2 && { label: 'Merek kendaraan', target: 'veh-brand' },
-            badYear && { label: 'Tahun 1950–2100', target: 'veh-year' },
+            badYear && { label: 'Tahun 1950-2100', target: 'veh-year' },
           ]}
         />
         {save.error && <Alert tone="danger">{errorMessage(save.error)}</Alert>}

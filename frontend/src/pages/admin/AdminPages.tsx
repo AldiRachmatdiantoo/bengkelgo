@@ -74,7 +74,7 @@ function exportReport(r: TransactionReport) {
 function exportReportPdf(r: TransactionReport) {
   const esc = (v: string | number) => String(v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
   const rows = (cells: (string | number)[][]) => cells.map((c) => `<tr>${c.map((v, i) => `<td${i ? ' class="n"' : ''}>${esc(v)}</td>`).join('')}</tr>`).join('');
-  const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Laporan BengkelGo ${esc(r.period.from)} – ${esc(r.period.to)}</title>
+  const html = `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Laporan BengkelGo ${esc(r.period.from)} s.d. ${esc(r.period.to)}</title>
 <style>
   *{box-sizing:border-box} body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#192557;margin:32px;font-size:12px}
   h1{font-size:20px;margin:0} h2{font-size:14px;margin:24px 0 8px} .muted{color:#7a829f}
@@ -84,7 +84,7 @@ function exportReportPdf(r: TransactionReport) {
   td.n{text-align:right;font-variant-numeric:tabular-nums} th.n{text-align:right}
   @page{margin:16mm} @media print{body{margin:0}}
 </style></head><body>
-<h1>Laporan Transaksi BengkelGo</h1>
+<h1>Laporan transaksi BengkelGo</h1>
 <p class="muted">Periode ${esc(r.period.from)} s/d ${esc(r.period.to)} · dicetak ${esc(new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }))} WIB</p>
 <div class="kpi">
   <div>Pendapatan terverifikasi<b>${esc(rupiah(r.summary.verified_revenue))}</b></div>
@@ -184,8 +184,8 @@ export function AdminDashboardPage() {
           <p className="flex flex-wrap items-center gap-2 font-label text-xs font-semibold text-ink-2">
             <span className="rounded-full bg-sky px-2.5 py-1 font-bold text-primary">Pusat kendali admin</span>
           </p>
-          <h1 className="mt-2 text-[21px] leading-tight font-bold tracking-[-0.02em] text-ink sm:text-headline-lg">Admin Platform &amp; Analitik Operasional</h1>
-          <p className="mt-1 max-w-2xl text-subtitle text-ink-2">Pusat verifikasi mitra bengkel UMKM, ringkasan transaksi QRIS, dan aktivitas panggilan darurat.</p>
+          <h1 className="mt-2 text-[21px] leading-tight font-bold tracking-[-0.02em] text-ink sm:text-headline-lg">Ringkasan platform</h1>
+          <p className="mt-1 max-w-2xl text-subtitle text-ink-2">Pendaftaran bengkel yang perlu diperiksa, transaksi QRIS, dan panggilan darurat dalam periode ini.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <label className="relative inline-flex h-11 items-center gap-2 rounded-full border border-line bg-card pr-9 pl-4 font-label text-sm font-semibold text-ink">
@@ -217,7 +217,7 @@ export function AdminDashboardPage() {
           label="Volume transaksi terverifikasi"
           icon="payments"
           tone="success"
-          value={s ? rupiah(s.verified_revenue) : '–'}
+          value={s ? rupiah(s.verified_revenue) : '-'}
           aside={growth != null && <span className={growth >= 0 ? 'text-success' : 'text-emergency-ink'}>{`${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%`}</span>}
           hint={s ? `${s.verified_payments} pembayaran QRIS lunas · vs periode sebelumnya` : undefined}
         />
@@ -240,7 +240,7 @@ export function AdminDashboardPage() {
           label="Menunggu verifikasi"
           icon="hourglass_top"
           tone="warning"
-          value={s ? rupiah(s.pending_verification_amount) : '–'}
+          value={s ? rupiah(s.pending_verification_amount) : '-'}
           hint={s ? `${s.rejected_payments} bukti ditolak · ${s.refunded_payments ?? 0} dana dikembalikan · ${s.total_orders} total pesanan` : undefined}
         />
       </div>
@@ -253,7 +253,7 @@ export function AdminDashboardPage() {
                 <Icon name="how_to_reg" />
               </span>
               <div className="min-w-0">
-                <h2 className="text-headline-sm text-ink">Pipeline Persetujuan Kemitraan Bengkel Baru</h2>
+                <h2 className="text-headline-sm text-ink">Bengkel menunggu persetujuan</h2>
                 <p className="text-xs text-ink-3">Bengkel baru yang menunggu diperiksa dan disetujui.</p>
               </div>
             </div>
@@ -380,7 +380,7 @@ export function AdminWorkshopsPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Tata kelola mitra" title="Persetujuan Mitra" subtitle="Verifikasi bengkel baru sebelum tampil ke pelanggan, atau nonaktifkan mitra yang bermasalah." />
+      <PageHeader eyebrow="Tata kelola mitra" title="Persetujuan mitra" subtitle="Verifikasi bengkel baru sebelum tampil ke pelanggan, atau nonaktifkan mitra yang bermasalah." />
       <div className="no-scrollbar mb-5 overflow-x-auto">
         <Segmented
           label="Filter status"
@@ -498,7 +498,7 @@ function WorkshopApprovalCard({
           <InfoRow icon="schedule" label="Kapasitas servis">
             {w.max_slot_per_hour} booking / jam
             <span className="block text-sm font-normal text-ink-2">
-              Buka {w.open_time}–{w.close_time}
+              Buka {w.open_time}-{w.close_time}
             </span>
           </InfoRow>
           <InfoRow icon="directions_car" label="Kendaraan & SOS">
@@ -617,7 +617,7 @@ export function AdminReportsPage() {
           <section className="rounded-xl border border-line bg-card p-5 shadow-sm sm:p-6">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-headline-sm text-ink">Tren Harian</h2>
+                <h2 className="text-headline-sm text-ink">Tren harian</h2>
                 <p className="text-sm text-ink-2">Tinggi batang: jumlah pesanan · isi gelap: pendapatan terverifikasi</p>
               </div>
             </div>

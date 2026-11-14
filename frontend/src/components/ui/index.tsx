@@ -707,7 +707,7 @@ export function Pagination({
   return (
     <nav aria-label="Halaman hasil" className={cx('flex flex-col items-center gap-3', className)} data-testid="pagination">
       <p className="font-label text-xs text-ink-3">
-        Menampilkan {from}–{to} dari {total}
+        Menampilkan {from}-{to} dari {total}
       </p>
       <div className="flex items-center gap-1.5">
         <button type="button" className={arrow} disabled={page === 1} onClick={() => onChange(page - 1)} aria-label="Halaman sebelumnya">

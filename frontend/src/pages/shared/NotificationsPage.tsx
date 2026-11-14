@@ -28,7 +28,7 @@ export default function NotificationsPage() {
     <div className="mx-auto max-w-3xl">
       <PageHeader
         eyebrow="Pemberitahuan"
-        title="Riwayat Notifikasi"
+        title="Riwayat notifikasi"
         subtitle="Pesanan baru, panggilan darurat, pembayaran, dan perubahan status yang terkait dengan akun Anda."
         actions={
           <Button variant="secondary" size="sm" icon="done_all" disabled={!unread} onClick={markAllRead} data-testid="notif-mark-all">

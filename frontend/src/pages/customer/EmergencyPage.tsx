@@ -95,13 +95,13 @@ export default function EmergencyPage() {
     <div className="flex flex-col gap-6 pb-20 lg:pb-0">
       <div>
         <h1 className="text-display text-ink">Bantuan darurat</h1>
-        <p className="mt-1.5 max-w-2xl text-subtitle text-ink-2">Kendaraan mogok? Kirim lokasi, bengkel terdekat dengan mekanik terbaik dihubungi lebih dulu.</p>
+        <p className="mt-1.5 max-w-2xl text-subtitle text-ink-2">Kendaraan mogok? Kirim lokasi Anda. Bengkel terdekat yang punya mekanik siaga dihubungi lebih dulu.</p>
         <div className="mt-4 flex max-w-2xl items-start gap-3 rounded-lg border border-emergency/40 bg-emergency-soft px-4 py-3.5">
           <span className="grid h-10 w-10 shrink-0 animate-beacon place-items-center rounded-full bg-emergency text-white">
             <Icon name="e911_emergency" filled />
           </span>
           <div className="min-w-0">
-            <p className="text-subtitle font-bold text-emergency-ink">Layanan 24 jam, radius 5 km</p>
+            <p className="text-subtitle font-bold text-emergency-ink">Bengkel siaga dalam radius 5 km</p>
             <p className="mt-0.5 text-sm text-ink-2">Jika bengkel tidak merespons dalam 2 menit, permintaan dialihkan otomatis ke bengkel berikutnya.</p>
           </div>
         </div>

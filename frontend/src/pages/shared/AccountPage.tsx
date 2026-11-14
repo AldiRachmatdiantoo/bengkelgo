@@ -34,7 +34,7 @@ export default function AccountPage() {
   const registered = user.role !== 'GUEST';
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
-      <PageHeader eyebrow="Akun" title="Akun Saya" subtitle="Atur data diri, email, password, dan perangkat yang sedang masuk." />
+      <PageHeader eyebrow="Akun" title="Akun saya" subtitle="Atur data diri, email, password, dan perangkat yang sedang masuk." />
       <ProfileCard user={user} />
       <DetailsCard user={user} />
       {registered && <EmailCard user={user} />}
@@ -159,7 +159,7 @@ function DetailsCard({ user }: { user: User }) {
             placeholder="08xxxxxxxxxx"
             value={f.phone}
             onChange={(e) => setF({ ...f, phone: e.target.value })}
-            hint={user.role === 'WORKSHOP_OWNER' ? 'Nomor pribadi Anda. Nomor bengkel diatur di Pengaturan Bengkel.' : undefined}
+            hint={user.role === 'WORKSHOP_OWNER' ? 'Nomor pribadi Anda. Nomor bengkel diatur di Pengaturan bengkel.' : undefined}
             data-testid="account-phone"
           />
         </div>

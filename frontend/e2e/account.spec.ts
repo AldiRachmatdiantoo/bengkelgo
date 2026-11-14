@@ -30,7 +30,7 @@ test('customer: details, photo, password, new email, devices, then deleting the 
 
   await page.goto('/');
   await page.goto('/akun');
-  await expect(page.getByRole('heading', { name: 'Akun Saya' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Akun saya' })).toBeVisible();
 
   // Details
   await page.getByTestId('account-name-input').fill('Akun Uji Baru');
@@ -83,7 +83,7 @@ test('customer: details, photo, password, new email, devices, then deleting the 
   expect((await page.request.post(`${API}/auth/login`, { data: { email: newEmail, password: 'Baru12345' } })).status()).toBe(401);
 });
 
-test('workshop owner: "Akun Saya" in the portal, without deleting the account', async ({ page }) => {
+test('workshop owner: "Akun saya" in the portal, without deleting the account', async ({ page }) => {
   const owner = { name: 'Pemilik Akun', email: `owner.akun.${run}@example.test`, phone: `0813${digits()}`, password: 'Owner12345' };
   const reg = await page.request.post(`${API}/auth/register/workshop`, {
     data: { owner, workshop: { name: `Bengkel Akun ${run}`, address: 'Jl. Akun No. 1', phone: `0813${digits()}`, latitude: -6.2, longitude: 106.8, vehicle_types: ['MOTOR'] } },
@@ -91,9 +91,9 @@ test('workshop owner: "Akun Saya" in the portal, without deleting the account', 
   expect(reg.ok(), await reg.text()).toBeTruthy();
 
   await page.goto('/owner');
-  await page.getByRole('link', { name: 'Akun Saya' }).first().click();
+  await page.getByRole('link', { name: 'Akun saya' }).first().click();
   await expect(page).toHaveURL(/\/owner\/akun$/);
   await expect(page.getByTestId('account-email')).toHaveText(owner.email);
-  await expect(page.getByText('Nomor bengkel diatur di Pengaturan Bengkel')).toBeVisible();
+  await expect(page.getByText('Nomor bengkel diatur di Pengaturan bengkel')).toBeVisible();
   await expect(page.getByTestId('account-delete')).toHaveCount(0);
 });

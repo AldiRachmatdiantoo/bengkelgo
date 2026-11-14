@@ -162,7 +162,7 @@ export default function WorkshopDetailPage() {
             </div>
             <p className="mt-1 text-sm text-ink-2">{w.address}</p>
             <p className={cx('mt-1 text-xs font-semibold', w.is_open ? 'text-ink-2' : 'text-ink-3')}>
-              {w.is_open ? `Buka ${w.open_time}–${w.close_time}` : 'Sedang tutup'}
+              {w.is_open ? `Buka ${w.open_time}-${w.close_time}` : 'Sedang tutup'}
               {w.has_qris && ' · Bayar QRIS'}
               {w.accepts_emergency && ' · Siaga SOS'}
             </p>

@@ -195,14 +195,15 @@
 }
 /* Section label beside the landing dot nav: shows, then fades out. */
 .animate-label-out { animation: label-out 2.4s ease forwards; }
+/* stays fully opaque (contrast), then slides a little and disappears instead of fading */
 @keyframes label-out {
-  0%, 70% { opacity: 1; transform: translateX(0) scale(1); }
-  100% { opacity: 0; transform: translateX(0.5rem) scale(0.95); }
+  0%, 85% { visibility: visible; transform: translateX(0) scale(1); }
+  100% { visibility: hidden; transform: translateX(0.5rem) scale(0.95); }
 }
 @media (prefers-reduced-motion: reduce) {
   .radar-sweep, .radar-ping, .animate-label-out { animation: none; }
   .radar-ping { opacity: 0.85; }
-  .animate-label-out { opacity: 0; }
+  .animate-label-out { visibility: hidden; }
 }
 
 /* Leaflet sits below the sticky header */
