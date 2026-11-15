@@ -83,6 +83,7 @@ export function WorkshopCard({ workshop, featured, date }: { workshop: Workshop;
         {featured && (
           <span className="absolute top-2 left-2 rounded-md bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">Rekomendasi</span>
         )}
+        {workshop.cover_photo_url && workshop.cover_is_illustration && <IllustrationTag />}
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
         <div className="flex flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between sm:gap-2">
@@ -258,6 +259,15 @@ export function StarRow({ rating, className }: { rating: number; className?: str
       {Array.from({ length: 5 }, (_, i) => (
         <Icon key={i} name="star" filled={i < rating} className={cx('text-[16px]', i >= rating && 'text-line-strong')} />
       ))}
+    </span>
+  );
+}
+
+/** Marks a generic workshop picture (demo workshops) so nobody takes it for a photo of that workshop. */
+export function IllustrationTag({ className }: { className?: string }) {
+  return (
+    <span className={cx('absolute bottom-1.5 left-1.5 rounded bg-black/75 px-1.5 py-0.5 text-[10px] leading-tight font-semibold text-white', className)} data-testid="photo-illustration">
+      Foto ilustrasi
     </span>
   );
 }

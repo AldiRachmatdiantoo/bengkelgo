@@ -173,6 +173,16 @@ Permintaan tim: beranda terasa sepi kalau pengunjung langsung disuguhi landing p
 
 Tes: `e2e/welcome-prompts.spec.ts` (urutan, posisi penunjuk di atas tombol SOS, fokus, Escape, aksesibilitas, jenis kendaraan terbawa ke SOS). Tes lain mulai sebagai pengunjung lama (`storageState` di `playwright.config.ts`) supaya tidak tertutup modal.
 
+## Foto bengkel demo (15 Nov 2026)
+
+Permintaan tim: semua bengkel punya foto, dan data demo diganti bengkel asli dari Google Maps Surabaya.
+
+| # | Bagian | Isi | Status |
+|---|---|---|---|
+| 1 | Foto ilustrasi | 20 bengkel demo (pemilik `@bengkelgo.test`) yang belum punya foto mendapat satu foto sampul dari 10 foto bengkel motor/mobil Unsplash (lisensi Unsplash, sumber per foto di `backend/assets/demo-photos/SOURCES.md`). Foto ikut di image API, dipasang oleh migrasi `011_demo_photos.sql` saat boot, dan tidak bisa terhapus lewat hapus foto. Setiap tampilan (kartu, daftar beranda, galeri detail, halaman foto pemilik) memberi label **Foto ilustrasi** supaya tidak dikira foto bengkel itu | 🟡 siap, belum dipush |
+| 2 | Bengkel asli dari Google Maps | Tidak dikerjakan: menyalin data dan foto Google Maps melanggar ketentuan Google dan hak cipta pemilik foto, dan menampilkan bengkel yang belum mendaftar sebagai mitra menyesatkan pelanggan (pesanan dan SOS tidak akan dijawab). Jalan yang benar: bengkel mendaftar sendiri lewat Gabung Mitra | ⛔ tidak dikerjakan |
+| 3 | Hapus data demo produksi | Ditunda atas keputusan tim; data demo tetap ada sampai ada cukup mitra asli | ⏸ ditunda |
+
 **Yang tersisa tanpa tim:** alur bertahap tahap 2, 3, dan 5 (di atas), baseline visual regression, dan memperbarui branch `tugas-appservice`. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).

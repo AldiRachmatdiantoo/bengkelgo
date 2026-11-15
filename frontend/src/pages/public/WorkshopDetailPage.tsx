@@ -17,6 +17,7 @@ import {
   dayMonthYear,
   dotTime,
   friendlyDay,
+  IllustrationTag,
   monthYear,
   slotRange,
   vehicleLabel,
@@ -368,13 +369,14 @@ export default function WorkshopDetailPage() {
 }
 
 /** Workshop photos: the cover across the card, and small thumbnails to switch when there are more. */
-function PhotoGallery({ photos, name }: { photos: { id: string; url: string; is_cover: boolean }[]; name: string }) {
+function PhotoGallery({ photos, name }: { photos: { id: string; url: string; is_cover: boolean; is_illustration?: boolean }[]; name: string }) {
   const [active, setActive] = useState(0);
   const current = photos[Math.min(active, photos.length - 1)];
   return (
     <div data-testid="workshop-photos">
       <div className="relative aspect-[16/7] w-full overflow-hidden bg-art">
-        <img src={apiAsset(current.url)!} alt={`Foto ${name}`} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={apiAsset(current.url)!} alt={current.is_illustration ? 'Foto ilustrasi bengkel' : `Foto ${name}`} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+        {current.is_illustration && <IllustrationTag className="bottom-3 left-3 text-[11px]" />}
         {photos.length > 1 && (
           <span className="absolute right-3 bottom-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white">
             {active + 1}/{photos.length}

@@ -14,6 +14,7 @@ WORKDIR /app
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --chown=node:node package.json ./
+COPY --chown=node:node assets ./assets
 RUN mkdir -p /app/uploads && chown node:node /app/uploads
 # Least privilege: never run as root inside the container
 USER node

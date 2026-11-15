@@ -148,10 +148,11 @@ export const workshopRepository = {
           ? `(0.6 * GREATEST(0, 1 - distance_meters / $3::float8) + 0.4 * ${rating} / 5) DESC, distance_meters ASC`
           : `w.avg_rating DESC, w.total_reviews DESC, ${hasPoint ? 'distance_meters ASC' : 'w.name ASC'}`;
     // Subquery so ORDER BY expressions can use the distance_meters alias.
-    const { rows } = await q.query<WorkshopRow & { distance_meters: number | null; cover_photo_id: string | null }>(
+    const { rows } = await q.query<WorkshopRow & { distance_meters: number | null; cover_photo_id: string | null; cover_is_illustration: boolean | null }>(
       `SELECT w.* FROM (
          SELECT ${WORKSHOP_COLS},
            (SELECT p.id FROM workshop_photos p WHERE p.workshop_id = w.id ORDER BY p.is_cover DESC, p.sort_order, p.created_at LIMIT 1) AS cover_photo_id,
+           (SELECT p.is_illustration FROM workshop_photos p WHERE p.workshop_id = w.id ORDER BY p.is_cover DESC, p.sort_order, p.created_at LIMIT 1) AS cover_is_illustration,
            CASE WHEN $1::float8 IS NULL THEN NULL
                 ELSE ST_Distance(w.location, ST_SetSRID(ST_MakePoint($2::float8, $1::float8), 4326)::geography) END AS distance_meters
          FROM workshops w
@@ -184,8 +185,8 @@ export const workshopRepository = {
 export const MAX_WORKSHOP_PHOTOS = 10;
 export const photoRepository = {
   async list(q: Queryable, workshopId: string) {
-    const { rows } = await q.query<{ id: string; path: string; is_cover: boolean; sort_order: number; created_at: string }>(
-      `SELECT id, path, is_cover, sort_order, created_at FROM workshop_photos WHERE workshop_id = $1 ORDER BY is_cover DESC, sort_order, created_at`,
+    const { rows } = await q.query<{ id: string; path: string; is_cover: boolean; is_illustration: boolean; sort_order: number; created_at: string }>(
+      `SELECT id, path, is_cover, is_illustration, sort_order, created_at FROM workshop_photos WHERE workshop_id = $1 ORDER BY is_cover DESC, sort_order, created_at`,
       [workshopId],
     );
     return rows;

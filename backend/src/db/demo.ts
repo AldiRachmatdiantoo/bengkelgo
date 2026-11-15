@@ -11,7 +11,8 @@
  * .test domain, so nothing is ever mailed to them.
  *
  * The map pins are real repair-shop locations in Surabaya (OpenStreetMap, Oct 2026) with their street names;
- * the workshop names, people and phone numbers are made up.
+ * the workshop names, people and phone numbers are made up. Each workshop gets an illustration photo from
+ * assets/demo-photos (free Unsplash licence, see SOURCES.md there).
  */
 import crypto from 'crypto';
 import fs from 'fs';
@@ -123,6 +124,7 @@ async function addDemoData(password: string) {
   const passwordHash = await hashPassword(password);
   const client = await pool.connect();
   let mechanicNo = 0;
+  const photoNo = { motor: 0, mobil: 0 };
   try {
     await client.query('BEGIN');
     for (const [i, s] of SHOPS.entries()) {
@@ -145,6 +147,14 @@ async function addDemoData(password: string) {
         `UPDATE workshops SET status = 'APPROVED', approved_at = NOW(), closed_weekdays = $2::smallint[],
            break_start = $3, break_end = $4 WHERE id = $1`,
         [w.id, s.closedSunday ? [0] : [], s.lunchBreak ? '12:00' : null, s.lunchBreak ? '13:00' : null],
+      );
+      // Illustration photo shipped with the code (assets/demo-photos), labelled "Foto ilustrasi" on the web.
+      const kind = s.kind === 'MOTOR' ? 'motor' : 'mobil';
+      const pic = `demo/${kind}-${(photoNo[kind]++ % 5) + 1}`;
+      await client.query(
+        `INSERT INTO workshop_photos (workshop_id, path, thumb_path, optimized, is_cover, sort_order, is_illustration)
+         VALUES ($1, $2, $3, TRUE, TRUE, 0, TRUE)`,
+        [w.id, `${pic}.webp`, `${pic}-sm.webp`],
       );
 
       const menus: ['MOTOR' | 'MOBIL', [string, string, number, number][]][] =

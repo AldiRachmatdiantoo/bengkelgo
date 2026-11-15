@@ -9,6 +9,14 @@ import type { AllowedImageMime } from '../middlewares/upload';
 const EXT: Record<AllowedImageMime, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 const MIME_BY_EXT: Record<string, AllowedImageMime> = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
 const ROOT = path.resolve(env.UPLOAD_DIR);
+/**
+ * Illustration photos shipped with the code (backend/assets/demo-photos, free Unsplash licence) for the demo
+ * workshops. Keys look like `demo/motor-1.webp`; they are read from disk with any driver and never deleted.
+ */
+const DEMO_DIR = path.resolve(__dirname, '../../../assets/demo-photos');
+const DEMO_KEY = /^demo\/[a-z0-9-]+\.webp$/;
+export const isDemoKey = (key: string) => DEMO_KEY.test(key);
+const demoPath = (key: string) => path.join(DEMO_DIR, key.slice('demo/'.length));
 
 export type Bucket = 'qris' | 'proofs' | 'photos';
 
@@ -39,6 +47,10 @@ export function resolveStoredPath(key: string): string {
 
 /** Writes a stored image to the response (headers such as Cache-Control are set by the caller). */
 export async function sendStored(res: Response, key: string): Promise<void> {
+  if (isDemoKey(key)) {
+    res.sendFile(demoPath(key));
+    return;
+  }
   if (env.STORAGE_DRIVER !== 'supabase') {
     res.sendFile(resolveStoredPath(key));
     return;
@@ -50,12 +62,13 @@ export async function sendStored(res: Response, key: string): Promise<void> {
 
 /** Reads a stored image back (e.g. to make a smaller copy of it). */
 export async function readStored(key: string): Promise<Buffer> {
+  if (isDemoKey(key)) return fs.readFile(demoPath(key));
   if (env.STORAGE_DRIVER === 'supabase') return supabase.download(key);
   return fs.readFile(resolveStoredPath(key));
 }
 
 export async function deleteStored(key: string | null | undefined): Promise<void> {
-  if (!key) return;
+  if (!key || isDemoKey(key)) return;
   if (env.STORAGE_DRIVER === 'supabase') await supabase.remove(key).catch(() => undefined);
   else await fs.unlink(resolveStoredPath(key)).catch(() => undefined);
 }

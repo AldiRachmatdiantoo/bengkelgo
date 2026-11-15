@@ -101,7 +101,11 @@ export const workshopService = {
       offset: (q.page - 1) * q.limit,
     });
     // Cover photo for the workshop cards (null: the card shows its illustration instead).
-    return rows.map(({ cover_photo_id, ...w }) => ({ ...publicWorkshop(w), cover_photo_url: cover_photo_id ? photoUrl(w.id, cover_photo_id) : null }));
+    return rows.map(({ cover_photo_id, cover_is_illustration, ...w }) => ({
+      ...publicWorkshop(w),
+      cover_photo_url: cover_photo_id ? photoUrl(w.id, cover_photo_id) : null,
+      cover_is_illustration: Boolean(cover_is_illustration),
+    }));
   },
 
   async detail(id: string) {
@@ -112,7 +116,7 @@ export const workshopService = {
       ...publicWorkshop(w),
       services,
       mechanics: mechanics.map(({ phone: _p, workshop_id: _w, ...m }) => ({ ...m, photo_url: m.has_photo ? `/workshops/${id}/mechanics/${m.id}/photo` : null })),
-      photos: photos.map((p) => ({ id: p.id, is_cover: p.is_cover, url: photoUrl(id, p.id) })),
+      photos: photos.map((p) => ({ id: p.id, is_cover: p.is_cover, is_illustration: p.is_illustration, url: photoUrl(id, p.id) })),
     };
   },
 
@@ -156,7 +160,7 @@ export const workshopService = {
   // ---------- photos (item 19) ----------
   async listPhotos(ownerId: string) {
     const w = await ownedWorkshop(ownerId);
-    return (await photoRepository.list(db, w.id)).map((p) => ({ id: p.id, is_cover: p.is_cover, sort_order: p.sort_order, url: photoUrl(w.id, p.id) }));
+    return (await photoRepository.list(db, w.id)).map((p) => ({ id: p.id, is_cover: p.is_cover, is_illustration: p.is_illustration, sort_order: p.sort_order, url: photoUrl(w.id, p.id) }));
   },
   async addPhoto(ownerId: string, file: { buffer: Buffer; mimetype: string }) {
     const w = await ownedWorkshop(ownerId);

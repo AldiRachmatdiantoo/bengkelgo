@@ -60,6 +60,8 @@ export interface Workshop {
   name: string;
   /** Cover photo (workshop list only); null when the workshop has no photos yet. */
   cover_photo_url?: string | null;
+  /** The cover is a generic workshop picture (demo workshops), not a photo of this workshop. */
+  cover_is_illustration?: boolean;
   description: string | null;
   address: string;
   phone: string;
@@ -115,6 +117,8 @@ export interface Mechanic {
 export interface WorkshopPhoto {
   id: string;
   is_cover: boolean;
+  /** Generic workshop picture (demo workshops), not a photo of this workshop. */
+  is_illustration?: boolean;
   url: string;
   sort_order?: number;
 }

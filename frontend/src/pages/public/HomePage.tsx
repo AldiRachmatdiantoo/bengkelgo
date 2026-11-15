@@ -5,7 +5,7 @@ import { apiAsset, statsApi, workshopApi } from '@/services/api/endpoints';
 import { useAuth } from '@/services/auth/AuthProvider';
 import { WelcomePrompts } from '@/components/layout/WelcomePrompts';
 import type { Workshop } from '@/services/api/types';
-import { StarRow } from '@/components/workshop/WorkshopComponents';
+import { IllustrationTag, StarRow } from '@/components/workshop/WorkshopComponents';
 import { Icon, Segmented, cx, SkeletonList } from '@/components/ui';
 import { WorkshopArt } from '@/components/ui/screen';
 import { ScrollRadar, type ScrollRadarSection } from '@/components/ui/landing-page';
@@ -227,7 +227,10 @@ function WorkshopRow({ workshop: w }: { workshop: Workshop }) {
     <Link to={`/workshops/${w.id}`} className="flex min-h-[76px] items-stretch overflow-hidden rounded-2xl border border-line bg-card/80 backdrop-blur-sm transition hover:border-primary/60">
       <span className="relative w-28 shrink-0 overflow-hidden bg-art sm:w-32">
         {w.cover_photo_url ? (
-          <img src={apiAsset(`${w.cover_photo_url}?size=sm`)!} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+          <>
+            <img src={apiAsset(`${w.cover_photo_url}?size=sm`)!} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+            {w.cover_is_illustration && <IllustrationTag />}
+          </>
         ) : (
           <WorkshopArt className="absolute inset-0 h-full w-full" />
         )}

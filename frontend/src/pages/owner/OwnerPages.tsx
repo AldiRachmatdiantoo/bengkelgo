@@ -1733,7 +1733,10 @@ function OwnerPhotosSection() {
                 <OwnPhoto id={p.id} />
                 <div className="flex items-center justify-between gap-1 p-2">
                   {p.is_cover ? (
-                    <Badge tone="success">Sampul</Badge>
+                    <span className="flex flex-wrap gap-1">
+                      <Badge tone="success">Sampul</Badge>
+                      {p.is_illustration && <Badge>Foto ilustrasi</Badge>}
+                    </span>
                   ) : (
                     <Button size="sm" variant="ghost" className="px-2" loading={cover.isPending && cover.variables === p.id} onClick={() => cover.mutate(p.id)}>
                       Jadikan sampul
