@@ -53,14 +53,20 @@ test('journey 2: owner registers, admin approves, owner configures quota, techni
   await page.getByLabel('Email').fill(owner.email);
   await page.getByLabel('Nomor WhatsApp').fill(owner.phone);
   await page.getByLabel('Password').fill(owner.password);
+  // Step flow: owner account -> workshop -> hours & capacity (defaults) -> location -> review.
+  await page.getByTestId('step-next').click();
   await page.getByLabel('Nama bengkel').fill(workshopName);
   await page.getByLabel('Telepon bengkel').fill(`0813${digits()}`);
-  await page.getByLabel('Alamat').fill('Jl. Uji Otomatis No. 1');
+  await page.getByTestId('step-next').click();
+  await page.getByTestId('step-next').click();
   await page.locator('.leaflet-container').click();
   const pin = page.getByTestId('ws-point');
   await expect(pin).toHaveText('Lokasi sudah ditandai di peta.');
   location = { lat: Number(await pin.getAttribute('data-lat')), lng: Number(await pin.getAttribute('data-lng')) };
-  await page.getByRole('button', { name: 'Daftarkan bengkel' }).click();
+  await page.getByLabel('Alamat').fill('Jl. Uji Otomatis No. 1');
+  await page.getByTestId('step-next').click();
+  await expect(page.getByTestId('ws-review')).toContainText(workshopName);
+  await page.getByTestId('ws-submit').click();
   await expect(page).toHaveURL(/\/owner$/);
   await expect(page.getByText('Menunggu verifikasi').first()).toBeVisible();
 

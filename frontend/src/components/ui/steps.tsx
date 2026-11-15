@@ -2,7 +2,7 @@
 // the bottom bar, the active step in the URL (?langkah=) so the phone's back button goes one step back, and a
 // per-tab draft so a refresh or a detour to /login keeps what was typed.
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { cx } from './index';
 
 export type StepDef<T extends string> = { id: T; label: string; skip?: boolean };
@@ -13,6 +13,7 @@ export type StepDef<T extends string> = { id: T; label: string; skip?: boolean }
  */
 export function useStepFlow<T extends string>(all: StepDef<T>[]) {
   const [params, setParams] = useSearchParams();
+  const { pathname } = useLocation();
   const steps = all.filter((s) => !s.skip);
   const raw = params.get('langkah');
   const index = Math.max(
@@ -23,6 +24,8 @@ export function useStepFlow<T extends string>(all: StepDef<T>[]) {
 
   const go = useCallback(
     (id: T, replace = false) => {
+      // The flow already left this page (e.g. sent, then navigated away): never write ?langkah= onto the next page.
+      if (window.location.pathname !== pathname) return;
       setParams(
         (p) => {
           const next = new URLSearchParams(p);
@@ -32,7 +35,7 @@ export function useStepFlow<T extends string>(all: StepDef<T>[]) {
         { replace },
       );
     },
-    [setParams],
+    [setParams, pathname],
   );
 
   return {

@@ -1,6 +1,6 @@
 # Rancangan alur bertahap (wizard)
 
-**Dibuat:** 15 November 2026 · **Status:** tahap 1 (darurat) selesai 15 Nov, tahap 2 dan seterusnya belum
+**Dibuat:** 15 November 2026 · **Status:** tahap 1 (darurat) dan tahap 4 (daftar mitra) selesai 15 Nov; booking dan pembayaran belum
 **Usulan dari:** tim (Aldi). Tampilan sekarang sudah bagus, tapi formulir yang panjang dalam satu halaman membuat pengguna bingung harus mulai dari mana. Usulannya: isian dipecah per langkah dengan tombol **Lanjut**, berurutan, dan tidak hanya untuk darurat.
 
 Dokumen ini berisi rancangan saja. Kode belum diubah.
@@ -100,7 +100,7 @@ Tombol "Bayar nanti" tetap ada di langkah 1.
 | # | Langkah | Isi layar |
 |---|---|---|
 | 1 | **Akun pemilik** | Nama, email, WhatsApp, password. |
-| 2 | **Data bengkel** | Nama bengkel, telepon, alamat, jenis kendaraan yang dilayani. |
+| 2 | **Data bengkel** | Nama bengkel, telepon, jenis kendaraan yang dilayani, deskripsi (opsional). Alamat pindah ke langkah Lokasi supaya bisa diisi dari titik peta. |
 | 3 | **Jam & kapasitas** | Jam buka-tutup, kapasitas booking per jam. |
 | 4 | **Lokasi** | Peta + cari alamat, "Pakai sebagai alamat". |
 | 5 | **Periksa & kirim** | Ringkasan dengan tombol Ubah, lalu **Daftarkan bengkel**. Setelahnya tetap ke halaman verifikasi email + status "menunggu persetujuan admin". |

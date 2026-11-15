@@ -48,6 +48,16 @@ test('workshop sign-up: the pin shows its approximate address, which can fill th
     });
   });
   await page.goto('/register/workshop');
+  // The map is on step 4: fill the owner and workshop steps first.
+  await page.getByLabel('Nama pemilik').fill('Pemilik Uji');
+  await page.getByLabel('Email').fill('pemilik.uji@example.com');
+  await page.getByLabel('Nomor WhatsApp').fill('081234567890');
+  await page.getByLabel('Password').fill('RahasiaUji1');
+  await page.getByTestId('step-next').click();
+  await page.getByLabel('Nama bengkel').fill('Bengkel Uji');
+  await page.getByLabel('Telepon bengkel').fill('081234567891');
+  await page.getByTestId('step-next').click();
+  await page.getByTestId('step-next').click();
 
   const input = page.getByTestId('place-search-input');
   await input.fill('Stasiun Bogor');

@@ -9,7 +9,9 @@ import { checkCallback, googleEnabled, startGoogleLogin, takePendingGoogleLogin 
 import { MapPicker, type LatLng } from '@/components/map/Maps';
 import { PlaceSearch } from '@/components/map/PlaceSearch';
 import { AddressHint } from '@/components/map/AddressHint';
-import { Alert, Button, Card, Icon, Input, MissingFields, Segmented, Spinner, TextArea, SkeletonPage } from '@/components/ui';
+import { Alert, Button, Icon, Input, MissingFields, Segmented, Spinner, TextArea, SkeletonPage } from '@/components/ui';
+import { BottomBar, ScreenAction, ScreenHeader } from '@/components/ui/screen';
+import { ReviewRow, StepHeading, StepProgress, useStepDraft, useStepFlow } from '@/components/ui/steps';
 import { fieldIssue, isEmail, isIdPhone, isStrongPassword } from '@/utils/formChecks';
 
 /** After auth, go back to where the user came from (e.g. the workshop they were booking), else role home. */
@@ -270,119 +272,249 @@ export function RegisterPage() {
   );
 }
 
+type WsStep = 'akun' | 'bengkel' | 'jam' | 'lokasi' | 'kirim';
+
+type WsDraft = {
+  owner: { name: string; email: string; phone: string };
+  ws: { name: string; description: string; address: string; phone: string; open_time: string; close_time: string; max_slot_per_hour: number };
+  vehicles: VehicleType[];
+  point: LatLng | null;
+};
+
+const WS_EMPTY: WsDraft = {
+  owner: { name: '', email: '', phone: '' },
+  ws: { name: '', description: '', address: '', phone: '', open_time: '08:00', close_time: '17:00', max_slot_per_hour: 3 },
+  vehicles: ['MOTOR', 'MOBIL'],
+  point: null,
+};
+
+const VEHICLE_LABEL: Record<string, string> = { 'MOTOR,MOBIL': 'Motor & mobil', MOTOR: 'Motor', MOBIL: 'Mobil' };
+
+/**
+ * Partner sign-up as five steps: owner account, workshop details, hours & capacity, location, review. The draft
+ * survives a refresh in this tab; the password is never written to storage, so after a refresh it is asked again.
+ */
 export function RegisterWorkshopPage() {
   const { done } = useAfterAuth();
-  const [owner, setOwner] = useState({ name: '', email: '', phone: '', password: '' });
-  const [ws, setWs] = useState({ name: '', description: '', address: '', phone: '', open_time: '08:00', close_time: '17:00', max_slot_per_hour: 3 });
-  const [vehicles, setVehicles] = useState<VehicleType[]>(['MOTOR', 'MOBIL']);
-  const [point, setPoint] = useState<LatLng | null>(null);
-  const missing = [
-    owner.name.trim().length < 2 && { label: 'Nama pemilik', target: 'ws-owner-name' },
-    issueOf(owner.email, 'Email pemilik', isEmail, 'Format email belum benar', 'ws-owner-email'),
-    issueOf(owner.phone, 'WhatsApp pemilik', isIdPhone, 'WhatsApp pemilik belum benar (mis. 0812…)', 'ws-owner-phone'),
-    issueOf(owner.password, 'Password', isStrongPassword, 'Password belum memenuhi syarat', 'ws-owner-password'),
-    ws.name.trim().length < 3 && { label: 'Nama bengkel (min. 3 karakter)', target: 'ws-name' },
-    !ws.phone.trim() && { label: 'Telepon bengkel', target: 'ws-phone' },
-    ws.address.trim().length < 5 && { label: 'Alamat bengkel (min. 5 karakter)', target: 'ws-address' },
-    !!ws.open_time && !!ws.close_time && ws.open_time >= ws.close_time && { label: 'Jam tutup harus setelah jam buka', target: 'ws-close' },
-    !point && { label: 'Lokasi bengkel di peta', target: 'ws-location' },
-  ];
+  const [draft, update, clearDraft] = useStepDraft<WsDraft>('workshop-signup-draft', WS_EMPTY);
+  const [password, setPassword] = useState('');
+  const [tried, setTried] = useState<WsStep | null>(null);
+  const { owner, ws, vehicles, point } = draft;
+  const setOwner = (patch: Partial<WsDraft['owner']>) => update({ owner: { ...owner, ...patch } });
+  const setWs = (patch: Partial<WsDraft['ws']>) => update({ ws: { ...ws, ...patch } });
 
+  const flow = useStepFlow<WsStep>([
+    { id: 'akun', label: 'Akun pemilik' },
+    { id: 'bengkel', label: 'Data bengkel' },
+    { id: 'jam', label: 'Jam & kapasitas' },
+    { id: 'lokasi', label: 'Lokasi' },
+    { id: 'kirim', label: 'Periksa & kirim' },
+  ]);
+  const step = flow.active.id;
+
+  const missingFor = (id: WsStep) => {
+    switch (id) {
+      case 'akun':
+        return [
+          owner.name.trim().length < 2 && { label: 'Nama pemilik', target: 'ws-owner-name' },
+          issueOf(owner.email, 'Email pemilik', isEmail, 'Format email belum benar', 'ws-owner-email'),
+          issueOf(owner.phone, 'WhatsApp pemilik', isIdPhone, 'WhatsApp pemilik belum benar (mis. 0812…)', 'ws-owner-phone'),
+          issueOf(password, 'Password', isStrongPassword, 'Password belum memenuhi syarat', 'ws-owner-password'),
+        ];
+      case 'bengkel':
+        return [
+          ws.name.trim().length < 3 && { label: 'Nama bengkel (min. 3 karakter)', target: 'ws-name' },
+          !ws.phone.trim() && { label: 'Telepon bengkel', target: 'ws-phone' },
+        ];
+      case 'jam':
+        return [
+          (!ws.open_time || !ws.close_time || ws.open_time >= ws.close_time) && { label: 'Jam tutup harus setelah jam buka', target: 'ws-close' },
+          !(ws.max_slot_per_hour >= 1 && ws.max_slot_per_hour <= 100) && { label: 'Kapasitas per jam 1 sampai 100', target: 'ws-capacity' },
+        ];
+      case 'lokasi':
+        return [!point && { label: 'Titik bengkel di peta', target: 'ws-location' }, ws.address.trim().length < 5 && { label: 'Alamat bengkel (min. 5 karakter)', target: 'ws-address' }];
+      default:
+        return [];
+    }
+  };
+  const isValid = (id: WsStep) => !missingFor(id).some(Boolean);
+
+  // Opened on a later step (refresh: the password is gone, or a shared link) with an earlier step incomplete.
+  const firstInvalid = flow.steps.findIndex((s) => s.id !== 'kirim' && !isValid(s.id));
   const register = useMutation({
     mutationFn: () =>
       authApi.registerWorkshop({
-        owner,
+        owner: { ...owner, password },
         workshop: { ...ws, description: ws.description || undefined, latitude: point!.lat, longitude: point!.lng, vehicle_types: vehicles },
       }),
-    onSuccess: done,
+    onSuccess: (s) => {
+      clearDraft();
+      done(s);
+    },
   });
 
+  useEffect(() => {
+    if (register.isPending || register.isSuccess) return;
+    if (firstInvalid !== -1 && firstInvalid < flow.index) flow.go(flow.steps[firstInvalid].id, true);
+  }, [firstInvalid, flow, register.isPending, register.isSuccess]);
+
+  const next = () => {
+    if (!isValid(step)) return setTried(step);
+    setTried(null);
+    flow.next();
+  };
+
+  const titles: Record<WsStep, { title: string; description?: string }> = {
+    akun: { title: 'Akun pemilik bengkel', description: 'Dipakai untuk masuk ke portal mitra.' },
+    bengkel: { title: 'Tentang bengkel Anda', description: 'Nama dan telepon ini yang dilihat pelanggan.' },
+    jam: { title: 'Jam buka dan kapasitas', description: 'Pelanggan hanya bisa booking di jam buka, sebanyak kapasitas per jam. Bisa diubah nanti di Pengaturan bengkel.' },
+    lokasi: { title: 'Di mana bengkel Anda?', description: 'Titik ini dipakai untuk pencarian bengkel terdekat dan radius darurat 5 km.' },
+    kirim: { title: 'Periksa sebelum mendaftar', description: 'Bengkel tampil ke pelanggan setelah diverifikasi admin.' },
+  };
+
   return (
-    <div className="mx-auto max-w-4xl">
-      <div className="mb-6">
-        <p className="text-xs font-bold tracking-[0.04em] text-primary uppercase">Kemitraan BengkelGo</p>
-        <h1 className="mt-1 text-display text-ink">Daftarkan bengkel Anda</h1>
-        <p className="mt-1.5 max-w-2xl text-subtitle text-ink-2">
-          Kelola antrean per jam, mekanik, panggilan darurat, dan pembayaran QRIS. Bengkel tampil ke pelanggan setelah diverifikasi admin.
-        </p>
-      </div>
-      <form
-        className="flex flex-col gap-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (missing.some(Boolean)) return;
-          register.mutate();
-        }}
-      >
-        <Card title="Data pemilik" icon="badge">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input id="ws-owner-name" label="Nama pemilik" icon="person" required value={owner.name} onChange={(e) => setOwner({ ...owner, name: e.target.value })} />
-            <Input id="ws-owner-email" label="Email" icon="mail" type="email" required value={owner.email} onChange={(e) => setOwner({ ...owner, email: e.target.value })} />
-            <Input id="ws-owner-phone" label="Nomor WhatsApp" icon="call" required value={owner.phone} onChange={(e) => setOwner({ ...owner, phone: e.target.value })} />
-            <Input id="ws-owner-password" label="Password" icon="lock" type="password" required value={owner.password} onChange={(e) => setOwner({ ...owner, password: e.target.value })} hint={PASSWORD_HINT} />
-          </div>
-        </Card>
+    <div className="mx-auto w-full max-w-xl">
+      <ScreenHeader
+        title="Daftarkan bengkel Anda"
+        back={flow.isFirst ? '/' : undefined}
+        onBack={flow.isFirst ? undefined : flow.back}
+        backLabel={flow.isFirst ? 'Kembali ke beranda' : 'Langkah sebelumnya'}
+      />
+      <StepProgress index={flow.index} total={flow.total} label={flow.active.label} />
+      <StepHeading stepKey={step} index={flow.index} total={flow.total} {...titles[step]} />
 
-        <Card title="Data bengkel" icon="storefront">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input id="ws-name" label="Nama bengkel" required value={ws.name} onChange={(e) => setWs({ ...ws, name: e.target.value })} />
-            <Input id="ws-phone" label="Telepon bengkel" icon="call" required value={ws.phone} onChange={(e) => setWs({ ...ws, phone: e.target.value })} />
-            <div className="sm:col-span-2">
-              <TextArea id="ws-address" label="Alamat" required value={ws.address} onChange={(e) => setWs({ ...ws, address: e.target.value })} />
-            </div>
-            <div className="sm:col-span-2">
-              <TextArea label="Deskripsi (opsional)" value={ws.description} onChange={(e) => setWs({ ...ws, description: e.target.value })} placeholder="Spesialisasi, fasilitas, dsb." />
-            </div>
-            <Input label="Jam buka" icon="schedule" type="time" step={3600} value={ws.open_time} onChange={(e) => setWs({ ...ws, open_time: e.target.value })} />
-            <Input id="ws-close" label="Jam tutup" icon="schedule" type="time" step={3600} value={ws.close_time} onChange={(e) => setWs({ ...ws, close_time: e.target.value })} />
-            <Input
-              label="Kapasitas booking per jam"
-              icon="event_seat"
-              type="number"
-              min={1}
-              max={100}
-              value={ws.max_slot_per_hour}
-              onChange={(e) => setWs({ ...ws, max_slot_per_hour: Number(e.target.value) })}
-            />
-            <div className="flex flex-col gap-1.5">
-              <span className="font-label text-xs font-semibold">Jenis kendaraan</span>
-              <Segmented
-                label="Jenis kendaraan"
-                value={vehicles.join(',')}
-                onChange={(v) => setVehicles(v.split(',') as VehicleType[])}
-                options={[
-                  { value: 'MOTOR,MOBIL', label: 'Motor & Mobil' },
-                  { value: 'MOTOR', label: 'Motor', icon: 'two_wheeler' },
-                  { value: 'MOBIL', label: 'Mobil', icon: 'directions_car' },
-                ]}
-              />
-            </div>
-          </div>
-        </Card>
-
-        <Card id="ws-location" title="Lokasi bengkel" icon="location_on" subtitle="Klik pada peta untuk menandai titik bengkel. Dipakai untuk pencarian terdekat dan radius darurat 5 km.">
-          <PlaceSearch
-            className="mb-3"
-            near={point}
-            placeholder="Cari alamat bengkel: jalan, kelurahan, kota"
-            onPick={(p) => setPoint({ lat: p.lat, lng: p.lng })}
+      {step === 'akun' && (
+        <div className="flex flex-col gap-4">
+          <Input id="ws-owner-name" label="Nama pemilik" icon="person" required value={owner.name} onChange={(e) => setOwner({ name: e.target.value })} />
+          <Input id="ws-owner-email" label="Email" icon="mail" type="email" required value={owner.email} onChange={(e) => setOwner({ email: e.target.value })} />
+          <Input id="ws-owner-phone" label="Nomor WhatsApp" icon="call" inputMode="tel" required value={owner.phone} onChange={(e) => setOwner({ phone: e.target.value })} placeholder="08xxxxxxxxxx" />
+          <Input
+            id="ws-owner-password"
+            label="Password"
+            icon="lock"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            hint={PASSWORD_HINT}
           />
-          <MapPicker value={point} onChange={setPoint} height={320} />
-          <p className="mt-2 font-label text-xs text-ink-3" data-testid="ws-point" data-lat={point?.lat} data-lng={point?.lng}>
+          <p className="text-sm text-ink-2">
+            Sudah punya akun mitra?{' '}
+            <Link to="/login" className="font-semibold text-primary hover:underline">
+              Masuk
+            </Link>
+          </p>
+        </div>
+      )}
+
+      {step === 'bengkel' && (
+        <div className="flex flex-col gap-4">
+          <Input id="ws-name" label="Nama bengkel" icon="storefront" required value={ws.name} onChange={(e) => setWs({ name: e.target.value })} />
+          <Input id="ws-phone" label="Telepon bengkel" icon="call" inputMode="tel" required value={ws.phone} onChange={(e) => setWs({ phone: e.target.value })} />
+          <div className="flex flex-col gap-1.5">
+            <span className="font-label text-xs font-semibold">Kendaraan yang dilayani</span>
+            <Segmented
+              label="Kendaraan yang dilayani"
+              value={vehicles.join(',')}
+              onChange={(v) => update({ vehicles: v.split(',') as VehicleType[] })}
+              options={[
+                { value: 'MOTOR,MOBIL', label: 'Motor & mobil' },
+                { value: 'MOTOR', label: 'Motor', icon: 'two_wheeler' },
+                { value: 'MOBIL', label: 'Mobil', icon: 'directions_car' },
+              ]}
+            />
+          </div>
+          <TextArea label="Deskripsi (opsional)" value={ws.description} onChange={(e) => setWs({ description: e.target.value })} placeholder="Spesialisasi, fasilitas, dsb." />
+        </div>
+      )}
+
+      {step === 'jam' && (
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Jam buka" icon="schedule" type="time" step={3600} value={ws.open_time} onChange={(e) => setWs({ open_time: e.target.value })} />
+            <Input id="ws-close" label="Jam tutup" icon="schedule" type="time" step={3600} value={ws.close_time} onChange={(e) => setWs({ close_time: e.target.value })} />
+          </div>
+          <Input
+            id="ws-capacity"
+            label="Kapasitas booking per jam"
+            icon="event_seat"
+            type="number"
+            min={1}
+            max={100}
+            value={ws.max_slot_per_hour}
+            onChange={(e) => setWs({ max_slot_per_hour: Number(e.target.value) })}
+            hint="Berapa kendaraan yang bisa dikerjakan bersamaan dalam satu jam."
+          />
+        </div>
+      )}
+
+      {step === 'lokasi' && (
+        <div id="ws-location" className="flex flex-col gap-3">
+          <PlaceSearch near={point} placeholder="Cari alamat bengkel: jalan, kelurahan, kota" onPick={(p) => update({ point: { lat: p.lat, lng: p.lng } })} />
+          <MapPicker value={point} onChange={(p) => update({ point: p })} height={300} />
+          <p className="font-label text-xs text-ink-3" data-testid="ws-point" data-lat={point?.lat} data-lng={point?.lng}>
             {point ? 'Lokasi sudah ditandai di peta.' : 'Lokasi belum dipilih'}
           </p>
-          <AddressHint className="mt-1" point={point} useLabel="Pakai sebagai alamat" onUse={(a) => setWs((w) => ({ ...w, address: a }))} />
-        </Card>
+          <AddressHint point={point} useLabel="Pakai sebagai alamat" onUse={(a) => setWs({ address: a })} />
+          <TextArea id="ws-address" label="Alamat" required value={ws.address} onChange={(e) => setWs({ address: e.target.value })} />
+        </div>
+      )}
 
-        {register.error && <Alert tone="danger">{errorMessage(register.error)}</Alert>}
-        <Alert tone="info" icon="verified">
-          Setelah mendaftar, bengkel akan diverifikasi admin sebelum tampil ke pelanggan.
-        </Alert>
-        <MissingFields items={missing} />
-        <Button type="submit" size="lg" icon="how_to_reg" disabled={!point} loading={register.isPending} className="self-end">
-          Daftarkan bengkel
-        </Button>
-      </form>
+      {step === 'kirim' && (
+        <div className="flex flex-col gap-5">
+          <div className="rounded-xl border border-line bg-card px-4" data-testid="ws-review">
+            <ReviewRow label="Pemilik" onEdit={() => flow.go('akun')}>
+              {owner.name}
+              <span className="block text-xs font-normal text-ink-2">
+                {owner.email} · {owner.phone}
+              </span>
+            </ReviewRow>
+            <ReviewRow label="Bengkel" onEdit={() => flow.go('bengkel')}>
+              {ws.name}
+              <span className="block text-xs font-normal text-ink-2">
+                {ws.phone} · {VEHICLE_LABEL[vehicles.join(',')]}
+              </span>
+              {ws.description && <span className="block text-xs font-normal text-ink-2">{ws.description}</span>}
+            </ReviewRow>
+            <ReviewRow label="Jam & kapasitas" onEdit={() => flow.go('jam')}>
+              {ws.open_time}-{ws.close_time}
+              <span className="block text-xs font-normal text-ink-2">{ws.max_slot_per_hour} kendaraan per jam</span>
+            </ReviewRow>
+            <ReviewRow label="Lokasi" onEdit={() => flow.go('lokasi')}>
+              {ws.address}
+              {point && (
+                <span className="block font-label text-xs font-normal text-ink-2">
+                  {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
+                </span>
+              )}
+            </ReviewRow>
+          </div>
+          {register.error && <Alert tone="danger">{errorMessage(register.error)}</Alert>}
+          <Alert tone="info" icon="verified">
+            Setelah mendaftar, bengkel diverifikasi admin sebelum tampil ke pelanggan.
+          </Alert>
+        </div>
+      )}
+
+      {tried === step && <MissingFields className="mt-5" items={missingFor(step)} />}
+
+      <BottomBar>
+        {!flow.isFirst && (
+          <ScreenAction variant="secondary" className="!w-auto shrink-0 px-5" onClick={flow.back} data-testid="step-back">
+            Kembali
+          </ScreenAction>
+        )}
+        {flow.isLast ? (
+          <ScreenAction className="flex-1" onClick={() => register.mutate()} loading={register.isPending} data-testid="ws-submit">
+            Daftarkan bengkel
+          </ScreenAction>
+        ) : (
+          <ScreenAction className="flex-1" onClick={next} data-testid="step-next">
+            Lanjut
+          </ScreenAction>
+        )}
+      </BottomBar>
     </div>
   );
 }
