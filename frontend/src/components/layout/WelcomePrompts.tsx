@@ -1,6 +1,7 @@
 // Shown on the landing page: first "Kendaraan Anda mogok sekarang?" (a shortcut into the SOS flow with the vehicle
 // type chosen), then, once that is closed, a one-time cookie notice. BengkelGo only sets the login cookie, which
 // the site cannot work without, so the notice informs instead of offering a refusal that would do nothing.
+// Last, a one-time pointer to the floating SOS button (bottom right) saying what it is for.
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { VehicleType } from '@/services/api/types';
@@ -9,6 +10,7 @@ import { Icon, Modal } from '@/components/ui';
 
 const SOS_ASKED_KEY = 'bengkelgo:sos-asked';
 const COOKIE_KEY = 'bengkelgo:cookie-notice';
+const SOS_TIP_KEY = 'bengkelgo:sos-tip';
 /** The SOS question comes back after this long, so a returning visitor who breaks down later sees it again. */
 const ASK_AGAIN_MS = 12 * 60 * 60 * 1000;
 
@@ -33,6 +35,7 @@ export function WelcomePrompts() {
   const customer = !user || user.role === 'CUSTOMER' || user.role === 'GUEST';
   const [askSos, setAskSos] = useState(() => customer && Date.now() - Number(read(SOS_ASKED_KEY) ?? 0) > ASK_AGAIN_MS);
   const [cookie, setCookie] = useState(() => read(COOKIE_KEY) !== '1');
+  const [sosTip, setSosTip] = useState(() => customer && read(SOS_TIP_KEY) !== '1');
   const firstButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -50,6 +53,10 @@ export function WelcomePrompts() {
   const closeCookie = () => {
     write(COOKIE_KEY, '1');
     setCookie(false);
+  };
+  const closeTip = () => {
+    write(SOS_TIP_KEY, '1');
+    setSosTip(false);
   };
 
   return (
@@ -120,6 +127,30 @@ export function WelcomePrompts() {
           >
             Mengerti
           </button>
+        </div>
+      )}
+      {!askSos && !cookie && sosTip && (
+        // Sits right above the floating SOS button (48 px at right-3 on phones, 64 px at right-6 from sm), arrow
+        // pointing down at its centre.
+        <div
+          role="note"
+          aria-label="Tentang tombol SOS"
+          data-testid="sos-tip"
+          className="fixed right-3 bottom-[4.5rem] z-[960] w-[min(18rem,calc(100vw-1.5rem))] rounded-xl bg-emergency p-4 text-white shadow-float sm:right-6 sm:bottom-[6.25rem]"
+        >
+          <p className="flex items-center gap-2 text-sm font-bold">
+            <Icon name="e911_emergency" filled className="text-[20px]" /> Ini tombol darurat
+          </p>
+          <p className="mt-1.5 text-sm leading-snug text-white">Kendaraan mogok di jalan? Tekan tombol SOS di bawah ini untuk minta bantuan bengkel siaga terdekat.</p>
+          <button
+            type="button"
+            onClick={closeTip}
+            data-testid="sos-tip-close"
+            className="mt-3 h-11 w-full rounded-lg bg-white px-4 text-sm font-bold text-emergency-dark transition hover:bg-white/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Oke, mengerti
+          </button>
+          <span aria-hidden className="absolute -bottom-2 right-4 h-4 w-4 rotate-45 bg-emergency sm:right-6" />
         </div>
       )}
     </>

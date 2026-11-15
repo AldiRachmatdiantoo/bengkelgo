@@ -168,8 +168,9 @@ Permintaan tim: beranda terasa sepi kalau pengunjung langsung disuguhi landing p
 |---|---|---|---|
 | 1 | Pertanyaan darurat | Modal "Kendaraan Anda mogok sekarang?" saat membuka beranda: **Motor mogok** / **Mobil mogok** langsung membuka alur darurat dengan jenis kendaraan terpilih, atau "Tidak, saya mau lihat-lihat dulu". Muncul lagi setelah 12 jam; tidak muncul untuk pemilik bengkel dan admin | ✅ live 15 Nov |
 | 2 | Pemberitahuan cookie | Muncul setelah pertanyaan darurat ditutup, sekali per browser. Isinya jujur: BengkelGo hanya memakai cookie login (wajib agar tetap masuk), tanpa cookie iklan atau pelacak, dengan tautan kebijakan privasi. Tidak ada tombol "tolak" karena tidak ada cookie opsional yang bisa ditolak; bila nanti ada analitik, pemberitahuan ini perlu diganti dengan pilihan setuju/tolak | ✅ live 15 Nov |
+| 3 | Penunjuk tombol SOS | Setelah pemberitahuan cookie ditutup, balon merah dengan panah muncul tepat di atas tombol SOS kanan bawah: "Ini tombol darurat. Kendaraan mogok di jalan? Tekan tombol SOS di bawah ini untuk minta bantuan bengkel siaga terdekat." Tombol "Oke, mengerti", sekali per browser, hanya untuk pelanggan/tamu. Label tombol SOS untuk pembaca layar diganti dari "Bantuan Darurat 24 Jam" (klaim yang tidak dijamin sistem) menjadi "Bantuan darurat (SOS)" | ✅ branch `landing-globe`, belum di-push |
 
-Tes: `e2e/welcome-prompts.spec.ts` (urutan, fokus, Escape, aksesibilitas, jenis kendaraan terbawa ke SOS). Tes lain mulai sebagai pengunjung lama (`storageState` di `playwright.config.ts`) supaya tidak tertutup modal.
+Tes: `e2e/welcome-prompts.spec.ts` (urutan, posisi penunjuk di atas tombol SOS, fokus, Escape, aksesibilitas, jenis kendaraan terbawa ke SOS). Tes lain mulai sebagai pengunjung lama (`storageState` di `playwright.config.ts`) supaya tidak tertutup modal.
 
 **Yang tersisa tanpa tim:** alur bertahap tahap 2, 3, dan 5 (di atas), baseline visual regression, dan memperbarui branch `tugas-appservice`. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 

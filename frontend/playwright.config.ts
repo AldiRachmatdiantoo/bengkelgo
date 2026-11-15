@@ -43,6 +43,7 @@ export default defineConfig({
           localStorage: [
             { name: 'bengkelgo:sos-asked', value: '9999999999999' },
             { name: 'bengkelgo:cookie-notice', value: '1' },
+            { name: 'bengkelgo:sos-tip', value: '1' },
           ],
         },
       ],

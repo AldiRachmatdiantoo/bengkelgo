@@ -442,8 +442,8 @@ function PublicShell() {
           to="/emergency"
           data-testid="nav-sos"
           data-print-hide
-          aria-label="Bantuan Darurat 24 Jam"
-          title="Bantuan Darurat 24 Jam"
+          aria-label="Bantuan darurat (SOS)"
+          title="Bantuan darurat (SOS)"
           // Small on phones so it never covers much of the page; full size from tablet up.
           className="fixed right-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-[950] flex h-12 w-12 animate-beacon flex-col items-center justify-center rounded-full bg-emergency font-label text-white shadow-float transition hover:-translate-y-0.5 hover:bg-emergency-dark sm:right-6 sm:bottom-6 sm:h-16 sm:w-16"
         >

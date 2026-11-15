@@ -26,10 +26,21 @@ test('first visit: SOS question, then the cookie notice; both remembered', async
   await page.getByTestId('cookie-accept').click();
   await expect(notice).toBeHidden();
 
+  // Then a pointer to the floating SOS button, sitting right above it.
+  const tip = page.getByTestId('sos-tip');
+  await expect(tip).toContainText('Ini tombol darurat');
+  const [tipBox, sosBox] = [await tip.boundingBox(), await page.getByTestId('nav-sos').boundingBox()];
+  expect(tipBox!.y + tipBox!.height).toBeLessThanOrEqual(sosBox!.y);
+  expect(tipBox!.x + tipBox!.width).toBeGreaterThanOrEqual(sosBox!.x + sosBox!.width / 2);
+  expect(await axe(page)).toEqual([]);
+  await page.getByTestId('sos-tip-close').click();
+  await expect(tip).toBeHidden();
+
   await page.reload();
   await page.locator('main').waitFor();
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.getByTestId('cookie-notice')).toBeHidden();
+  await expect(page.getByTestId('sos-tip')).toBeHidden();
 });
 
 test('"Mobil mogok" opens the SOS flow with Mobil chosen', async ({ page }) => {
