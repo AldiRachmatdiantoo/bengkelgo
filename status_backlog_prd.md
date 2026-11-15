@@ -179,7 +179,7 @@ Permintaan tim: semua bengkel punya foto, dan data demo diganti bengkel asli dar
 
 | # | Bagian | Isi | Status |
 |---|---|---|---|
-| 1 | Foto ilustrasi | 20 bengkel demo (pemilik `@bengkelgo.test`) yang belum punya foto mendapat satu foto sampul dari 10 foto bengkel motor/mobil Unsplash (lisensi Unsplash, sumber per foto di `backend/assets/demo-photos/SOURCES.md`). Foto ikut di image API, dipasang oleh migrasi `011_demo_photos.sql` saat boot, dan tidak bisa terhapus lewat hapus foto. Setiap tampilan (kartu, daftar beranda, galeri detail, halaman foto pemilik) memberi label **Foto ilustrasi** supaya tidak dikira foto bengkel itu | 🟡 siap, belum dipush |
+| 1 | Foto ilustrasi | 20 bengkel demo (pemilik `@bengkelgo.test`) yang belum punya foto mendapat satu foto sampul dari 10 foto bengkel motor/mobil Unsplash (lisensi Unsplash, sumber per foto di `backend/assets/demo-photos/SOURCES.md`). Foto ikut di image API, dipasang oleh migrasi `011_demo_photos.sql` saat boot, dan tidak bisa terhapus lewat hapus foto. Setiap tampilan (kartu, daftar beranda, galeri detail, halaman foto pemilik) memberi label **Foto ilustrasi** supaya tidak dikira foto bengkel itu | ✅ live 15 Nov |
 | 2 | Bengkel asli dari Google Maps | Tidak dikerjakan: menyalin data dan foto Google Maps melanggar ketentuan Google dan hak cipta pemilik foto, dan menampilkan bengkel yang belum mendaftar sebagai mitra menyesatkan pelanggan (pesanan dan SOS tidak akan dijawab). Jalan yang benar: bengkel mendaftar sendiri lewat Gabung Mitra | ⛔ tidak dikerjakan |
 | 3 | Hapus data demo produksi | Ditunda atas keputusan tim; data demo tetap ada sampai ada cukup mitra asli | ⏸ ditunda |
 
