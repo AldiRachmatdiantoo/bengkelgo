@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { cx, Icon } from './index';
 
 export type RadarMode = 'scan' | 'workshops' | 'sos' | 'dim';
@@ -11,17 +12,36 @@ const PINS = [
   { angle: 268, r: 0.3 },
   { angle: 318, r: 0.72 },
 ];
+/** In `sos` mode the workshop at this pin drives to the broken-down vehicle in the middle. */
+const RESPONDER = PINS[0];
 
 const SWEEP_SECONDS = 4;
 
+function point(angle: number, r: number, size: number) {
+  const rad = (angle * Math.PI) / 180;
+  return { x: size / 2 + r * (size / 2) * Math.sin(rad), y: size / 2 - r * (size / 2) * Math.cos(rad) };
+}
+
+/** Street-like route (right angles, as a map app draws it) from the responder pin to the edge of the centre badge. */
+function routePath(size: number) {
+  const c = size / 2;
+  const s = point(RESPONDER.angle, RESPONDER.r, size);
+  const turnY = s.y + (c - s.y) * 0.45;
+  const laneX = c + size * 0.12;
+  const stop = c + 24; // centre badge is 44 px wide
+  return `M ${s.x.toFixed(1)} ${s.y.toFixed(1)} L ${s.x.toFixed(1)} ${turnY.toFixed(1)} L ${laneX.toFixed(1)} ${turnY.toFixed(1)} L ${laneX.toFixed(1)} ${c} L ${stop} ${c}`;
+}
+
 /**
- * Radar of nearby workshops, drawn in the map's dark green: rings, a rotating sweep and pins that
- * light up as the sweep passes them. `workshops` turns the pins into workshop badges, `sos` paints
- * the sweep orange and marks the 5 km ring. CSS only; the sweep stops under reduced motion.
+ * Radar of nearby workshops, drawn in the map's dark green: rings, a rotating sweep and pins that light up as the
+ * sweep passes them, around a broken-down motorbike/car. `workshops` turns the pins into workshop badges; `sos` paints
+ * the sweep red, marks the 5 km ring and shows one workshop driving to the vehicle along a route, like a map app.
+ * CSS only; everything holds still under reduced motion.
  */
 export default function Radar({ mode = 'scan', size = 280, className }: { mode?: RadarMode; size?: number; className?: string }) {
   const sos = mode === 'sos';
   const accent = sos ? 'var(--color-emergency)' : 'var(--color-primary)';
+  const route = routePath(size);
   return (
     <div
       aria-hidden
@@ -47,11 +67,20 @@ export default function Radar({ mode = 'scan', size = 280, className }: { mode?:
         <span className="absolute inset-0 rounded-full shadow-[inset_0_0_40px_rgb(0_0_0/0.6)]" />
       </div>
 
+      {/* SOS: the route is drawn in when the mode starts, dark casing under a bright line like a map app */}
+      {sos && (
+        <svg className="absolute inset-0" width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
+          <path d={route} stroke="#0b120c" strokeWidth={9} strokeLinecap="round" strokeLinejoin="round" pathLength={1} className="radar-route" />
+          <path d={route} stroke="var(--color-primary)" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" pathLength={1} className="radar-route" />
+        </svg>
+      )}
+
       {PINS.map((p) => {
-        const rad = (p.angle * Math.PI) / 180;
+        if (sos && p === RESPONDER) return null;
+        const at = point(p.angle, p.r, size);
         const style = {
-          left: `${50 + p.r * 50 * Math.sin(rad)}%`,
-          top: `${50 - p.r * 50 * Math.cos(rad)}%`,
+          left: at.x,
+          top: at.y,
           // negative delay: each pin is already in phase with the sweep on first paint
           animationDelay: `${(p.angle / 360) * SWEEP_SECONDS - SWEEP_SECONDS}s`,
         };
@@ -64,8 +93,29 @@ export default function Radar({ mode = 'scan', size = 280, className }: { mode?:
         );
       })}
 
-      {/* you are here */}
-      <span className={cx('absolute top-1/2 left-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full ring-4', sos ? 'bg-emergency ring-emergency/30' : 'bg-ink ring-primary/30')} />
+      {/* SOS: the responding workshop drives along the route to the vehicle */}
+      {sos && (
+        <span
+          className="radar-drive absolute top-0 left-0 grid h-8 w-8 place-items-center rounded-lg border-2 border-[#0b120c] bg-primary text-on-primary shadow-float"
+          style={{ offsetPath: `path('${route}')` } as CSSProperties}
+        >
+          <Icon name="home_repair_service" filled className="text-[18px]" />
+        </span>
+      )}
+
+      {/* the broken-down vehicle: motorbike and car take turns, with a warning badge */}
+      <span
+        className={cx(
+          'absolute top-1/2 left-1/2 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 transition-colors duration-700',
+          sos ? 'border-emergency-ink bg-emergency text-white' : 'border-emergency/70 bg-surface-high text-ink',
+        )}
+      >
+        <Icon name="two_wheeler" className="radar-swap absolute text-[22px]" />
+        <Icon name="directions_car" className="radar-swap radar-swap-b absolute text-[22px]" />
+        <span className="absolute -top-1.5 -right-1.5 grid h-5 w-5 place-items-center rounded-full bg-[#172219]">
+          <Icon name="warning" filled className="text-[16px] text-[#ffb547]" />
+        </span>
+      </span>
 
       {sos && <span className="absolute top-[3%] left-1/2 -translate-x-1/2 rounded-md bg-emergency px-1.5 py-0.5 text-[11px] font-bold text-white">5 km</span>}
     </div>
