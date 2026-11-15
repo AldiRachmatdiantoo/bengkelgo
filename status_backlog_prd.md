@@ -157,7 +157,7 @@ Usulan tim 15 Nov: formulir panjang satu halaman membingungkan, jadi isian dipec
 | 1 | Komponen langkah (`components/ui/steps.tsx`: langkah di URL `?langkah=`, penanda "Langkah n dari m", fokus ke judul langkah, draft per tab, baris ringkasan dengan "Ubah") + **alur darurat**: Lokasi (GPS jalan sendiri bila izin lokasi sudah diberikan) → Bengkel terdekat (dipindai otomatis, pilih motor/mobil di sini) → Kendaraan (hanya bila ada kendaraan tersimpan sejenis) → Keluhan → Kontak (dilewati bila sudah masuk dan punya nomor) → Periksa & kirim. Tamu 5 langkah, pelanggan tanpa kendaraan tersimpan 4 langkah. Data yang dikirim ke backend sama. Tes E2E SOS disesuaikan (journeys, backlog-features, cross-browser) | ✅ live 15 Nov |
 | 2 | Alur booking + halaman profil bengkel terpisah | ⏳ |
 | 3 | Pembayaran 2 langkah | ⏳ |
-| 4 | **Daftar mitra** 5 langkah: Akun pemilik → Data bengkel (nama, telepon, kendaraan yang dilayani, deskripsi) → Jam & kapasitas → Lokasi (peta + alamat) → Periksa & kirim. Draft tersimpan per tab kecuali password (tidak pernah disimpan; setelah muat ulang diminta lagi). Juga diperbaiki: komponen langkah tidak lagi menulis `?langkah=` ke halaman tujuan setelah berhasil kirim. Tes E2E journey 2 dan place-search disesuaikan | ✅ branch `landing-globe`, belum di-push |
+| 4 | **Daftar mitra** 5 langkah: Akun pemilik → Data bengkel (nama, telepon, kendaraan yang dilayani, deskripsi) → Jam & kapasitas → Lokasi (peta + alamat) → Periksa & kirim. Draft tersimpan per tab kecuali password (tidak pernah disimpan; setelah muat ulang diminta lagi). Juga diperbaiki: komponen langkah tidak lagi menulis `?langkah=` ke halaman tujuan setelah berhasil kirim. Tes E2E journey 2 dan place-search disesuaikan | ✅ live 15 Nov |
 | 5 | Tes E2E lainnya, baseline visual, deploy | ⏳ |
 
 ## Sambutan di beranda (15 Nov 2026)
@@ -166,8 +166,8 @@ Permintaan tim: beranda terasa sepi kalau pengunjung langsung disuguhi landing p
 
 | # | Bagian | Isi | Status |
 |---|---|---|---|
-| 1 | Pertanyaan darurat | Modal "Kendaraan Anda mogok sekarang?" saat membuka beranda: **Motor mogok** / **Mobil mogok** langsung membuka alur darurat dengan jenis kendaraan terpilih, atau "Tidak, saya mau lihat-lihat dulu". Muncul lagi setelah 12 jam; tidak muncul untuk pemilik bengkel dan admin | ✅ branch `landing-globe`, belum di-push |
-| 2 | Pemberitahuan cookie | Muncul setelah pertanyaan darurat ditutup, sekali per browser. Isinya jujur: BengkelGo hanya memakai cookie login (wajib agar tetap masuk), tanpa cookie iklan atau pelacak, dengan tautan kebijakan privasi. Tidak ada tombol "tolak" karena tidak ada cookie opsional yang bisa ditolak; bila nanti ada analitik, pemberitahuan ini perlu diganti dengan pilihan setuju/tolak | ✅ branch `landing-globe`, belum di-push |
+| 1 | Pertanyaan darurat | Modal "Kendaraan Anda mogok sekarang?" saat membuka beranda: **Motor mogok** / **Mobil mogok** langsung membuka alur darurat dengan jenis kendaraan terpilih, atau "Tidak, saya mau lihat-lihat dulu". Muncul lagi setelah 12 jam; tidak muncul untuk pemilik bengkel dan admin | ✅ live 15 Nov |
+| 2 | Pemberitahuan cookie | Muncul setelah pertanyaan darurat ditutup, sekali per browser. Isinya jujur: BengkelGo hanya memakai cookie login (wajib agar tetap masuk), tanpa cookie iklan atau pelacak, dengan tautan kebijakan privasi. Tidak ada tombol "tolak" karena tidak ada cookie opsional yang bisa ditolak; bila nanti ada analitik, pemberitahuan ini perlu diganti dengan pilihan setuju/tolak | ✅ live 15 Nov |
 
 Tes: `e2e/welcome-prompts.spec.ts` (urutan, fokus, Escape, aksesibilitas, jenis kendaraan terbawa ke SOS). Tes lain mulai sebagai pengunjung lama (`storageState` di `playwright.config.ts`) supaya tidak tertutup modal.
 
