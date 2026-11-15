@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { apiAsset, statsApi, workshopApi } from '@/services/api/endpoints';
 import { useAuth } from '@/services/auth/AuthProvider';
+import { WelcomePrompts } from '@/components/layout/WelcomePrompts';
 import type { Workshop } from '@/services/api/types';
 import { StarRow } from '@/components/workshop/WorkshopComponents';
 import { Icon, Segmented, cx, SkeletonList } from '@/components/ui';
@@ -63,6 +64,7 @@ export default function HomePage() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col">
       {/* ------------------------------------------------ scroll radar hero */}
+      <WelcomePrompts />
       <ScrollRadar sections={heroSections(user?.name.split(' ')[0])} />
 
       {/* Everything below follows the radar sections: lime badge, big left-aligned heading, muted body,

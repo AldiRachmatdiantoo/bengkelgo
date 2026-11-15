@@ -33,6 +33,20 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     locale: 'id-ID',
     timezoneId: 'Asia/Jakarta',
+    // The landing page asks "Kendaraan Anda mogok sekarang?" and shows a cookie notice on a first visit. Tests start
+    // as a returning visitor; e2e/welcome-prompts.spec.ts covers both prompts.
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: `http://localhost:${PORT}`,
+          localStorage: [
+            { name: 'bengkelgo:sos-asked', value: '9999999999999' },
+            { name: 'bengkelgo:cookie-notice', value: '1' },
+          ],
+        },
+      ],
+    },
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },

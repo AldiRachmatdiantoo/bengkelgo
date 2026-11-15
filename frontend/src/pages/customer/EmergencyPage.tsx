@@ -34,6 +34,8 @@ type Draft = {
   vehicle: VehicleType;
   /** The customer chose Motor/Mobil (or a saved vehicle) themself, so saved vehicles no longer override it. */
   vehicleTouched: boolean;
+  /** A vehicle card (or "Motor/Mobil lain") was tapped, so no saved vehicle is picked automatically any more. */
+  vehiclePicked: boolean;
   vehicleId: string;
   plate: string;
   category?: ProblemCategory;
@@ -47,6 +49,7 @@ const EMPTY: Draft = {
   addressNote: '',
   vehicle: 'MOTOR',
   vehicleTouched: false,
+  vehiclePicked: false,
   vehicleId: '',
   plate: '',
   problem: '',
@@ -63,7 +66,7 @@ export default function EmergencyPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   // Prefill from the landing page (location + chosen problem).
-  const prefill = (useLocation().state as { position?: LatLng | null; problem?: string } | null) ?? {};
+  const prefill = (useLocation().state as { position?: LatLng | null; problem?: string; vehicle?: VehicleType } | null) ?? {};
   const geo = useGeolocation();
   const [draft, update, clearDraft] = useStepDraft<Draft>('sos-draft', EMPTY);
   const [tried, setTried] = useState<StepId | null>(null);
@@ -74,6 +77,8 @@ export default function EmergencyPage() {
 
   // Arrival: landing prefill wins over the draft; then the GPS runs by itself if the browser already allows it.
   useEffect(() => {
+    // "Motor mogok" / "Mobil mogok" from the landing page question.
+    if (prefill.vehicle) update({ vehicle: prefill.vehicle, vehicleTouched: true, vehiclePicked: false, vehicleId: '', plate: '' });
     if (prefill.problem) update({ problem: prefill.problem, category: PROBLEMS.find((p) => p.text === prefill.problem)?.category });
     const start = prefill.position ?? draft.position;
     if (start) geo.setPosition(start);
@@ -91,11 +96,13 @@ export default function EmergencyPage() {
     if (geo.position) update({ position: geo.position });
   }, [geo.position, update]);
 
-  // A saved vehicle sets the type until the customer picks one themself.
+  // A saved vehicle is picked for the customer: the first one, or the first of the type they chose, until they tap
+  // a vehicle card themself.
   useEffect(() => {
-    const first = vehicles.data?.[0];
-    if (first && !draft.vehicleTouched && !draft.vehicleId) update({ vehicle: first.vehicle_type, vehicleId: first.id, plate: first.plate ?? '' });
-  }, [vehicles.data, draft.vehicleTouched, draft.vehicleId, update]);
+    if (!vehicles.data || draft.vehiclePicked || draft.vehicleId) return;
+    const v = draft.vehicleTouched ? vehicles.data.find((x) => x.vehicle_type === draft.vehicle) : vehicles.data[0];
+    if (v) update({ vehicle: v.vehicle_type, vehicleId: v.id, plate: v.plate ?? '' });
+  }, [vehicles.data, draft.vehiclePicked, draft.vehicleTouched, draft.vehicleId, draft.vehicle, update]);
 
   // The draft's point counts on the first render too (geo picks it up in an effect), so a refresh stays on its step.
   const position = geo.position ?? draft.position;
@@ -328,7 +335,7 @@ export default function EmergencyPage() {
             <OptionCard
               key={v.id}
               checked={draft.vehicleId === v.id}
-              onSelect={() => update({ vehicleId: v.id, plate: v.plate ?? '', vehicleTouched: true })}
+              onSelect={() => update({ vehicleId: v.id, plate: v.plate ?? '', vehicleTouched: true, vehiclePicked: true })}
               title={vehicleName(v)}
               description={v.plate || undefined}
               data-testid="sos-vehicle-option"
@@ -336,7 +343,7 @@ export default function EmergencyPage() {
           ))}
           <OptionCard
             checked={!draft.vehicleId}
-            onSelect={() => update({ vehicleId: '', plate: '', vehicleTouched: true })}
+            onSelect={() => update({ vehicleId: '', plate: '', vehicleTouched: true, vehiclePicked: true })}
             title={`${draft.vehicle === 'MOBIL' ? 'Mobil' : 'Motor'} lain`}
             description="Isi platnya di bawah (opsional)"
             data-testid="sos-vehicle-other"

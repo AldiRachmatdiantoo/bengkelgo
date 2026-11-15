@@ -160,6 +160,17 @@ Usulan tim 15 Nov: formulir panjang satu halaman membingungkan, jadi isian dipec
 | 4 | Daftar mitra 5 langkah | ⏳ |
 | 5 | Tes E2E lainnya, baseline visual, deploy | ⏳ |
 
+## Sambutan di beranda (15 Nov 2026)
+
+Permintaan tim: beranda terasa sepi kalau pengunjung langsung disuguhi landing page.
+
+| # | Bagian | Isi | Status |
+|---|---|---|---|
+| 1 | Pertanyaan darurat | Modal "Kendaraan Anda mogok sekarang?" saat membuka beranda: **Motor mogok** / **Mobil mogok** langsung membuka alur darurat dengan jenis kendaraan terpilih, atau "Tidak, saya mau lihat-lihat dulu". Muncul lagi setelah 12 jam; tidak muncul untuk pemilik bengkel dan admin | ✅ branch `landing-globe`, belum di-push |
+| 2 | Pemberitahuan cookie | Muncul setelah pertanyaan darurat ditutup, sekali per browser. Isinya jujur: BengkelGo hanya memakai cookie login (wajib agar tetap masuk), tanpa cookie iklan atau pelacak, dengan tautan kebijakan privasi. Tidak ada tombol "tolak" karena tidak ada cookie opsional yang bisa ditolak; bila nanti ada analitik, pemberitahuan ini perlu diganti dengan pilihan setuju/tolak | ✅ branch `landing-globe`, belum di-push |
+
+Tes: `e2e/welcome-prompts.spec.ts` (urutan, fokus, Escape, aksesibilitas, jenis kendaraan terbawa ke SOS). Tes lain mulai sebagai pengunjung lama (`storageState` di `playwright.config.ts`) supaya tidak tertutup modal.
+
 **Yang tersisa tanpa tim:** alur bertahap tahap 2–5 (di atas), baseline visual regression, dan memperbarui branch `tugas-appservice`. Sisanya butuh tindakan, izin, keputusan, atau konten (tabel di atas).
 
 **Tidak bisa diselesaikan di laptop ini:** tes Firefox (build Firefox Playwright gagal dijalankan, masalah runtime Windows).
